@@ -17,8 +17,8 @@ timer on 1
 // There is a CPRD file that contains only patid and their indexdate...this is our studyentrydate.
 // Use this file to merge with other CPRD data files and drop observations that are >365 days before this date.
 
-/*************************ELIGIBILITY*************************/
-//Linkage Eligibility: patid, pracid, linked_patient, hes_e, death_e, cprd_e, lsoa_e, start, end
+/*************************LINKAGE*************************/
+//Linkage Eligibility + Coverage: patid, pracid, linked_patient, hes_e, death_e, cprd_e, lsoa_e, start, end
 import delimited "13_100_linkage_eligibility.txt"
 drop if patid==.
 gen cprd_e = .
@@ -431,10 +431,10 @@ clear
 import delimited PET_`file'.txt
 label variable patid "Patient identifier"
 //create and label date variable to change from string to numerical format
-gen eventdate2=date(eventdate, "DMY")
-format eventdate2 %td
+gen rxdate2=date(eventdate, "DMY")
+format rxdate2 %td
 drop eventdate
-label variable eventdate2 "Prescription date"
+label variable rxdate2 "Prescription date"
 //continue to label variables
 label variable consid "Consultation identifier"
 label variable prodcode "Product (treatment) code"
@@ -453,7 +453,7 @@ sort patid
 merge m:1 patid using BasePatidDate, keep(match) nogen
 compress
 //restrict to 1 year prior to studyentrydate_cprd2
-drop if eventdate2<studyentrydate_cprd2-365
+drop if rxdate2<studyentrydate_cprd2-365
 save `file'.dta, replace
 }
 clear
