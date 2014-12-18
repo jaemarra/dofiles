@@ -11,7 +11,7 @@ set more off
 log using Data03test.smcl, replace
 timer on 1
 
-forval i=0/10 {
+forval i=0/99 {
 	use Therapy_`i', clear	 
 ////// #1 make labels case-consistent
 // create new variable "productname_1" as the lowercase version of "productname"
