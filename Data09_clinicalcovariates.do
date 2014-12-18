@@ -153,8 +153,8 @@ replace nr_data = nr_alcohol if covtype==5
 // Based on readcode and icd variables
 
 // Myocardial infarction
-// readcode source: Delaney, BMC Cardiovascular Disorders, 2007 (Additional File 1)
-// ICD-10 source: Quan, Med Care, 2005 (Table 1)
+// readcode source: Delaney, BMC Cardiovascular Disorders, 2007 (Additional File 1) --CPRD Diagnostic Codes.xlsx
+// ICD-10 source: Quan, Med Care, 2005 (Table 1) --CPRD Diagnostic Codes.xlsx
 //CPRD_GOLD
 gen myoinfarct_covar_g = 0
 replace myoinfarct_covar_g = 1 if regexm(readcode, "323..00|G30X.00|G361.00|G361.00|G362.00|G362.00|4100N|4109TE|4109TM|4119N|14A4.00|3234|G304.00|G308.00|G30y200|G366.00|G366.00|4129MC|4140|G307.00|G34y100|G360.00|G360.00|G305.00|4109CR|4129N|G30..15|G300.00|G344.00|G38..00|4129RE|G302.00|G303.00|4109TL|3235|G301.00|G301000|G31y200|G5y1.00|322..00|322Z.00|G30..17|4149|14A3.00|G381.00|G306.00|G30..00|G30z.00|G32..12|G350.00|4100NA|4109CL|4109N|4109NA|4109NH|4129AM|4109NC|4129NS")
@@ -170,15 +170,15 @@ label variable myoinfarct_covar_all "Myocardial infarction (covar) (all) 1=event
 replace covtype=6 if myoinfarct_covar_all==1
 
 // Stroke
-// readcode source: most from Lo Re, PDS, 2012 (Supplemental Appendix B) -- final 12 (OXMIS codes??) from unknown source
-// ICD-10 source for cerebrovascular disease: Quan, Med Care, 2005 (Table 1), modified to include only hemmorage or infarction
+// readcode source: most from Lo Re, PDS, 2012 (Supplemental Appendix B) -- final 12 (OXMIS codes??) from unknown source -- CPRD Diagnostic Codes.xlsx
+// ICD-10 source for cerebrovascular disease: Quan, Med Care, 2005 (Table 1), modified to include only hemmorage or infarction -- CPRD Diagnostic Codes.xlsx
 //CPRD GOLD
 gen stroke_covar_g = 0
-replace stroke_covar_g = 1 if regexm(readcode, "G61..00|G61..11|G61..12|G610.00|G611.00|G612.00|G613.00|G614.00|G615.00|G616.00|G617.00|G618.00|G61X.00|G61X000|G61X100|G61z.00|G63..11|G631.12|G63y000|G64..11|G64..12|G64..13|G640.00|G640000|G64z.00|G64z200|G64z300|G66..00|G66..11|G66..12|G66..13|G667.00|G668.00|G6W..00|G6X..00|Gyu6200|Gyu6300|Gyu6400|Gyu6500|Gyu6600|Gyu6E00|Gyu6F00|Gyu6G00|G31y.00|4369b|1477|4310|4389|4309m|4380|8520m|4300|4309|4350|8520a|4319cr")
+replace stroke_covar_g = 1 if regexm(readcode, "I11.0|I21.?|I22.?|I23.?|I24.?|I25.?|I26.?|I40.?|I42.?|I44.?|I45.?|I46.?|I46.1|I47.?|I48.?|I49.?|I50.?|I60.?|I61.?|I62.?|I63.?|I64.?|I65.?|I66.?|I67.0|I67.6|I67.7|I69.?|I70.0|I81|I82.0|I82.3|I82.4x|I82.60|I82.62|I82.A1x|I82.B1x|I82.C1x|I82.890|I82.90")
 label variable stroke_covar_g "Stroke (covar) (gold) 1=event 0=noevent"
 //HES
 gen stroke_covar_h = 0
-replace stroke_covar_h = 1 if regexm(icd, "G45.?|G46.?|H34.0|I60.?ÐI64.?")
+replace stroke_covar_h = 1 if regexm(icd, "H34.1| I60.?| I61.?| I63.?|I64.?")
 label variable stroke_covar_h "Stroke (covar) (hes) 1=event 0=noevent"
 //ALL
 gen stroke_covar_all = 1 if stroke_covar_g==1|stroke_covar_h==1
@@ -187,11 +187,11 @@ label variable stroke_covar_all "Stroke (covar) (all) 1=event 0=noevent"
 replace covtype=7 if stroke_covar_all ==1
 
 // Heart failure
-// readcode source: Tzoulaki, BMJ, 2009 (Supplemental Appendix Table 2)
-// ICD-10 sourece: Gamble 2011 CircHF (Supplemental- Appendix 1)
+// readcode source: Tzoulaki, BMJ, 2009 (Supplemental Appendix Table 2) CPRD Diagnostic Codes.xlsx
+// ICD-10 sourece: Gamble 2011 CircHF (Supplemental- Appendix 1) CPRD Diagnostic Codes.xlsx
 //CPRD GOLD
 gen heartfail_covar_g = 0
-replace heartfail_covar_g = 1 if regexm(readcode, "G210100|G211100|G21z011|G21z100|G232.00|G234.00|G58..00|G58..11|G580.00|G580.11|G580.12|G580.13|G580.14|G580000|G580100|G580200|G580300|G581.00|G581.11|G581.12|G581.13|G581000|G582.00|G58z.00|G58z.12|G5yy900|G5yyA00")
+replace heartfail_covar_g = 1 if regexm(readcode, "G580.00|G58..00|G58z.00|8HBE.00|662T.00|662W.00|1O1..00|9Or..00|9Or3.00|662p.00|9Or4.00|9Or0.00|8CL3.00|67D4.00|679X.00|G580400|9Or5.00|9Or2.00|9Or1.00")
 label variable heartfail_covar_g "Heart failure (covar) (gold) 1=event 0=noevent"
 //HES
 gen heartfail_covar_h = 0
@@ -204,15 +204,15 @@ label variable heartfail_covar_all "Heart failure (covar) (all) 1=event 0=noeven
 replace covtype=8 if heartfail_covar_all ==1
 
 // Cardiac arrhythmia
-// readcode source: Huerta, Epidemiology, 2005 (ArticlePlus) (this paper ID'd from Khan systematic review)
-// ICD-10 source:
+// readcode source: Huerta, Epidemiology, 2005 (ArticlePlus) CPRD Diagnostic Codes.xlsx
+// ICD-10 source: CPRD Diagnostic Codes.xlsx
 //CPRD GOLD
 gen arrhythmia_covar_g = 0
-replace arrhythmia_covar_g = 1 if regexm(readcode, "G57..00|G570.00|G570000|G570100|G570200|G570300|G570z00|G571.00|G57..11|G571.11|G572.00|G572000|G572100|G572z00|G573.00|G573000|G573100|G573200|G573z00|G574.00|G574000|G574011|G574100|G574z00|G576.00|G576000|G576011|G576100|G576.11|G576200|G576300|G576400|G576500|G576z00|G577.00|G57y.00|G57y.14|G57y500|G57y600|G57y700|G57y900|G57yA00|G57yz00|G57z.00|G5yy500|Gyu5A00|R050.00|R050.11|2426|2427|243..11|2432|24B8.00|327..00|328..00|328Z.00|3264|3272|3273|3274|3282|7936A00")
+replace arrhythmia_covar_g = 1 if regexm(readcode, "4279EA|4272D|G575.00|SP11000|G575000|G575z00|G574011,7L1H.13|K3093|328|328Z.00|3283|3282|2241|G571.00|G57yA00|4279AC|G575100|4279E|G574000|G574.00|G574z00|4279GL|G574100|G571.11|4279HV")
 label variable arrhythmia_covar_g "Cardiac arrhythmia (covar) (gold) 1=event 0=noevent"
 //HES
 gen arrhythmia_covar_h = 0
-//replace arrhythmia_covar_h = 1 if regexm(icd, "")
+replace arrhythmia_covar_h = 1 if regexm(icd, "I44.1|I44.2|I44.3|I45.6|I45.9|I46.X|I47.X|I48.X|I49.X|R00.0|R00.1|R00.8|T82.1|Z45.0|Z95.0|")
 label variable arrhythmia_covar_h "Cardiac arrhythmia (covar) (hes) 1=event 0=noevent"
 
 gen arrhythmia_covar_all = 1 if arrhythmia_covar_g==1|arrhythmia_covar_h==1
@@ -221,15 +221,15 @@ label variable arrhythmia_covar_all "Cardiac arrhythmia (covar) (all) 1=event 0=
 replace covtype=9 if arrhythmia_covar_all ==1
 
 // Angina (part of coronary artery disease, coded below) **?? just use CAD?
-// readcode source:
-// ICD-10 source:
+// readcode source: CPRD Diagnostic Codes.xlsx
+// ICD-10 source: CPRD Diagnostic Codes.xlsx
 //CPRD GOLD
 gen angina_covar_g = 0
-replace angina_covar_g = 1 if regexm(readcode, "" ")
+replace angina_covar_g = 1 if regexm(readcode, ("G33..00|662K000|662K.00|G311.13|12C..14|14A5.00|G311100|12C2.13|388F.00|12C3.13|G33zz00|1226.11|G33z300|G33z.00|G311.11|G33z700|662K300|388E.00|12CL.00|G311400|12CM.00|G330.00|662K100|662K200|A740.00|662Kz00|G311200|12CG.00|12CH.00|12CE.00|AA1..00|12CF.00|G311.14|G331.00|ZR3P.11|G33z600|J083300|G330000|G33z500|ZR37.00|G311300|G331.11|14AJ.00|J421.11|8B27.00|ZR3P.00|AA1z.00|G330z00|J08zD00|3889|A340000|Gyu3000|ZRB1.00")
 label variable angina_covar_g "Angina (covar) (gold) 1=event 0=noevent"
 //HES
 gen angina_covar_h = 0
-replace angina_covar_h = 1 if regexm(icd, "" ")
+replace angina_covar_h = 1 if regexm(icd, "I20.?")
 label variable angina_covar_h "Angina (covar) (hes) 1=event 0=noevent"
 //ALL
 gen angina_covar_all = 1 if angina_covar_g==1|angina_covar_h==1
@@ -239,19 +239,19 @@ replace covtype=10 if angina_covar_all ==1
 
 // CV procedures/urgent revascularization==CV procedures
 // readcode source: Lo Re, PDS, 2012 (Supplemental Appendix B)
-// ICD-10 source:
-// OPCS source: 
+// ICD-10 source: CPRD Diagnostic Codes.xlsx
+// OPCS source: CPRD Diagnostic Codes.xlsx
 //CPRD GOLD
 gen revasc_covar_g = 0
-replace revasc_covar_g = 1 if regexm(readcode, "792..00|792..11|7920|7920.11|7920000|7920100|7920200|7920300|7920y00|7920z00|7921|7921.11|7921000|7921100|7921200|7921300|7921y00|7921z00|7922|7922.11|7922000|7922100|7922200|7922300|7922y00|7922z00|7923|7923.11|7923000|7923100|7923200|7923300|7923y00|7923z00|7924|7924000|7924100|7924200|7924300|7924400|7924500|7924y00|7924z00|7925|7925.11|7925000|7925011|7925012|7925100|7925200|7925300|7925311|7925312|7925400|7925y00|7925z00|7926|7926000|7926100|7926200|7926300|7926y00|7926z00|7927|7927200|7927300|7927y00|7927z00|792B.00|792C.00|792C000|792Cy00|792Cz00|792D.00|792Dy00|792Dz00|792y.00|SP00300|7927000|7927100|7927400|7927500|7928|7928.11|7928000|7928100|7928200|7928300|7928y00|7928z00|7929|7929000|7929100|7929111|7929200|7929300|7929400|7929500|7929600|7929y00|7929z00|792A.00|792A000|792B000|792B100|792By00|792Bz00|792z.00|7A1A000|7A54000|7A6G100|SP01200|7A20.00|7A20000|7A20100|7A20200|7A20300|7A20311|7A20400|7A20500|7A20600|7A20700|7A20y00|7A20z00|7A22.00|7A22000|7A22100|7A22200|7A22300|7A22y00|7A22z00")
+replace revasc_covar_g = 1 if regexm(readcode, "792..00|792..11|7920.00|7920.11|7920000|7920100|7920200|7920300|7920y00|7920z00|7921.00|7921.11|7921000|7921100|7921200|7921300|7921y00|7921z00|7922.00|7922.11|7922000|7922100|7922200|7922300|7922y00|7922z00|7923.00|7923.11|7923000|7923100|7923200|7923300|7923y00|7923z00|7924.00|7924000|7924100|7924200|7924300|7924400|7924500|7924y00|7924z00|7925.00|7925.11|7925000|7925011|7925012|7925100|7925200|7925300|7925311|7925312|7925400|7925y00|7925z00|7926.00|7926000|7926100|7926200|7926300|7926y00|7926z00|7927.00|7927200|7927300|7927y00|7927z00|792b.00|792c.00|792c000|792Cy00|792Cz00|792d.00|792Dy00|792Dz00|792y.00|Sp00300|7927000|7927100|7927400|7927500|7928.00|7928.11|7928000|7928100|7928200|7928300|7928y00|7928z00|7929.00|7929000|7929100|7929111|7929200|7929300|7929400|7929500|7929600|7929y00|7929z00|792a.00|792a000|792b000|792b100|792By00|792Bz00|792z.00|7a1a000|7a54000|7a6g100|Sp01200|7a20.00|7a20000|7a20100|7a20200|7a20300|7a20311|7a20400|7a20500|7a20600|7a20700|7a20y00|7a20z00|7a22.00|7a22000|7a22100|7a22200|7a22300|7a22y00|7a22z00")
 label variable revasc_covar_g "Urgent revascularization (covar)/CV procedure (gold) 1=event 0=noevent"
 //HES
 gen revasc_covar_h = 0
-replace revasc_covar_h = 1 if regexm(icd, "")
+replace revasc_covar_h = 1 if regexm(icd, "K40|K401|K402|K403|K404|K408|K409|K41|K411|K412|K413|K414|K418|K419|K42|K421|K422|K423|K424|K428|K429|K43|K431|K432|K433|K434|K438|K439|K44|K441|K442|K448|K449|K45|K451|K452|K453|K454|K455|K456|K458|K459|K46|K461|K462|K463|K464|K465|K468|K469|K47|K471|K472|K473|K474|K475|K478|K479|K48|K481|K482|K483|K484|K488|K489|K49|K491|K492|K493|K494|K498|K499|K50|K501|K502|K503|K504|K508|K509")
 label variable revasc_covar_h "Urgent revascularization (covar)/CV procedure (hes) 1=event 0=noevent"
 //OPCS
 gen revasc_covar_opcs = 0
-replace revasc_covar_opcs = 1 if regexm(icd, "")
+replace revasc_covar_opcs = 1 if regexm(icd, "K40|K401|K402|K403|K404|K408|K409|K41|K411|K412|K413|K414|K418|K419|K42|K421|K422|K423|K424|K428|K429|K43|K431|K432|K433|K434|K438|K439|K44|K441|K442|K448|K449|K45|K451|K452|K453|K454|K455|K456|K458|K459|K46|K461|K462|K463|K464|K465|K468|K469|K47|K471|K472|K473|K474|K475|K478|K479|K48|K481|K482|K483|K484|K488|K489|K49|K491|K492|K493|K494|K498|K499|K50|K501|K502|K503|K504|K508|K509")
 label variable revasc_covar_opcs "Urgent revascularization (covar)/CV procedure (opcs) 1=event 0=noevent"
 //ALL
 gen revasc_covar_all = 1 if revasc_covar_g==1|revasc_covar_h==1|revasc_covar_opcs==1
@@ -259,107 +259,56 @@ label variable revasc_covar_all "Urgent revascularization (covar)/CV procedure (
 //gen covtype
 replace covtype=11 if revasc_covar_all ==1
 
-// Mental disorders
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen mentaldis_g = 0
-replace mentaldis_g = 1 if regexm(readcode, " ")
-label variable mentaldis_g "Mental Disorders (gold) 1=event 0=no event"
-//HES
-gen mentaldis_h = 0
-replace mentaldis_h = 1 if regexm(icd, " ")
-label variable mentaldis_h "Mental Disorders (hes) 1=event 0=no event"
-//ALL
-gen mentaldis_all = 1 if mentaldis_g==1|mentaldis_h==1
-label variable mentaldis_all "Mental Disorders (all) 1=event 0=no event" 
-//gen covtype
-replace covtype=12 if mentaldis_all ==1
-
 // Hypertension
 // readcode source:
 // ICD-10 source:
 //CPRD GOLD
 gen hypertension_g = 0
-replace hypertension_g = 1 if regexm(readcode, " ")
+replace hypertension_g = 1 if regexm(readcode, "6627|6628|6629|6146200|1JD..00|662..12|662b.00|662c.00|662d.00|662F.00|662G.00|662O.00|662P.00|7Q01.00|7Q01000|7Q01100|7Q01200|7Q01300|8B26.00|8BL0.00|8CR4.00|8HT5.00|8I3N.00|9N03.00|9N1y200|9OI..00|9OI..11|9OI1.00|9OI2.00|9OIA.00|9OIA.11|F282.00|F404200|F421300|F450400|G2...00|G2...11|G20..00|G20..11|G200.00|G201.00|G202.00|G203.00|G20z.00|G20z.11|G21..00|G210.00|G210000|G210100|G211.00|G211000|G211100|G21z.00|G21z000|G21z011|G21z100|G21zz00|G22..00|G220.00|G221.00|G222.00|G22z.00|G22z.11|G23..00|G230.00|G231.00|G232.00|G233.00|G23z.00|G24..00|G240.00|G240000|G240z00|G241.00|G241000|G241z00|G244.00|G24z.00|G24z000|G24z100|G24zz00|G2y..00|G2z..00|G410.00|G41y000|G672.00|G672.11|G8y3.00|Gyu2.00|Gyu2100|J623.00|SLC6.00|SLC6z00|TJC7.00|TJC7z00|U60C511|U60C51A")
 label variable hypertension_g "Hypertension (gold) 1=event 0=no event"
 //HES
 gen hypertension_h = 0
-replace hypertension_h = 1 if regexm(icd, " ")
+replace hypertension_h = 1 if regexm(icd, "I11.?|I12.?|I13.?|I15.?")
 label variable hypertension_h "Hypertension (hes) 1=event 0=no event"
 //ALL
 gen hypertension_all = 1 if hypertension_g==1|hypertension_h==1
 label variable hypertension_all "Hypertension (all) 1=event 0=no event"
 //gen covtype
-replace covtype=13 if hypertension_all ==1
-
-// Coronary artery disease
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen cad_g = 0
-replace cad_g = 1 if regexm(readcode, " ")
-label variable cad_g "Coronary Artery Disease (gold) 1=event 0=no event"
-//HES
-gen cad_h = 0
-replace cad_h = 1 if regexm(icd, " ")
-label variable cad_h "Coronary Artery Disease (hes) 1=event 0=no event"
-//ALL
-gen cad_all = 1 if cad_g==1|cad_h==1
-label variable cad_all "Coronary Artery Disease (all) 1=event 0=no event"
-//gen covtype
-replace covtype=14 if cad_all ==1
+replace covtype=12 if hypertension_all ==1
 
 // Atrial fibrillation
 // readcode source:
 // ICD-10 source
 //CPRD GOLD
 gen afib_g = 0
-replace afib_g = 1 if regexm(readcode, " ")
+replace afib_g = 1 if regexm(readcode, "3274|G576300|7936900|G573100|14AR.00|793M100|3273|G573000|G573.00|G573200|662S.00|14AN.00|3272|G570000|9Os..00|6A9..00|9hF1.00|G573z00|9Os0.00|9hF..00|G573500|7936A00|9Os1.00|G573300|9Os2.00|G573400|9Os3.00|9Os4.00")
 label variable afib_g "Atrial Fibrillation (gold) 1=event 0=no event"
 //HES
 gen afib_h = 0
-replace afib_h = 1 if regexm(icd, " ")
+replace afib_h = 1 if regexm(icd, "I48.?")
 label variable afib_h "Atrial Fibrillation (hes) 1=event 0=no event"
 //ALL
 gen afib_all = 1 if afib_g==1|afib_h==1
 label variable afib_all "Atrial Fibrillation (all) 1=event 0=no event"
 //gen covtype
-replace covtype=15 if afib_all ==1
+replace covtype=13 if afib_all ==1
 
 // Peripheral vascular disease
 // readcode source:
 // ICD-10 source:
 //CPRD GOLD
 gen pervascdis_g = 0
-replace pervascdis_g = 1 if regexm(readcode, " ")
+replace pervascdis_g = 1 if regexm(readcode, "G73zz00|G73z.00|G73..00|G73yz00|7A4B000|7A48z00|7A44000|7A48.14|7A12100|7A48.00|7A4B100|7A48.15|G76z000|7A48000|7A48200|G74y300|7A12300|7A41.00|7A47.16|7A48y00|7A28000|7A41100|G73y.00|7A47.14|7A48600|7A47.00|7A48C00|7A26000|7A48D00|7A48300|7A28100|7A41300|7A48400|7A26700|7A48700|7A41y00|7A26100|7A48.12|7A41z00|7A48.16|7A28C00|7A48.11|7A48500|7A41900|7A41B00|7A47y00|7A47z00|7A47C00|7A41C00|7A47D00|7A41200|7A12000|7A47.13|7A48100|7A41600|7A48800|7A47.15|7A54000|G70..00|G700.00|7A1A000|7A48A00|P76z.00|SP12z00|7A6H400|7A56200|Gyu7400|G73z000|G73z011|16I..00|G73..12")
 label variable pervascdis_g "Peripheral Vascular Disease (gold) 1=event 0=no event"
 //HES
 gen pervascdis_h = 0
-replace pervascdis_h = 1 if regexm(icd, " ")
+replace pervascdis_h = 1 if regexm(icd, "I70.x|I71.x|I73.1|I73.8|I73.9|I77.1|I79.0|I79.2|K55.1|K55.8|K55.9|Z95.8|Z95.9")
 label variable pervascdis_h "Peripheral Vascular Disease (hes) 1=event 0=no event"
 //ALL
 gen pervascdis_all = 1 if pervascdis_g==1|pervascdis_h==1
 label variable pervascdis_all "Peripheral Vascular Disease (all) 1=event 0=no event"
 //gen covtype
-replace covtype=16 if pervascdis_all ==1
-
-// Neoplasms
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen neoplasm_g = 0
-replace neoplasm_g = 1 if regexm(readcode, " ")
-label variable neoplasm_g "Neoplasm (gold) 1=event 0=no event"
-//HES
-gen neoplasm_h = 0
-replace neoplasm_h = 1 if regexm(icd, " ")
-label variable neoplasm_h "Neoplasm (hes) 1=event 0=no event"
-//ALL
-gen neoplasm_all = 1 if neoplasm_g==1|neoplasm_h==1
-label variable neoplasm_all "Neoplasm (all) 1=event 0=no event"
-//gen covtype
-replace covtype=17 if neoplasm_all ==1
+replace covtype=14 if pervascdis_all ==1
 
 // Hyperlipidemia
 // readcode source:
@@ -376,253 +325,31 @@ label variable hyperlipid_h "Hyperlipidemia (hes) 1=event 0 =no event"
 gen hyperlipid_all = 1 if hyperlipid_g==1|hyperlipid_h==1
 label variable hyperlipid_all "Hyperlipidemia (all) 1=event 0 =no event"
 //gen covtype
-replace covtype=18 if hyperlipid_all ==1
+replace covtype=15 if hyperlipid_all ==1
 
-// Osteoporosis
-// readcode source:
-// ICD-10 source:
+// Charlson Comorbidity Index
+// Source: Khan et al 2010
 //CPRD GOLD
-gen osteoporosis_g = 0
-replace osteoporosis_g = 1 if regexm(readcode, " ")
-label variable osteoporosis_g "Osteoporosis (gold) 1=event 0=no event"
+gen cci_g = 0
+replace cci_g = 1 if regexm(readcode, " ")
+label variable cci_g "Hyperlipidemia (gold) 1=event 0 =no event"
 //HES
-gen osteoporosis_h = 0
-replace osteoporosis_h = 1 if regexm(icd, " ")
-label variable osteoporosis_h "Osteoporosis (hes) 1=event 0=no event"
+gen cci_h = 0
+replace cci_h = 1 if regexm(icd, " ")
+label variable cci_h "Hyperlipidemia (hes) 1=event 0 =no event"
 //ALL
-gen osteoporosis_all = 1 if osteoporosis_g==1|osteoporosis_h==1
-label variable osteoporosis_all "Osteoporosis (all) 1=event 0=no event"
+gen cci_all = 1 if hyperlipid_g==1|hyperlipid_h==1
+label variable cci_all "Hyperlipidemia (all) 1=event 0 =no event"
 //gen covtype
-replace covtype=19 if osteoporosis_all ==1
-
-// Chronic obstructive pulmonary disease
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen copd_g = 0
-replace copd_g = 1 if regexm(readcode, " ")
-label variable copd_g "Chronic Obstructive Pulmonary Disease (gold) 1=event 0=no event"
-//HES
-gen copd_h = 0
-replace copd_h = 1 if regexm(icd, " ")
-label variable copd_h "Chronic Obstructive Pulmonary Disease (hes) 1=event 0=no event"
-//ALL
-gen copd_all = 1 if copd_g==1|copd_h==1
-label variable copd_all "Chronic Obstructive Pulmonary Disease (all) 1=event 0=no event"
-//gen covtype
-replace covtype=20 if copd_all ==1
-
-// Cirrhosis
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen cirrhosis_g = 0
-replace cirrhosis_g = 1 if regexm(readcode, " ")
-label variable cirrhosis_g "Cirrhosis (gold) 1=event 0=no event"
-//HES
-gen cirrhosis_h = 0
-replace cirrhosis_h = 1 if regexm(icd, " ")
-label variable cirrhosis_h "Cirrhosis (hes) 1=event 0=no event"
-//ALL
-gen cirrhosis_all = 1 if cirrhosis_g==1|cirrhosis_h==1
-label variable cirrhosis_all "Cirrhosis (all) 1=event 0=no event"
-//gen covtype
-replace covtype=21 if cirrhosis_all ==1
-
-// Dementia
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen dementia_g = 0
-replace dementia_g = 1 if regexm(readcode, " ")
-label variable dementia_g "Dementia (gold) 1=event 0=no event"
-//HES
-gen dementia_h = 0
-replace dementia_h = 1 if regexm(icd, " ")
-label variable dementia_h "Dementia (hes) 1=event 0=no event"
-//ALL
-gen dementia_all = 1 of dementia_g==1|dementia_h==1
-label variable dementia_all "Dementia (all) 1=event 0=no event"
-//gen covtype
-replace covtype=22 if dementia_all ==1
-
-// Chronic hepatitis
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen chronic_hep_g = 0
-replace chronic_hep_g = 1 if regexm(readcode, " ")
-label variable chronic_hep_g "Chronic Hepatitis (gold) 1=event 0=no event"
-//HES
-gen chronic_hep_h = 0
-replace chronic_hep_h = 1 if regexm(icd, " ")
-label variable chronic_hep_h "Chronic Hepatitis (hes) 1=event 0=no event"
-//ALL
-gen chronic_hep_all = 1 if chronic_hep_g==1|chronic_hep_h==1
-label variable chronic_hep_all "Chronic Hepatitis (all) 1=event 0=no event"
-//gen covtype
-replace covtype=23 if chronic_hep_all ==1
-
-// HIV/AIDS
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen hiv_aids_g = 0
-replace hiv_aids_g = 1 if regexm(readcode, " ")
-label variable hiv_aids_g "HIV/AIDS (gold) 1=event 0=no event"
-//HES
-gen hiv_aids_h = 0
-replace hiv_aids_h = 1 if regexm(icd, " ")
-label variable hiv_aids_h "HIV/AIDS (hes) 1=event 0=no event"
-//ALL
-gen hiv_aids_all = 1 if hiv_aids_g==1|hiv_aids_h==1
-label variable hiv_aids_all "HIV/AIDS (all) 1=event 0=no event"
-//gen covtype
-replace covtype=24 if hiv_aids_all ==1
-
-// Rheumatoid arthritis
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen rheum_arthr_g = 0
-replace rheum_arthr_g = 1 if regexm(readcode, " ")
-label variable rheum_arthr_g "Rheumatoid Arthritis (gold) 1=event 0=no event"
-//HES
-gen rheum_arthr_h = 0
-replace rheum_arthr_h = 1 if regexm(icd, " ")
-label variable rheum_arthr_h "Rheumatoid Arthritis (hes) 1=event 0=no event"
-//ALL
-gen rheum_arthr_all = 1 if rheum_arthr_g==1|rheum_arthr_h==1
-label variable rheum_arthr_all "Rheumatoid Arthritis (all) 1=event 0=no event"
-//gen covtype
-replace covtype=25 if rheum_arthr_all ==1
-
-// Obesity
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen obesity_g = 0
-replace obesity_g = 1 if regexm(readcode, " ")
-label variable obesity_g "Obesity (gold) 1=event 0=no event"
-//HES
-gen obesity_h = 0
-replace obesity_h = 1 if regexm(icd, " ")
-label variable obesity_h "Obesity (hes) 1=event 0=no event"
-//ALL
-gen obesity_all = 1 if obesity_g==1|obesity_h==1
-label variable obesity_all "Obesity (all) 1=event 0=no event"
-//gen covtype
-replace covtype=26 if obesity_all ==1
-
-// Organ transplant
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen organtransplant_g = 0
-replace organtransplant_g = 1 if regexm(readcode, " ")
-label variable organtransplant_g "Organ Transplant (gold) 1=event 0=no event"
-//HES
-gen organtransplant_h = 0
-replace organtransplant_h = 1 if regexm(icd, " ")
-label variable organtransplant_h "Organ Transplant (hes) 1=event 0=no event"
-//ALL
-gen organtransplant_all = 1 if organtransplant_g==1|organtransplant_h==1
-label variable organtransplant_all "Organ Transplant (all) 1=event 0=no event"
-//gen covtype
-replace covtype=27 if organtransplant_all ==1
-
-// Hypoglycemia
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen hypoglycemia_g = 0
-replace hypoglycemia_g = 1 if regexm(readcode, " ")
-label variable hypoglycemia_g "Hypoglycemia (gold) 1=event 0=no event"
-//HES
-gen hypoglycemia_h = 0
-replace hypoglycemia_h = 1 if regexm(icd, " ")
-label variable hypoglycemia_h "Hypoglycemia (hes) 1=event 0=no event"
-//ALL
-gen hypoglycemia_all = 1 if hypoglycemia_g==1|hypoglycemia_h==1
-label variable hypoglycemia_all "Hypoglycemia (all) 1=event 0=no event"
-//gen covtype
-replace covtype=28 if hypoglycemia_all ==1
-
-// Retinal photocoagulation
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen retinalphoto_g = 0
-replace retinalphoto_g = 1 if regexm(readcode, " ")
-label variable retinalphoto_g "Retinal Photocoagulation (gold) 1=event 0=no event"
-//HES
-gen retinalphoto_h = 0
-replace retinalphoto_h = 1 if regexm(icd, " ")
-label variable retinalphoto_h "Retinal Photocoagulation (hes) 1=event 0=no event"
-//ALL
-gen retinalphoto_all = 1 if retinalphoto_g==1|retinalphoto_h==1
-label variable retinalphoto_all "Retinal Photocoagulation (all) 1=event 0=no event"
-//gen covtype
-replace covtype=29 if retinalphoto_all ==1
-
-// Minor amputation
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen amput_minor_g = 0
-replace amput_minor_g = 1 if regexm(readcode, " ")
-label variable amput_minor_g "Minor Amputation (gold) 1=event 0=no event"
-//HES
-gen amput_minor_h = 0
-replace amput_minor_h = 1 if regexm(icd, " ")
-label variable amput_minor_h "Minor Amputation (hes) 1=event 0=no event"
-//ALL
-gen amput_minor_all = 1 if amput_minor_g==1|amput_minor_h==1
-label variable amput_minor_all "Minor Amputation (all) 1=event 0=no event"
-//gen covtype
-replace covtype=30 if amput_minor_all ==1
-
-// Major amputation
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen amput_major_g = 0
-replace amput_major_g = 1 if regexm(readcode, " ")
-label variable amput_major_g "Major Amputation (gold) 1=event 0=no event"
-//HES
-gen amput_major_h = 0
-replace amput_major_h = 1 if regexm(icd, " ")
-label variable amput_major_h "Major Amputation (hes) 1=event 0=no event"
-//ALL
-gen amput_major_all = 1 if amput_major_g==1|amput_major_h==1
-label variable amput_major_all "Major Amputation (all) 1=event 0=no event"
-//gen covtype
-replace covtype=31 if amput_major_all ==1
-
-// End stage renal failure
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen renalfailure_g = 0
-replace renalfailure_g = 1 if regexm(readcode, " ")
-label variable renalfailure_g "Renal Failure, end stage (gold) 1=event 0=no event"
-//HES
-gen renalfailure_h = 0
-replace renalfailure_h = 1 if regexm(icd, " ")
-label variable renalfailure_h "Renal Failure, end stage (hes) 1=event 0=no event"
-//ALL
-gen renalfailure_all = 1 if renalfailure_g==1|renalfailure_h==1
-label variable renalfailure_all "Renal failure, end stage (all) 1=event 0=no event"
-//gen covtype
-replace covtype=32 if renalfailure_all ==1
+replace covtype=16 if cci_all ==1
 
 //populate nr_data with co-morbidity binaries
-foreach num of numlist 6/32{
+foreach num of numlist 6/16{
 replace nr_data=1 if covtype==`num'
 }
 
 //SAVE A DATA FILE WITH ALL VARIABLES
-save covariatesv1dot2bin, replace
+save covariates, replace
 
 //Create a varibale for all eligible test dates (i.e. those with real, in-range nr_data)
 gen eltestdate2 = . 
@@ -633,7 +360,7 @@ format eltestdate2 %td
 quietly bysort patid enttype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 
-// #4 Code for exclusions (PCOS, pregnant)...must do before collapsing so that info isn't lost
+/* #4 Code for exclusions (PCOS, pregnant)...must do before collapsing so that info isn't lost
 gen pcos_b = 0 
 replace pcos_ = 1 if regexm(readcode, "C164.00|C165.00")
 label variable pcos_b "PCOS 1=has 0=does not have"
@@ -642,7 +369,7 @@ drop if pcos_b==1
 gen pregnant_b = 0
 replace pregnant_b = 1 if ...
 label pregnant_b "Pregnant 1=pregnant, 0=not pregnant"
-drop if pregnant_b==1
+drop if pregnant_b==1*/
 
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
 //INDEXDATE 
