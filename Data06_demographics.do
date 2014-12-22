@@ -21,7 +21,6 @@ save Patient2.dta, replace
 // Note that for sex, patients could be coded as data not entered, indeterminate or unknown as well as male or female, 
 // however our population is restricted to patients who are gender male or female.
 
-
 gen sex = .
 replace sex = 0 if gender==1
 replace sex = 1 if gender==2
@@ -36,9 +35,7 @@ gen yob_indexdate = year(indexdate)
 gen yob_studyentrydate = year(studyentrydate)
 
 gen age_cohortdate = yob_cohortentrydate-birthyear
-
 gen age_indexdate = yob_indexdate-birthyear   
-
 gen age_studyentrydate = yob_studyentrydate-birthyear    
 
 // #3 Generate categorical variable for marital status: (1 = data not entered or unknown or missing, 2=single, 3=married, 4=widowed 

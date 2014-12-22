@@ -19,7 +19,7 @@ append using Test002 Test003 Test004 Test005 Test006 Test007 Test008 Test009 Tes
 sort patid
 merge m:1 patid using Dates, keep(match using) nogen
 merge m:1 patid using Demographic, keep(match using) nogen
-//merge m:1 patid using Covariates, keep(match using) nogen			
+//merge m:1 patid using Clincovs, keep(match using) nogen			
 timer off 2
 timer list 2
 
@@ -433,8 +433,6 @@ gen hemoglobin_b = 0
 replace hemoglobin_b = 1 if nr_hemoglobin < .
 label variable hemoglobin_b "Hemoglobin (binary)"
 
-save Test3dot1, replace
-
 //Create a varibale for all eligible test dates (i.e. those with real, in-range nr_data2)
 gen eltestdate2 = . 
 replace eltestdate2 = testdate2 if nr_data2<. & testdate2 !missing
@@ -488,7 +486,7 @@ keep patid totlabs labtest prx_testvalue_i prx_test_i_b
 reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(labtest)
 
 //Save
-save Test3dot4dotindexdotwide.dta, replace
+save Labcovs_indexdate.dta, replace
 
 /*
 //COHORTENTRYDATE
@@ -533,7 +531,7 @@ keep patid totlabs labtest prx_testvalue_c prx_test_c_b
 reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(labtest)
 
 //Save
-save Test3dot4dotcohortentrydotwide, replace
+save Labcovs_cohortentrydate, replace
 
 //STUDYENTRYDATE_CPRD
 bysort patid enttype : egen prx_testdate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
@@ -576,7 +574,7 @@ keep patid totlabs labtest prx_testvalue_s prx_test_s_b
 //Reshape
 reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(labtest)
 
-save Test3dot2dotstudyentrycprdotwide, replace
+save Labcovs_studyentrydate_cprd2, replace
 
 /////////////////////////////////////////ALTERNATE ENDING ////////////////////////////////////////////
 //want one obs per person that shows their values for each lab 	
@@ -595,7 +593,7 @@ collapse (max) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 mai
 			albumin_b alt_b ast_b bilirubin_b hemoglobin_b uma_b, by(patid)	
 compress
 
-save LabCovariates.dta, replace
+save LabCovs.dta, replace
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 */

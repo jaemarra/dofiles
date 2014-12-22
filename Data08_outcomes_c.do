@@ -21,16 +21,11 @@ compress
 
 // #2 Generate binary variables coding for each OUTCOME clinical event. 
 // Code so 0=no event and 1=event. For each event: generate, replace, label
-// Based on cause variable.
+// Code binary variable for each source of outcome info (CPRD GOLD "_g", ONS "_o", HES "_h", combo "_all")
 
-
-////// #2a All-cause mortality
-
+//All-cause mortality
 gen death_ons = (dod!=.)
 label var death_ons "Indicator for death, ONS"
-
-////// #2b Cuase-specific mortality (non-fatal/fatal MI, non-fatal/fatal stroke, CV death)
-// Code binary variable for each source of outcome info (CPRD GOLD "_g", ONS "_o", HES "_h", combo "_all")
 
 // Myocardial Infarction
 // ICD-10 source: Quan, Med Care, 2005 (Table 1)
@@ -165,7 +160,6 @@ label variable angina_o "Hosp or death due to unstable angina (ons) 1=event 0=no
 
 
 // #4 Generate dates for events after indexdate and studyentrydate
-
 sort patid dod
 local outcome myoinfarct_o stroke_o cvdeath_o heartfail_o arrhythmia_o angina_o 
 				

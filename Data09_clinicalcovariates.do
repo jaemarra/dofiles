@@ -12,29 +12,16 @@ log using Data09.log, replace
 // #1 Use data files generated in Data08 (Outcome). 
 // Keep only if eventdate2 is before indexdate.
 
-foreach file in Clinical001_2 Clinical002_2 Clinical003_2 Clinical004_2 Clinical005_2 Clinical006_2 Clinical007_2 Clinical008_2
-				Clinical009_2 Clinical010_2 Clinical011_2 Clinical012_2 Clinical013_2 {
+foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clinical005_2b Clinical006_2b Clinical007_2b Clinical008_2b Clinical009_2b Clinical010_2b Clinical011_2b Clinical012_2b Clinical013_2b {
 use `file', clear
-sort patid
-merge m:1 patid using Dates, keep(match) nogen
-keep if eventdate2>studyentrydate_cprd2
-sort patid
-joinby patid adid using Additional, unmatched(master) _merge(Additional_merge)
-merge m:1 patid using Patient2, keep(match) nogen
-compress
-save `file'_merge_ClinCov.dta, replace
-}
 
-clear all
 //only keep if prior to follow-up
 keep if eventdate2<indexdate
 drop sysinputclin staffid vmid mob famnum chsreg chsdate prescr capsup ses frd crd accept chsdate2
 
 //generate covariate type
-/* COVTYPE KEY: 1=ht, 2=wt, 3=sbp, 4=smoking, 5=alc abuse, 6=MI, 7=stroke, 8=HF, 9=arryth, 10=angina, 11=urgent revasc, 12=metal disorder, 13=HTN, 14=CAD
-15=AFIB, 16=PVD, 17=neoplasm, 18=hyperlipidemia, 19=osteopor, 20=COPD, 21=cirrhosis, 22=REM, 23=chronic hepatitis, 24=HIV/AIDS, 25=Rheum Arth, 26=obseity, 
-27=transplant, 28=hypoglycemia, 29=retinal photocoag, 30=minor amputation, 31 major amputation, 32 end stage renal failure */
-
+/* COVTYPE KEY: 1=ht, 2=wt, 3=sbp, 4=smoking, 5=alc abuse, 6=MI, 7=stroke, 8=HF, 9=arryth, 10=angina, 11=urgent revasc, 12=HTN,
+13=AFIB, 14=PVD 15=CCI*/
 gen covtype = .
 gen nr_data = .
 
@@ -310,66 +297,39 @@ label variable pervascdis_all "Peripheral Vascular Disease (all) 1=event 0=no ev
 //gen covtype
 replace covtype=14 if pervascdis_all ==1
 
-// Hyperlipidemia
-// readcode source:
-// ICD-10 source:
-//CPRD GOLD
-gen hyperlipid_g = 0
-replace hyperlipid_g = 1 if regexm(readcode, " ")
-label variable hyperlipid_g "Hyperlipidemia (gold) 1=event 0 =no event"
-//HES
-gen hyperlipid_h = 0
-replace hyperlipid_h = 1 if regexm(icd, " ")
-label variable hyperlipid_h "Hyperlipidemia (hes) 1=event 0 =no event"
-//ALL
-gen hyperlipid_all = 1 if hyperlipid_g==1|hyperlipid_h==1
-label variable hyperlipid_all "Hyperlipidemia (all) 1=event 0 =no event"
-//gen covtype
-replace covtype=15 if hyperlipid_all ==1
-
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
 gen cci_g = 0
-replace cci_g = 1 if regexm(readcode, " ")
-label variable cci_g "Hyperlipidemia (gold) 1=event 0 =no event"
+//replace cci_g = charlson readcode, **OXMIS** idvar(patid) assign0
+label variable cci_g "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 //HES
 gen cci_h = 0
-replace cci_h = 1 if regexm(icd, " ")
-label variable cci_h "Hyperlipidemia (hes) 1=event 0 =no event"
+charlson icd, icd(10) idvar(patid) assign0
+replace cci_h = 1 if charlindex == 1
+replace cci_h = 2 if charlindex == 2
+replace cci_h = 3 if charlindex == 3
+replace cci_h = 4 if charlindex >= 4 & charlindex <.
+label variable cci_h "Charlson Comorbidity Index (hes) 1=1, 2=2, 3=3, 4=4 or more 0=error"
 //ALL
-gen cci_all = 1 if hyperlipid_g==1|hyperlipid_h==1
-label variable cci_all "Hyperlipidemia (all) 1=event 0 =no event"
+gen cci_all = 1 if cci_g==1|cci_h==1
+label variable cci_all "Charlson Comorbidity Index (all) 1=1, 2=2, 3=3, 4=4 or more 0=error"
 //gen covtype
-replace covtype=16 if cci_all ==1
+replace covtype=15 if cci_all ==1
 
 //populate nr_data with co-morbidity binaries
-foreach num of numlist 6/16{
+foreach num of numlist 6/15{
 replace nr_data=1 if covtype==`num'
 }
-
-//SAVE A DATA FILE WITH ALL VARIABLES
-save covariates, replace
 
 //Create a varibale for all eligible test dates (i.e. those with real, in-range nr_data)
 gen eltestdate2 = . 
 replace eltestdate2 = eventdate2 if nr_data <. & eventdate2 <.
 format eltestdate2 %td
 
-//Drop all duplicates for patients of the same enttype on the same day
-quietly bysort patid enttype eltestdate2: gen dupa = cond(_N==1,0,_n)
+//Drop all duplicates for patients of the same covtype on the same day
+quietly bysort patid covtype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
-
-/* #4 Code for exclusions (PCOS, pregnant)...must do before collapsing so that info isn't lost
-gen pcos_b = 0 
-replace pcos_ = 1 if regexm(readcode, "C164.00|C165.00")
-label variable pcos_b "PCOS 1=has 0=does not have"
-drop if pcos_b==1
-//gestational diabetes
-gen pregnant_b = 0
-replace pregnant_b = 1 if ...
-label pregnant_b "Pregnant 1=pregnant, 0=not pregnant"
-drop if pregnant_b==1*/
 
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
 //INDEXDATE 
@@ -390,7 +350,7 @@ by patid: egen cov_num_un_i_temp = count(covtype) if cov_num==1 & eltestdate2>=i
 by patid: egen cov_num_un_i = min(cov_num_un_s_temp)
 drop cov_num_un_i_temp
 
-//Create a new variable that numbers enttypes 1-12
+//Create a new variable that enumerates covtypes
 tostring covtype, generate(covariatetype)
 encode covariatetype, generate(clincov)
 label drop clincov
@@ -414,7 +374,8 @@ keep patid totcovs clincov prx_testvalue_i prx_test_i_b
 //Reshape
 reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(clincov)
 
-save clincovariatesindexdatewide, replace
+save Clincovs_indexdate, replace
+
 /*//COHORTENTRY DATE
 //pull out test date of interest
 bysort patid covtype : egen prx_testdate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
@@ -433,7 +394,7 @@ by patid: egen cov_num_un_c_temp = count(covtype) if cov_num==1 & eltestdate2>=c
 by patid: egen cov_num_un_c = min(cov_num_un_c_temp)
 drop cov_num_un_c_temp
 
-//Create a new variable that numbers enttypes 1-12
+//Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
 encode covariatetype, generate(clincov)
 label drop clincov
@@ -457,7 +418,7 @@ keep patid totcovs clincov prx_testvalue_c prx_test_c_b
 //Reshape
 reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(clincov)
 
-save clincovariatescohortwide, replace
+save Clincovs_cohortentrydate, replace
 
 //STUDYENTRYDATE_CPRD
 //pull out test date of interest
@@ -477,7 +438,7 @@ by patid: egen cov_num_un_s_temp = count(covtype) if cov_num==1 & eltestdate2>=s
 by patid: egen cov_num_un_s = min(cov_num_un_s_temp)
 drop cov_num_un_s_temp
 
-//Create a new variable that numbers enttypes 1-12
+//Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
 encode covariatetype, generate(clincov)
 label drop clincov
@@ -501,11 +462,11 @@ keep patid totcovs clincov prx_testvalue_s prx_test_s_b
 //Reshape
 reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(clincov)
 
-save clincovariatesstudywide, replace */
+save Clincovs_studyentrydate_cprd2, replace */
 
-collapse (max) (min) /// FILL IN VARIABLES /// , by(patid)
+/* collapse (max) (min) /// FILL IN VARIABLES /// , by(patid)
 compress
-save Clinicalovariates.dta, replace
+save Clincovs.dta, replace*/
 
 ////////////////////////////////////////////
 

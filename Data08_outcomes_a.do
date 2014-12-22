@@ -20,14 +20,18 @@ merge m:1 patid using Dates, keep(match) nogen
 keep if eventdate2>studyentrydate_cprd2
 sort patid
 joinby patid adid using Additional, unmatched(master) _merge(Additional_merge)
-merge m:1 patid using Patient2, keep(match) nogen
+merge m:1 patid using Patient, keep(match) nogen
 compress
+save `file'b.dta, replace
+}
 
 // #2 Generate binary variables coding for each OUTCOME clinical event. 
 // Code so 0=no event and 1=event. For each event: generate, replace, label
 // Based on readcode variable, source of readcodes identified for each outcome/source.
 
 ////// #2a All-cause mortality
+foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clinical005_2b Clinical006_2b Clinical007_2b Clinical008_2b ///
+				Clinical009_2b Clinical010_2b Clinical011_2b Clinical012_2b Clinical013_2b {
 
 gen death_g = (deathdate2!=.)
 label var death_g "Indicator for death using CPRD algorithm"
