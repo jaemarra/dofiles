@@ -117,7 +117,7 @@ local outcome myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g 
 		drop `y'_date_temp_s
 		}
 
-collapse (min) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 deathdate2  myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i ///
+collapse (min) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i ///
 				heartfail_g_date_i arrhythmia_g_date_i angina_g_date_i revasc_g_date_i myoinfarct_g_date_s stroke_g_date_s ///
 				cvdeath_g_date_s heartfail_g_date_s arrhythmia_g_date_s angina_g_date_s revasc_g_date_s (max) maincohort metcohort ///
 				death_g myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g revasc_g, by(patid)
