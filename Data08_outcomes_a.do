@@ -24,6 +24,7 @@ merge m:1 patid using Patient, keep(match) nogen
 compress
 save `file'b.dta, replace
 }
+clear
 
 // #2 Generate binary variables coding for each OUTCOME clinical event. 
 // Code so 0=no event and 1=event. For each event: generate, replace, label

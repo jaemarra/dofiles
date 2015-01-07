@@ -159,7 +159,8 @@ do Data07_ses
 							- generate dates for primaries and secondaries
 */
 do Data08_outcomes_a
-/*	Files saved: 	Outcomes_gold_Clinical001_2- Clinical013_2.dta
+/*	Files saved: 	Clinical001_2b - Clinical013_2b
+					Outcomes_gold_Clinical001_2- Clinical013_2.dta
 					Outcomes_gold.dta (appended Outcomes_gold_Clinical001_2-Clinical013_2)
 					
 						b) HES

@@ -1292,11 +1292,9 @@ collapse (max) rxdate2 studyentrydate_cprd2 group_cut insulins_short insulins_in
 				mpr_top_s mpr_s mpr_s_b avg_mpr_s avg_mpr_s_b, by(patid)
 compress
 save Exposures_`i'.dta, replace
-
 	}
- 
 use Exposures_0, clear 
-forval i=1/10 {		
+forval i=1/99 {		
 	append using Exposures_`i'
 	}
 save Exposures.dta, replace
