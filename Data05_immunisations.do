@@ -32,30 +32,30 @@ replace othervaccine_s = 1 if inlist(immstype, 0,1,2,3,5,6,7,8,9,10,11,12,14,15,
 label variable othervaccine_s "Other vaccine in year before study entry date: 0=no exp, 1=exp"
 
 gen flu_c = 0
-replace flu_c = 1 if inlist(immstype, 4,71,72,73,74,75,76,78,84,85,89) & immunisedate2>=cohortentrydate-365 & immunisedate2<cohortentrydate
+replace flu_c = 1 if inlist(immstype, 4,71,72,73,74,75,76,78,84,85,89) & eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
 label variable flu_c "Flu vaccine in year before cohort entry date: 0=no exp, 1=exp"
 
 gen flu_i = 0
-replace flu_i = 1 if inlist(immstype, 4,71,72,73,74,75,76,78,84,85,89) & immunisedate2>=indexdate-365 & immunisedate2<indexdate
+replace flu_i = 1 if inlist(immstype, 4,71,72,73,74,75,76,78,84,85,89) & eventdate2>=indexdate-365 & eventdate2<indexdate
 label variable flu_i "Flu vaccine in year before index date: 0=no exp, 1=exp"
 
 gen flu_s = 0
-replace flu_s = 1 if inlist(immstype, 4,71,72,73,74,75,76,78,84,85,89) & immunisedate2>=studyentrydate_cprd2-365 & immunisedate2<studyentrydate_cprd2
+replace flu_s = 1 if inlist(immstype, 4,71,72,73,74,75,76,78,84,85,89) & eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
 label variable flu_s "Flu vaccine in year before study entry date: 0=no exp, 1=exp"
 
 gen pneumo_c = 0
-replace pneumo_c = 1 if inlist(immstype, 13,18,28,82) & immunisedate2>=cohortentry-365 & immunisedate2<cohortentrydate
+replace pneumo_c = 1 if inlist(immstype, 13,18,28,82) & eventdate2>=cohortentry-365 & eventdate2<cohortentrydate
 label variable pneumo_c "Pneumo vaccine in year before cohort entry date: 0=no exp, 1=exp"
 
 gen pneumo_i = 0
-replace pneumo_i = 1 if inlist(immstype, 13,18,28,82) & immunisedate2>=indexdate-365 & immunisedate2<indexdate
+replace pneumo_i = 1 if inlist(immstype, 13,18,28,82) & eventdate2>=indexdate-365 & eventdate2<indexdate
 label variable pneumo_i "Pneumo vaccine in year before index date: 0=no exp, 1=exp"
 
 gen pneumo_s = 0
-replace pneumo_s = 1 if inlist(immstype, 13,18,28,82) & immunisedate2>=studyentrydate_cprd2-365 & immunisedate2<studyentrydate_cprd2
+replace pneumo_s = 1 if inlist(immstype, 13,18,28,82) & eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
 label variable pneumo_s "Pneumo vaccine in year before study entry date: 0=no exp, 1=exp"
 
-collapse (max) immunisedate2 indexdate cohortentrydate studyentrydate studyentrydate_cprd2 flu_c flu_i flu_s pneumo_c pneumo_i pneumo_s othervaccine_c othervaccine_i othervaccine_s , by(patid)
+collapse (max) eventdate2 indexdate cohortentrydate studyentrydate studyentrydate_cprd2 flu_c flu_i flu_s pneumo_c pneumo_i pneumo_s othervaccine_c othervaccine_i othervaccine_s , by(patid)
 compress
 save Immunisation2, replace 
 
