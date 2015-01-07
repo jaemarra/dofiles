@@ -1,7 +1,7 @@
 //  program:    Data_master.do
 //  task:		Master List of .do Files
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
-//  authors:     MA \ May2014 \ jmg modified June 17, 2014 JM \ Dec2014
+//  authors:     MA \ May2014 \ jmg modified June 17, 2014 JM \ Jan2015
 
 //	Run the following .do files, in order listed, to complete dataset management and cohort preparation. 
 
