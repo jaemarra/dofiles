@@ -20,15 +20,15 @@ merge m:1 patid using Dates, keep(match using) nogen
 ////// #2 Immunisation2- create binary variables for flu, pneumococcal and other vaccines in year prior to cohort entry date, index date and study entry date.
 
 gen othervaccine_c = 0
-replace othervaccine_c = 1 if inlist(immstype, 0,1,2,3,5,6,7,8,9,10,11,12,14,15,16,17,19,20,21,22,23,24,25,26,27,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,66,67,68,69,70,77,79,80,81,83,86,87,88) & immunisedate2>=cohortentrydate-365 & immunisedate2<cohortentrydate
+replace othervaccine_c = 1 if inlist(immstype, 0,1,2,3,5,6,7,8,9,10,11,12,14,15,16,17,19,20,21,22,23,24,25,26,27,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,66,67,68,69,70,77,79,80,81,83,86,87,88) & eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
 label variable othervaccine_c "Other vaccine in year before cohort entry date: 0=no exp, 1=exp"
 
 gen othervaccine_i = 0
-replace othervaccine_i = 1 if inlist(immstype, 0,1,2,3,5,6,7,8,9,10,11,12,14,15,16,17,19,20,21,22,23,24,25,26,27,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,66,67,68,69,70,77,79,80,81,83,86,87,88) & immunisedate2>=indexdate-365 & immunisedate2<indexdate
+replace othervaccine_i = 1 if inlist(immstype, 0,1,2,3,5,6,7,8,9,10,11,12,14,15,16,17,19,20,21,22,23,24,25,26,27,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,66,67,68,69,70,77,79,80,81,83,86,87,88) & eventdate2>=indexdate-365 & eventdate2<indexdate
 label variable othervaccine_i "Other vaccine in year before index date: 0=no exp, 1=exp"
 
 gen othervaccine_s = 0
-replace othervaccine_s = 1 if inlist(immstype, 0,1,2,3,5,6,7,8,9,10,11,12,14,15,16,17,19,20,21,22,23,24,25,26,27,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,66,67,68,69,70,77,79,80,81,83,86,87,88) & immunisedate2>=studyentrydate_cprd2-365 & immunisedate2<studyentrydate_cprd2
+replace othervaccine_s = 1 if inlist(immstype, 0,1,2,3,5,6,7,8,9,10,11,12,14,15,16,17,19,20,21,22,23,24,25,26,27,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,66,67,68,69,70,77,79,80,81,83,86,87,88) & eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
 label variable othervaccine_s "Other vaccine in year before study entry date: 0=no exp, 1=exp"
 
 gen flu_c = 0
