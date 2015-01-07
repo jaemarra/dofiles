@@ -1048,8 +1048,7 @@ replace antirheum = 1 if regexm(productname_1, "(myocrisin|distamine|plaquenil|a
 replace antirheum = 1 if regexm(productname_1, "(sodium aurothiomalate|penicillamine|chloroquine|hydroxychloroquine sulfate|azathioprine|ciclosporin|cyclosporin|leflunomide|methotrexate|abatacept|adalimumab|anakinra|belimumab|certolizumab pegol|etanercept|golimumab|infliximab|rituximab|tocilizumab|sulfasalazine|sulphasalazine)")
 label variable antirheum "Antirheumatic drug exposure: 0=no exp, 1=exp"
 
-//Vaccines and antisera (14.4)
-**Vaccine records are in a separate file called Immunisation (see Immunisation.do)
+//Vaccines and antisera (14.4) Vaccine records are in a separate file called Immunisation (see Immunisation.do)
 
 // Benzodiazepine
 gen benzo = 0
