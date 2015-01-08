@@ -11,7 +11,7 @@ set more off
 log using Data03test.smcl, replace
 timer on 1
 
-forval i=0/99 {
+forval i=0/10 {
 	use Therapy_`i', clear	 
 ////// #1 make labels case-consistent
 // create new variable "productname_1" as the lowercase version of "productname"
@@ -1144,8 +1144,9 @@ replace qty = 84 if qty==.*/
 
 sort patid prod_bnfcode2 rxdate2
 
-//gen dur = qty/ndd
-gen dur_c =dur*1.5
+gen dur = .
+//replace dur=qty/ndd
+gen dur_c =dur*1.5 if dur <.
 replace dur_c =90 if dur_c >.
 
 // Generate first date of rx for antidiabetic medication
@@ -1158,7 +1159,7 @@ format rxdate2_pred %td
 
 // Generate date for next rx based on lead variable
 by patid prod_bnfcode2: gen rxdate2_next = rxdate2[_n+1]
-format rxdate2_next %td84
+format rxdate2_next %td
 
 // Generate gap dates for antidiabetic medications
 gen gap = rxdate2_pred-rxdate2_next if (metformin==1|insulin==1|sulfonylurea==1|tzd==1|dpp==1|glp==1|otherantidiab==1) 
@@ -1294,7 +1295,7 @@ compress
 save Exposures_`i'.dta, replace
 	}
 use Exposures_0, clear 
-forval i=1/99 {		
+forval i=1/10 {		
 	append using Exposures_`i'
 	}
 save Exposures.dta, replace
