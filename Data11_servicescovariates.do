@@ -16,7 +16,6 @@ foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clin
 
 use `file', clear
 keep if eventdate2<indexdate
-drop sysinputclin staffid vmid mob famnum chsreg chsdate prescr capsup ses frd crd accept chsdate2
 
 ////// #1 Generate binary variables coding for each Health Service. Code so 0=no interaction and 1=interaction. For each interaction: generate, replace, label
 
@@ -28,7 +27,7 @@ gen nr_data = .
 //Physician Visits 
 gen physician_visit = .
 replace physician_visit = 1 if constype== 1 | constype== 3 | constype== 6 | constype== 7 | constype== 8 | constype== 11 | constype== 14 | constype== 15 | constype== 30 | constype== 31 | constype== 34 | constype== 37 | constype== 38 | constype== 39 | constype== 40 | constype== 49 | constype== 50 | constype== 53
-label physician_visit "Physician visits"
+label var physician_visit "Physician visits"
 //remove duplicates
 quietly bysort patid eventdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
@@ -117,12 +116,9 @@ keep patid totserv servtype prx_servvalue_s prx_serv_s_b
 reshape wide prx_servvalue_s prx_serv_s_b, i(patid) j(servtype)
 
 save Servcovs_studyentrydate_cprd2, replace
-/*collapse (max) (min) /// FILL IN VARIABLES /// , by(patid)
-compress
-save Servcovs.dta, replace*/
 
-////////////////////////////////////////////
 
+}
 exit
 log close
 
