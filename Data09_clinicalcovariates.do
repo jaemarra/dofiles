@@ -17,7 +17,7 @@ use `file', clear
 
 //only keep if prior to follow-up
 keep if eventdate2<indexdate
-drop sysinputclin staffid vmid mob famnum chsreg chsdate prescr capsup ses frd crd accept chsdate2
+// merge in hes
 
 //generate covariate type
 /* COVTYPE KEY: 1=ht, 2=wt, 3=sbp, 4=smoking, 5=alc abuse, 6=MI, 7=stroke, 8=HF, 9=arryth, 10=angina, 11=urgent revasc, 12=HTN,
@@ -29,12 +29,12 @@ gen nr_data = .
 //HEIGHT
 //gen continuous
 gen height = .
-replace height = ad_data1 if enttype==14
+replace height =   data1 if enttype==14
 label variable height "Height value (m)"
 //restrict
 replace height =.a if height <= 1
 replace height =.b if height >= 3 & height <.
-replace height =.c if enttype==14 & ad_data1==0
+replace height =.c if enttype==14 & data1==0
 //eliminate redundancy
 bysort patid enttype: egen nr_height=mean(height) if height<.
 qui bysort patid enttype:  gen dup_ht = cond(_N==1,0,_n)
@@ -51,11 +51,11 @@ replace nr_data = nr_height if covtype==1
 //WEIGHT
 //gen continuous, restrict to reasonable values, eliminiate redundancy
 gen weight = .
-replace weight = ad_data1 if enttype==13
+replace weight =   data1 if enttype==13
 label variable weight "Weight value (kg)"
 replace weight =.a if weight <= 20
 replace weight =.b if weight >= 300 & weight <.
-replace weight =.c if enttype==13 & ad_data1==0
+replace weight =.c if enttype==13 &   data1==0
 bysort patid enttype eventdate2: egen nr_weight=mean(weight) if weight<.
 qui bysort patid enttype eventdate2: gen dup_wt = cond(_N==1,0,_n)
 replace nr_weight = .d if dup_wt>1 & nr_weight<.
@@ -76,12 +76,12 @@ replace nr_data = nr_weight if covtype==2
 //SYSTOLIC BLOOD PRESSURE
 //gen continuous, restrict to reasonable values, eliminiate redundancy
 gen sys_bp = .
-replace sys_bp = ad_data2 if enttype==1
+replace sys_bp =   data2 if enttype==1
 label variable sys_bp "Systolic blood pressure value (mmHg)"
 replace sys_bp =.a if sys_bp < 60
 replace sys_bp =.b if sys_bp > 250 & sys_bp <.
-replace sys_bp =.c if enttype==1 & ad_data1==0
-bysort patid enttype eventdate2: egen nr_sys_bp=mean(sys_bp) if nr_sys_bp<.
+replace sys_bp =.c if enttype==1 &   data1==0
+bysort patid enttype eventdate2: egen nr_sys_bp=mean(sys_bp) if sys_bp<.
 bysort patid enttype eventdate2: gen dup_bp= cond(_N==1,0,_n)
 replace nr_sys_bp=. if dup_bp>1 & nr_sys_bp<.
 drop dup_bp
@@ -101,7 +101,7 @@ replace nr_data = nr_sys_bp if covtype==3
 //SMOKING STATUS [Never, Former, Current, Unknown--data not entered or missing] 
 //gen categorical, restrict to reasonable values, eliminiate redundancy
 gen smoking =.
-replace smoking = ad_data1 if enttype==4
+replace smoking =   data1 if enttype==4
 replace smoking = 0 if smoking==. & enttype==4
 label variable smoking "Smoking 0=unknown 1=yes 2=no 3=former"
 replace smoking =.b if smoking>4  & smoking <.
@@ -120,7 +120,7 @@ replace nr_data = nr_smoking if covtype==4
 //Alcohol Abuse [Never, Former, Current, Unknown--data not entered or missing]
 //gen categorical, restrict to reasonable values, eliminiate redundancy
 gen alcohol = .
-replace alcohol = ad_data1 if enttype==5
+replace alcohol =   data1 if enttype==5
 replace alcohol = 0 if alcohol==.& enttype==5
 label variable alcohol "Alcohol 0=unknown 1=yes 2=no 3=former"
 replace alcohol =.b if alcohol>3  & alcohol <.
@@ -376,7 +376,7 @@ reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(clincov)
 
 save Clincovs_indexdate, replace
 
-/*//COHORTENTRY DATE
+//COHORTENTRY DATE
 //pull out test date of interest
 bysort patid covtype : egen prx_testdate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
 format prx_testdate_c %td
@@ -462,14 +462,9 @@ keep patid totcovs clincov prx_testvalue_s prx_test_s_b
 //Reshape
 reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(clincov)
 
-save Clincovs_studyentrydate_cprd2, replace */
+save Clincovs_studyentrydate_cprd2, replace 
 
-/* collapse (max) (min) /// FILL IN VARIABLES /// , by(patid)
-compress
-save Clincovs.dta, replace*/
-
-////////////////////////////////////////////
-
+}
 exit
 log close
 

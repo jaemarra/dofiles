@@ -34,6 +34,7 @@ clear
 foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clinical005_2b Clinical006_2b Clinical007_2b Clinical008_2b ///
 				Clinical009_2b Clinical010_2b Clinical011_2b Clinical012_2b Clinical013_2b {
 
+use `file', clear
 gen death_g = (deathdate2!=.)
 label var death_g "Indicator for death using CPRD algorithm"
 
@@ -117,7 +118,7 @@ local outcome myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g 
 		drop `y'_date_temp_s
 		}
 
-collapse (min) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 deathdate2  myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i ///
+collapse (min) cohortentrydate indexdate studyentrydate deathdate2 studyentrydate_cprd2 myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i ///
 				heartfail_g_date_i arrhythmia_g_date_i angina_g_date_i revasc_g_date_i myoinfarct_g_date_s stroke_g_date_s ///
 				cvdeath_g_date_s heartfail_g_date_s arrhythmia_g_date_s angina_g_date_s revasc_g_date_s (max) maincohort metcohort ///
 				death_g myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g revasc_g, by(patid)

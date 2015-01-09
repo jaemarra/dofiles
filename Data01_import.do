@@ -478,7 +478,7 @@ append using Therapy017
 egen group_cut=cut(patid), group(100)
 save Therapy.dta, replace 
 //break into groups of 100
-	forval i=0/99   {         
+	forval i=0/10   {         
 		use Therapy if group_cut==`i', clear
 		save Therapy_`i', replace
 		}
