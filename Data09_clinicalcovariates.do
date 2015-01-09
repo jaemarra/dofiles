@@ -17,7 +17,7 @@ use `file', clear
 
 //only keep if prior to follow-up
 keep if eventdate2<indexdate
-// merge in hes
+// merge in hes_primary_diag_hosp, hes_diagnosis_hosp, hes_diagnosis_epi
 
 //generate covariate type
 /* COVTYPE KEY: 1=ht, 2=wt, 3=sbp, 4=smoking, 5=alc abuse, 6=MI, 7=stroke, 8=HF, 9=arryth, 10=angina, 11=urgent revasc, 12=HTN,
@@ -301,19 +301,24 @@ replace covtype=14 if pervascdis_all ==1
 // Source: Khan et al 2010
 //CPRD GOLD
 gen cci_g = 0
-//replace cci_g = charlson readcode, **OXMIS** idvar(patid) assign0
+charlsonread readcode, icd(00) idvar(patid) assign0
+replace cci_g = 1 if charlindex == 1
+replace cci_g = 2 if charlindex == 2
+replace cci_g = 3 if charlindex == 3
+replace cci_g = 4 if charlindex >= 4 & charlindex <.
 label variable cci_g "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+drop ynch* weightch* wcharlsum charlindex smchindx
 //HES
 gen cci_h = 0
-charlson icd, icd(10) idvar(patid) assign0
+charlsonread icd_primary, icd(10) idvar(patid) assign0
 replace cci_h = 1 if charlindex == 1
 replace cci_h = 2 if charlindex == 2
 replace cci_h = 3 if charlindex == 3
 replace cci_h = 4 if charlindex >= 4 & charlindex <.
 label variable cci_h "Charlson Comorbidity Index (hes) 1=1, 2=2, 3=3, 4=4 or more 0=error"
 //ALL
-gen cci_all = 1 if cci_g==1|cci_h==1
-label variable cci_all "Charlson Comorbidity Index (all) 1=1, 2=2, 3=3, 4=4 or more 0=error"
+gen cci_all = 1 if cci_g>=1|cci_h>=1
+label variable cci_all "Charlson Comorbidity Index (all) binary 1=cci recorded, 0=no cci recorded"
 //gen covtype
 replace covtype=15 if cci_all ==1
 
