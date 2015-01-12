@@ -185,7 +185,7 @@ replace covtype=9 if arrhythmia_covar_g ==1
 // ICD-10 source: CPRD Diagnostic Codes.xlsx
 //CPRD GOLD
 gen angina_covar_g = 0
-replace angina_covar_g = 1 if regexm(readcode, ("G33..00|662K000|662K.00|G311.13|12C..14|14A5.00|G311100|12C2.13|388F.00|12C3.13|G33zz00|1226.11|G33z300|G33z.00|G311.11|G33z700|662K300|388E.00|12CL.00|G311400|12CM.00|G330.00|662K100|662K200|A740.00|662Kz00|G311200|12CG.00|12CH.00|12CE.00|AA1..00|12CF.00|G311.14|G331.00|ZR3P.11|G33z600|J083300|G330000|G33z500|ZR37.00|G311300|G331.11|14AJ.00|J421.11|8B27.00|ZR3P.00|AA1z.00|G330z00|J08zD00|3889|A340000|Gyu3000|ZRB1.00")
+replace angina_covar_g = 1 if regexm(readcode, ("G33..00|662K000|662K.00|G311.13|12C..14|14A5.00|G311100|12C2.13|388F.00|12C3.13|G33zz00|1226.11|G33z300|G33z.00|G311.11|G33z700|662K300|388E.00|12CL.00|G311400|12CM.00|G330.00|662K100|662K200|A740.00|662Kz00|G311200|12CG.00|12CH.00|12CE.00|AA1..00|12CF.00|G311.14|G331.00|ZR3P.11|G33z600|J083300|G330000|G33z500|ZR37.00|G311300|G331.11|14AJ.00|J421.11|8B27.00|ZR3P.00|AA1z.00|G330z00|J08zD00|3889|A340000|Gyu3000|ZRB1.00"))
 label variable angina_covar_g "Angina (covar) (gold) 1=event 0=noevent"
 //gen covtype
 replace covtype=10 if angina_covar_g ==1
@@ -234,8 +234,8 @@ replace covtype=14 if pervascdis_g ==1
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
-gen cci_g = 0
 charlsonread readcode, icd(00) idvar(patid) assign0
+gen cci_g = 0
 replace cci_g = 1 if charlindex == 1
 replace cci_g = 2 if charlindex == 2
 replace cci_g = 3 if charlindex == 3
