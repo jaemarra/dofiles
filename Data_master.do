@@ -212,23 +212,26 @@ do Data08_outcomes_d
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-#9 Data09_clinicalcovariates: 	use Clinical001_2-013_2
+#9 Data09_clinicalcovariates: 	use Clinical001_2b-013_2b
 									- merge m:1 with Dates
 									- joinby Additional
 									- merge m:1 with Patient2
 									- generate covtype
 									- generate variables for all clinical covariates of interest height, weight, sys_bp, smoking, alcohol
 									- generate variables for outcome covariates: MI, stroke, HF, Arr, revasc, htn, afib, pvd, (removed hyperlipidemia)
-									- generate charlindex (Charlson Comorbidity Index weight)
+									- generate cci (Charlson Comorbidity Index weight)
+									- save 13 intermediate files Clinical00X_2b_cov
 									- create variable for eligible dates
+									- save 13 intermediate files Clinical00X_2b_cov_i for indexdate window
+									- save 13 intermediate files Clinical00X_2b_cov_s for studyentrydate window
+									- save 13  intermediate files Clinical00X_2b_cov_ for cohortentrydate window
 									- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
 									- rectangularize, fillin, drop unwanted, reshape, save
 */
 do Data09_clinicalcovariates	
-/*	Files saved:	Clincovs_indexdate.dta
-					Clincovs_cohortentrydate.dta
-					Clincovs_studyentrydate_cprd2.dta
-					Clincovs.dta
+/*	Files saved:	ClinicalCovariates_i.dta
+					ClinicalCovariates_c.dta
+					ClinicalCovariates_s.dta
 */
 					
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

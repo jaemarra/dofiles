@@ -243,10 +243,11 @@ replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 label variable cci_g "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 drop ynch* weightch* wcharlsum charlindex smchindx
 //gen covtype
-replace covtype=15 if cci_g >=1 & cci_g <.
+replace covtype=15 if cci_g >=0 & cci_g <.
+replace nr_data = cci_g if covtype==15
 
 //populate nr_data with co-morbidity binaries
-foreach num of numlist 6/15{
+foreach num of numlist 6/14{
 replace nr_data=1 if covtype==`num'
 }
 
