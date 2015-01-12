@@ -234,12 +234,12 @@ replace covtype=14 if pervascdis_g ==1
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
-charlsonread readcode, icd(00) idvar(patid) assign0
+charlsonreadadd readcode, icd(00)
 gen cci_g = 0
-replace cci_g = 1 if charlindex == 1
-replace cci_g = 2 if charlindex == 2
-replace cci_g = 3 if charlindex == 3
-replace cci_g = 4 if charlindex >= 4 & charlindex <.
+replace cci_g = 1 if wcharlsum == 1
+replace cci_g = 2 if wcharlsum == 2
+replace cci_g = 3 if wcharlsum == 3
+replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 label variable cci_g "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 drop ynch* weightch* wcharlsum charlindex smchindx
 //gen covtype

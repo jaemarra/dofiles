@@ -119,6 +119,7 @@ save Servcovs_studyentrydate_cprd2, replace
 
 
 }
+//combine all 13 files
 exit
 log close
 

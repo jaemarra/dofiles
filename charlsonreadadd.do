@@ -10,7 +10,7 @@ syntax [varlist] [if] [in], icd(string) ///
 *Move all comorbidity variables to front of dataset
 order `cmbprfx'*
 marksample touse, novarlist
-//keep if `touse'
+keep if `touse'
 display "CHARLSON COMORBIDITY MACRO WITH ICD OR READ/OXMIS"
 display "Providing Summary of CHARLSON INDEX – USING ICD or READ/OXMIS-`icd’ DATA"
 if "`show'" != "noshow" {
@@ -482,7 +482,7 @@ label var ynch1 "AMI (Acute Myocardial)"
 	}
 
 *Output summaries as requested
-  
+
   if "`wtchrl'" != "" {
     tab charlindex 
     tab wcharlsum 
@@ -494,10 +494,11 @@ label var ynch1 "AMI (Acute Myocardial)"
     tab ynch`i'
       }
 }
-drop ynch1 ynch2 ynch3 ynch4 ynch5 ynch6 ynch7 ynch8 ynch9 ynch10 ynch11 ynch12 ynch13 ynch14 ynch15 ynch16 ynch17
-drop weightch1 weightch2 weightch3 weightch4 weightch5 weightch6 weightch7 weightch8 weightch9 weightch10 weightch11 weightch12 weightch13 weightch14 weightch15 weightch16 weightch17
-drop smchindx
 //restore, preserve
+//return list
+//drop ynch1 ynch2 ynch3 ynch4 ynch5 ynch6 ynch7 ynch8 ynch9 ynch10 ynch11 ynch12 ynch13 ynch14 ynch15 ynch16 ynch17
+//drop weightch1 weightch2 weightch3 weightch4 weightch5 weightch6 weightch7 weightch8 weightch9 weightch10 weightch11 weightch12 weightch13 weightch14 weightch15 weightch16 weightch17
+//drop smchindx
 end
 
 
