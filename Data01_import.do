@@ -475,10 +475,10 @@ append using Therapy014
 append using Therapy015
 append using Therapy016
 append using Therapy017
-egen group_cut=cut(patid), group(25)
+egen group_cut=cut(patid), group(50)
 save Therapy.dta, replace 
-//break into groups of 25
-	forval i=0/24   {         
+//break into groups of 50
+	forval i=0/49   {         
 		use Therapy if group_cut==`i', clear
 		save Therapy_`i', replace
 		}

@@ -1,10 +1,12 @@
 //  program:    Data_master.do
 //  task:		Master List of .do Files
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
-//  authors:     MA \ May2014 \ jmg modified June 17, 2014 JM \ Jan2015
+//  authors:     MA, JMG, JM
 
 //	Run the following .do files, in order listed, to complete dataset management and cohort preparation. 
 
+clear _all
+capture log close
 log using Data_master.smcl, replace
 timer on 1
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,7 +230,8 @@ do Data08_outcomes_d
 									- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
 									- rectangularize, fillin, drop unwanted, reshape, save
 */
-do Data09_clinicalcovariates	
+do Data09_clinicalcovariates_a
+do Data09_clinicalcovariates_b	
 /*	Files saved:	ClinicalCovariates_i.dta
 					ClinicalCovariates_c.dta
 					ClinicalCovariates_s.dta
@@ -261,7 +264,8 @@ do Data10_labcovariates
 									- pull out dates and associated covariates of interest, create counts, keep obs relevant to window
 									- rectangularize, fillin, drop unwanted, reshape, save
 */
-do Data11_servicescovariates
+do Data11_servicescovariates_a
+do Data11_servicecovariates_b
 /*Files saved:		Servcovs_indexdate.dta
 					Servcovs_cohortentrydate.dta
 					Servcovs_studyentrydate_cprd2.dta
