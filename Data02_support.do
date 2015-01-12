@@ -100,7 +100,7 @@ clear all
 // B) Merge packtype into therapy_bnf using key variable packtype
 // C) Merge product into therapy_bnf_packtype using key variable prodcode
 
-		forval i=0/10   {         
+		forval i=0/24   {         
 		use Therapy_`i', clear
 		sort bnf_nom
 		merge m:1 bnf_nom using Bnfcodes, keep(match master) nogen
