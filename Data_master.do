@@ -214,27 +214,42 @@ do Data08_outcomes_d
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-#9 Data09_clinicalcovariates: 	use Clinical001_2b-013_2b
-									- merge m:1 with Dates
-									- joinby Additional
-									- merge m:1 with Patient2
-									- generate covtype
-									- generate variables for all clinical covariates of interest height, weight, sys_bp, smoking, alcohol
-									- generate variables for outcome covariates: MI, stroke, HF, Arr, revasc, htn, afib, pvd, (removed hyperlipidemia)
-									- generate cci (Charlson Comorbidity Index weight)
-									- save 13 intermediate files Clinical00X_2b_cov
-									- create variable for eligible dates
-									- save 13 intermediate files Clinical00X_2b_cov_i for indexdate window
-									- save 13 intermediate files Clinical00X_2b_cov_s for studyentrydate window
-									- save 13  intermediate files Clinical00X_2b_cov_ for cohortentrydate window
-									- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
-									- rectangularize, fillin, drop unwanted, reshape, save
+#9 Data09_clinicalcovariates_a: 	a)	use Clinical001_2b-013_2b
+										- merge m:1 with Dates
+										- joinby Additional
+										- merge m:1 with Patient2
+										- generate covtype
+										- generate variables for all clinical covariates of interest height, weight, sys_bp, smoking, alcohol
+										- generate variables for outcome covariates: MI, stroke, HF, Arr, revasc, htn, afib, pvd, (removed hyperlipidemia)
+										- generate cci (Charlson Comorbidity Index weight)
+										- save 13 intermediate files Clinical00X_2b_cov
+										- create variable for eligible dates
+										- save 13 intermediate files Clinical00X_2b_cov_i for indexdate window
+										- save 13 intermediate files Clinical00X_2b_cov_s for studyentrydate window
+										- save 13  intermediate files Clinical00X_2b_cov_ for cohortentrydate window
+										- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
+										- rectangularize, fillin, drop unwanted, reshape, save
 */
 do Data09_clinicalcovariates_a
-do Data09_clinicalcovariates_b	
-/*	Files saved:	ClinicalCovariates_i.dta
-					ClinicalCovariates_c.dta
-					ClinicalCovariates_s.dta
+/*	Files saved:	ClinicalCovariates_s
+					ClinicalCovariates_c
+					ClinicalCovariates_i
+
+#9 Data09_clinicalcovariates_b: 	a)	use hes.dta (all hes files merged)
+										- merge m:1 with Dates
+										- generate covtype
+										- generate variables for outcome covariates: MI, stroke, HF, Arr, revasc, htn, afib, pvd, (removed hyperlipidemia)
+										- generate cci (Charlson Comorbidity Index weight)
+										- create variable for eligible dates
+										- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
+										- rectangularize, fillin, drop unwanted, reshape, save 
+*/
+do Data09_clinicalcovariates_b
+
+/*	Files saved:	hes_cov
+					hes_cov_i.dta
+					hes_cov_c.dta
+					hes_cov_s.dta
 */
 					
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -265,11 +280,16 @@ do Data10_labcovariates
 									- rectangularize, fillin, drop unwanted, reshape, save
 */
 do Data11_servicescovariates_a
-do Data11_servicecovariates_b
-/*Files saved:		Servcovs_indexdate.dta
-					Servcovs_cohortentrydate.dta
-					Servcovs_studyentrydate_cprd2.dta
-					Servcovs.dta
+/*Files saved:		Clin_serv.dta
+					Clin_serv_s.dta
+					Clin_serv_c.dta
+					Clin_serv_i.dta
+*/
+do Data11_servicescovariates_b
+/*Files saved:		hes_serv.dta
+					hes_serv_s.dta
+					hes_serv_c.dta
+					hes_serv_i.dta
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IN PROCESS #11 Data11_analytic_dataset --> Create main analytic cohort by merging 1) Exposure dataset, 2) Immunizations dataset, 		
 //												  3) Demographic dataset, 4) SES dataset, 5) Outcome dataset, 6) Labcovariate dataset, 

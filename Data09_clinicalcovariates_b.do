@@ -13,6 +13,7 @@ log using Data09b.log, replace
 // Keep only if eventdate2 is before indexdate.
 
 use hes.dta
+merge m:1 patid using Dates, keep(match) nogen
 keep if eventdate2<indexdate
 keep patid studyentrydate_cprd2 pracid spno duration icd icd_primary opcs eventdate2
 
