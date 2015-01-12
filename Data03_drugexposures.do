@@ -11,7 +11,7 @@ set more off
 log using Data03test.smcl, replace
 timer on 1
 
-forval i=0/10 {
+forval i=0/24 {
 	use Therapy_`i', clear	 
 ////// #1 make labels case-consistent
 // create new variable "productname_1" as the lowercase version of "productname"
@@ -1295,7 +1295,7 @@ compress
 save Exposures_`i'.dta, replace
 	}
 use Exposures_0, clear 
-forval i=1/10 {		
+forval i=1/49 {		
 	append using Exposures_`i'
 	}
 save Exposures.dta, replace
