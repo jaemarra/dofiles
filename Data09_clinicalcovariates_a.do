@@ -375,16 +375,13 @@ by patid: egen cov_num_un_c_temp = count(covtype) if cov_num==1 & eltestdate2>=c
 by patid: egen cov_num_un_c = min(cov_num_un_c_temp)
 drop cov_num_un_c_temp
 
-count if prx_covvalue_c<.
-
-//only keep the observations relevant to the current window
-drop if prx_covvalue_c >=.
-
-egen null = anycount(patid)
 //Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
 encode covariatetype, generate(clincov)
 label drop clincov
+
+//only keep the observations relevant to the current window
+drop if prx_covvalue_c >=.
 
 //Check for duplicates again- no duplicates found then continue
 bysort patid clincov: gen dupa = cond(_N==1,0,_n)

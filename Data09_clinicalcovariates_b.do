@@ -311,7 +311,7 @@ rename cci cci_h
 bysort patid: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 keep patid cci_h cci_h_b
-save hes_cci_s, replace
+save hes_cci_i, replace
 clear
 
 //COHORTENTRYDATE
@@ -324,7 +324,7 @@ rename cci cci_h
 bysort patid: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 keep patid cci_h cci_h_b
-save hes_cci_s, replace
+save hes_cci_c, replace
 clear
 
 //STUDENTRYDATE_CPRD2
