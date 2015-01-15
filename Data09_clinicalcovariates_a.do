@@ -12,6 +12,22 @@ timer on 1
 
 // #1 Use data files generated in Data08 (Outcome).
 // Keep only if eventdate2 is before indexdate.
+timer on 2
+foreach file in Clinical001_2 Clinical002_2 Clinical003_2 Clinical004_2 Clinical005_2 Clinical006_2 Clinical007_2 Clinical008_2 ///
+				Clinical009_2 Clinical010_2 Clinical011_2 Clinical012_2 Clinical013_2 {
+use `file', clear
+sort patid
+merge m:1 patid using Dates, keep(match) nogen
+keep if eventdate2>studyentrydate_cprd2-365
+sort patid
+joinby patid adid using Additional, unmatched(master) _merge(Additional_merge)
+merge m:1 patid using Patient, keep(match) nogen
+compress
+save `file'b.dta, replace
+}
+clear
+timer off 2
+timer list 2
 
 foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clinical005_2b Clinical006_2b Clinical007_2b Clinical008_2b Clinical009_2b Clinical010_2b Clinical011_2b Clinical012_2b Clinical013_2b {
 use `file', clear

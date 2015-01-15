@@ -161,7 +161,7 @@ do Data07_ses
 							- generate dates for primaries and secondaries
 */
 do Data08_outcomes_a
-/*	Files saved: 	Clinical001_2b - Clinical013_2b
+/*	Files saved: 	Clinical001_2a - Clinical013_2a
 					Outcomes_gold_Clinical001_2- Clinical013_2.dta
 					Outcomes_gold.dta (appended Outcomes_gold_Clinical001_2-Clinical013_2)
 					
@@ -214,27 +214,40 @@ do Data08_outcomes_d
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-#9 Data09_clinicalcovariates_a: 	a)	use Clinical001_2b-013_2b
+#9 Data09_clinicalcovariates_a: 	a)	use Clinical001_2-013_2
 										- merge m:1 with Dates
 										- joinby Additional
 										- merge m:1 with Patient2
+										- generate Clinical2b files for use in Data09-Data11
 										- generate covtype
 										- generate variables for all clinical covariates of interest height, weight, sys_bp, smoking, alcohol
 										- generate variables for outcome covariates: MI, stroke, HF, Arr, revasc, htn, afib, pvd, (removed hyperlipidemia)
 										- generate cci (Charlson Comorbidity Index weight)
-										- save 13 intermediate files Clinical00X_2b_cov
+										- create feeder files for windows for all covariates except cci
+										- create feeder files for windows for cci
 										- create variable for eligible dates
-										- save 13 intermediate files Clinical00X_2b_cov_i for indexdate window
-										- save 13 intermediate files Clinical00X_2b_cov_s for studyentrydate window
-										- save 13  intermediate files Clinical00X_2b_cov_ for cohortentrydate window
 										- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
 										- rectangularize, fillin, drop unwanted, reshape, save
+										- create weight covariate file for Data10-LabCovariates (conains patid and weight only)
 */
 do Data09_clinicalcovariates_a
-/*	Files saved:	ClinicalCovariates_i.dta
+/*	Files saved:	Clinical00X_2b.dta (13 intermediate files)
+					Clinical00X_2b_cov.dta (13 intermediate files)
+					Clinical00X_2b_cov_i.dta (13 intermediate files)
+					Clinical00X_2b_cov_s.dta (13 intermediate files)
+					Clinical00X_2b_cov_c.dta (13 intermediate files)
+					Clinical00X_2b_cov_cci_i.dta (13 intermediate files)
+					Clinical00X_2b_cov_cci_s.dta (13 intermediate files)
+					Clinical00X_2b_cov_cci_c.dta (13 intermediate files)
+					Clinical00X_2b_cov_wt.dta (13 intermediate files)
+					ClinicalCovariates_i.dta
 					ClinicalCovariates_c.dta
 					ClinicalCovariates_s.dta
-
+					Clinical_cci_i.dta
+					Clinical_cci_s.dta
+					Clinical_cci_c.dta
+					ClinicalCovariates_wt.dta
+					
 #9 Data09_clinicalcovariates_b: 	b)	use hes.dta (all hes files merged)
 										- merge m:1 with Dates
 										- generate covtype
@@ -246,10 +259,13 @@ do Data09_clinicalcovariates_a
 */
 do Data09_clinicalcovariates_b
 
-/*	Files saved:	hes_cov.dta
+/*	Files saved:	hes_cov.dta (intermediate file)
 					hesCovariates_i.dta
 					hesCovariates_c.dta
 					hesCovariates_s.dta
+					hes_cci_i.dta
+					hes_cci_c.dta
+					hes_cci_s.dta
 
 #9 Data09_clinicalcovariates_c: 	c)	use ClinicalCovariates_i
 										- merge 1:1 patid using hesCovariates_i
@@ -269,7 +285,6 @@ do Data09_clinicalcovariates_c
 /*	Files saved:	ClinicalCovariates_merged_i.dta
 					ClinicalCovariates_merged_c.dta
 					ClinicalCovariates_merged_s.dta
-					ClinicalCovariates_wt.dta
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #10 Data10_labcovariates:  			use Test001-014
 									- merge m:1 with Dates

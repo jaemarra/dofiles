@@ -22,7 +22,7 @@ sort patid
 joinby patid adid using Additional, unmatched(master) _merge(Additional_merge)
 merge m:1 patid using Patient, keep(match) nogen
 compress
-save `file'b.dta, replace
+save `file'a.dta, replace
 }
 clear
 
@@ -31,8 +31,8 @@ clear
 // Based on readcode variable, source of readcodes identified for each outcome/source.
 
 ////// #2a All-cause mortality
-foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clinical005_2b Clinical006_2b Clinical007_2b Clinical008_2b ///
-				Clinical009_2b Clinical010_2b Clinical011_2b Clinical012_2b Clinical013_2b {
+foreach file in Clinical001_2a Clinical002_2a Clinical003_2a Clinical004_2a Clinical005_2a Clinical006_2a Clinical007_2a Clinical008_2a ///
+				Clinical009_2a Clinical010_2a Clinical011_2a Clinical012_2a Clinical013_2a {
 
 use `file', clear
 gen death_g = (deathdate2!=.)
