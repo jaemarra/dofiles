@@ -6,23 +6,22 @@
 clear all
 capture log close
 set more off
-
+set trace on
 log using Data09b.log, replace
+timer on 1
 
 // #1 Use merged hes files generated in Data02_Support. 
-// Keep only if eventdate2 is before indexdate.
-
+// Keep only if eventdate2 is before indexdate, drop all non-essential variables for efficiency
 use hes.dta
 merge m:1 patid using Dates, keep(match) nogen
 keep if eventdate2<indexdate
-keep patid studyentrydate_cprd2 pracid spno duration icd icd_primary opcs eventdate2
+keep patid studyentrydate_cprd2 cohortentrydate indexdate pracid spno duration icd icd_primary opcs eventdate2
 
 //generate covariate type
 /* COVTYPE KEY: 1=ht, 2=wt, 3=sbp, 4=smoking, 5=alc abuse, 6=MI, 7=stroke, 8=HF, 9=arryth, 10=angina, 11=urgent revasc, 12=HTN,
 13=AFIB, 14=PVD 15=CCI*/
 gen covtype = .
 gen nr_data = .
-
 
 //Generate binary variables coding for each COMORBIDITY. Code so 0=no event and 1=event. 
 //For each event: generate, replace, label
@@ -117,23 +116,21 @@ label variable pervascdis_h "Peripheral Vascular Disease (hes) 1=event 0=no even
 //gen covtype
 replace covtype=14 if pervascdis_h ==1
 
-/ Charlson Comorbidity Index
+// Charlson Comorbidity Index
 // Source: Khan et al 2010
 //HES ICD10
 charlsonreadadd icd icd_primary, icd(10)
 gen cci_h = 0
-replace cci_h = 1 if wcharlsum == 1
-replace cci_h = 2 if wcharlsum == 2
-replace cci_h = 3 if wcharlsum == 3
-replace cci_h = 4 if wcharlsum >= 4 & wcharlsum <.
+replace cci_h = 1 if charlindex
+replace cci_h = 2 if charlindex
+replace cci_h = 3 if charlindex
+replace cci_h = 4 if charlindex >= 4 & charlindex <.
 label variable cci_h "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
 drop ynch* weightch* wcharlsum charlindex smchindx
-//gen covtype
-replace covtype=15 if cci_h >=0 & cci_h <.
-replace nr_data = cci_h if covtype==15
+gen cci_h_b = 1 if cci_h >=1 & cci_h <.
 
-//populate nr_data with co-morbidity binaries
-foreach num of numlist 6/14{
+
+foreach num of numlist 6/14 {
 replace nr_data=1 if covtype==`num'
 }
 
@@ -149,24 +146,29 @@ drop if dupa>1
 save hes_cov, replace
 clear
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
-//STUDYENTRYDATE_CPRD
-use hes_cov
-//pull out test date of interest
-bysort patid covtype : egen prx_testdate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-format prx_testdate_s %td
-gen prx_test_s_b = 1 if !missing(prx_testdate_s)
-
-//pull out test value of interest
-bysort patid covtype : gen prx_testvalue_s = nr_data if prx_testdate_s==eltestdate2
+//INDEXDATE 
+use hes_cov, clear
+//pull out covariate date of interest
+bysort patid covtype : egen prx_covdate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
+format prx_covdate_i %td
+gen prx_cov_i_b = 1 if !missing(prx_covdate_i)
+//pull out covariate value of interest
+bysort patid covtype : gen prx_covvalue_i = nr_data if prx_covdate_i==eltestdate2
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
+format prx_ccidate_i %td
+bysort patid: gen prx_ccivalue_i = cci_h if prx_ccidate_i==eltestdate2
+quietly bysort patid prx_ccivalue_i: gen dupck = cond(_N==1,0,_n)
+replace prx_ccivalue_i=. if dupck>1
+drop dupck
 
 //create counts
 sort patid covtype eltestdate2
 by patid covtype: generate cov_num = _n
-by patid: egen cov_num_un = count(covtype) if cov_num==1 
-
-by patid: egen cov_num_un_s_temp = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-by patid: egen cov_num_un_s = min(cov_num_un_s_temp)
-drop cov_num_un_s_temp
+by patid: egen cov_num_un = count(covtype) if cov_num==1
+by patid: egen cov_num_un_i_temp = count(covtype) if cov_num==1 & eltestdate2>=indexdate-365 & eltestdate2<indexdate
+by patid: egen cov_num_un_i = min(cov_num_un_i_temp)
+drop cov_num_un_i_temp
 
 //Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
@@ -174,42 +176,48 @@ encode covariatetype, generate(clincov)
 label drop clincov
 
 //only keep the observations relevant to the current window
-drop if prx_testvalue_s >=.
+drop if prx_covvalue_i >=.
 
-/*Check for duplicates again- no duplicates found then continue
+//Check for duplicates again- no duplicates found then continue
 quietly bysort patid clincov: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+drop if dupck>1
+drop dupck
 
 //Rectangularize data
 fillin patid clincov
 
 //Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs = total(cov_num)
+bysort patid: egen totcovs = total(cov_num_un_i)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs clincov prx_testvalue_s prx_test_s_b
+keep patid totcovs clincov prx_covvalue_i prx_cov_i_b
 
 //Reshape
-reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(clincov)
+reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(clincov)
 
-save hes_cov_s, replace 
+save hesCovariates_i, replace
 clear
 
 //COHORTENTRY DATE
 use hes_cov
-//pull out test date of interest
-bysort patid covtype : egen prx_testdate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
-format prx_testdate_c %td
-gen prx_test_c_b = 1 if !missing(prx_testdate_c)
-
-//pull out test value of interest
-bysort patid covtype : gen prx_testvalue_c = nr_data if prx_testdate_c==eltestdate2
+//pull out covariate date of interest
+bysort patid covtype : egen prx_covdate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
+format prx_covdate_c %td
+gen prx_cov_c_b = 1 if !missing(prx_covdate_c)
+//pull out covariate value of interest
+bysort patid covtype: gen prx_covvalue_c = nr_data if prx_covdate_c==eltestdate2
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
+format prx_ccidate_c %td
+bysort patid: gen prx_ccivalue_c = cci_h if prx_ccidate_c==eltestdate2
+quietly bysort patid prx_ccivalue_c: gen dupck = cond(_N==1,0,_n)
+replace prx_ccivalue_c=. if dupck>1
+drop dupck
 
 //create counts
 sort patid covtype eltestdate2
 by patid covtype: generate cov_num = _n
-by patid: egen cov_num_un = count(covtype) if cov_num==1 
-
+by patid: egen cov_num_un = count(covtype) if cov_num==1
 by patid: egen cov_num_un_c_temp = count(covtype) if cov_num==1 & eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
 by patid: egen cov_num_un_c = min(cov_num_un_c_temp)
 drop cov_num_un_c_temp
@@ -220,73 +228,120 @@ encode covariatetype, generate(clincov)
 label drop clincov
 
 //only keep the observations relevant to the current window
-drop if prx_testvalue_c >=.
+drop if prx_covvalue_c >=.
 
-/*Check for duplicates again- no duplicates found then continue
+//Check for duplicates again- no duplicates found then continue
 quietly bysort patid clincov: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+drop if dupck>1
 
 //Rectangularize data
 fillin patid clincov
 
 //Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs = total(cov_num)
+bysort patid: egen totcovs = total(cov_num_un_c)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs clincov prx_testvalue_c prx_test_c_b
+keep patid totcovs clincov prx_covvalue_c prx_cov_c_b
 
 //Reshape
-reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(clincov)
+reshape wide prx_covvalue_c prx_cov_c_b, i(patid) j(clincov)
 
-save hes_cov_c, replace
+save hesCovariates_c, replace
 clear
 
-//INDEXDATE 
+//STUDYENTRYDATE_CPRD
 use hes_cov
-//pull out test date of interest
-bysort patid covtype : egen prx_testdate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
-format prx_testdate_i %td
-gen prx_test_i_b = 1 if !missing(prx_testdate_i)
-
-//pull out test value of interest
-bysort patid covtype : gen prx_testvalue_i = nr_data if prx_testdate_i==eltestdate2
+//pull out covariate date of interest
+bysort patid covtype : egen prx_covdate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+format prx_covdate_s %td
+gen prx_cov_s_b = 1 if !missing(prx_covdate_s)
+//pull out covariate value of interest
+bysort patid covtype : gen prx_covvalue_s = nr_data if prx_covdate_s==eltestdate2
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+format prx_ccidate_s %td
+bysort patid: gen prx_ccivalue_s = cci_h if prx_ccidate_s==eltestdate2
+quietly bysort patid prx_ccivalue_s: gen dupck = cond(_N==1,0,_n)
+replace prx_ccivalue_s=. if dupck>1
+drop dupck
 
 //create counts
 sort patid covtype eltestdate2
 by patid covtype: generate cov_num = _n
-by patid: egen cov_num_un = count(covtype) if cov_num==1 
+by patid: egen cov_num_un = count(covtype) if cov_num==1
+by patid: egen cov_num_un_s_temp = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+by patid: egen cov_num_un_s = min(cov_num_un_s_temp)
+drop cov_num_un_s_temp
 
-by patid: egen cov_num_un_i_temp = count(covtype) if cov_num==1 & eltestdate2>=indexdate-365 & eltestdate2<indexdate
-by patid: egen cov_num_un_i = min(cov_num_un_i_temp)
-drop cov_num_un_i_temp
-
-//Create a new variable that enumerates covtypes
+//Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
 encode covariatetype, generate(clincov)
 label drop clincov
 
 //only keep the observations relevant to the current window
-drop if prx_testvalue_i >=.
+drop if prx_covvalue_s >=.
 
-/*Check for duplicates again- no duplicates found then continue
+//Check for duplicates again- no duplicates found then continue
 quietly bysort patid clincov: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+drop if dupck>1
 
 //Rectangularize data
 fillin patid clincov
 
 //Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs = total(cov_num)
+bysort patid: egen totcovs = total(cov_num_un_s)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs clincov prx_testvalue_i prx_test_i_b
+keep patid totcovs clincov prx_covvalue_s prx_cov_s_b
 
 //Reshape
-reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(clincov)
+reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(clincov)
 
-save hes_cov_i, replace
-
+save hesCovariates_s, replace
 clear
+
+////////////////////////////////////CREATE CHARLSON WINDOWS/////////////////////////////
+//INDEXDATE
+use hes_cov, clear
+keep patid cci_h cci_h_b eventdate2 indexdate
+drop if eventdate2>=indexdate-365 & eventdate2<indexdate
+bysort patid: egen cci = max(cci_h)
+drop cci_h eventdate2 indexdate
+rename cci cci_h
+bysort patid: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+keep patid cci_h cci_h_b
+save hes_cci_s, replace
+clear
+
+//COHORTENTRYDATE
+use hes_cov, clear
+keep patid cci_h cci_h_b eventdate2 cohortentrydate
+drop if eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
+bysort patid: egen cci = max(cci_h)
+drop cci_h eventdate2 cohortentrydate
+rename cci cci_h
+bysort patid: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+keep patid cci_h cci_h_b
+save hes_cci_s, replace
+clear
+
+//STUDENTRYDATE_CPRD2
+use hes_cov, clear
+keep patid cci_h cci_h_b eventdate2 studyentrydate_cprd2
+drop if eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
+bysort patid: egen cci = max(cci_h)
+drop cci_h eventdate2 studyentrydate_cprd2
+rename cci cci_h
+bysort patid: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+keep patid cci_h cci_h_b
+save hes_cci_s, replace
+clear
+
+timer off 1
+timer list 1
 exit
 log close
 

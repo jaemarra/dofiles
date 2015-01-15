@@ -1,21 +1,23 @@
 //  program:    Data09_clinicalcovariate_a.do
-//  task:		Generate variables for clinical markers and comorbidities, NOT LAB covariates (see Data10 for those)
-//  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
+//  task:        Generate variables for clinical markers and comorbidities, NOT LAB covariates (see Data10 for those)
+//  project:     Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     MA \ May 2014 modified by JM \ Jan 2015
 
 clear all
 capture log close
 set more off
-
+set trace on
 log using Data09a.log, replace
+timer on 1
 
-// #1 Use data files generated in Data08 (Outcome). 
+// #1 Use data files generated in Data08 (Outcome).
 // Keep only if eventdate2 is before indexdate.
 
 foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clinical005_2b Clinical006_2b Clinical007_2b Clinical008_2b Clinical009_2b Clinical010_2b Clinical011_2b Clinical012_2b Clinical013_2b {
 use `file', clear
-sort patid 
 
+keep patid enttype eventdate2 studyentrydate_cprd2 readcode cohortentrydate indexdate data1 data2
+sort patid
 //only keep if prior to follow-up
 keep if eventdate2<indexdate
 // merge in hes_primary_diag_hosp, hes_diagnosis_hosp, hes_diagnosis_epi
@@ -72,7 +74,7 @@ replace weight_b = 1 if nr_weight<.
 label variable weight_b "Weight (binary)"
 //assign covtype
 replace covtype = 2 if nr_weight <.
-replace nr_data = nr_weight if covtype==2
+replace nr_data = nr_mean_weight if covtype==2
 
 //SYSTOLIC BLOOD PRESSURE
 //gen continuous, restrict to reasonable values, eliminiate redundancy
@@ -97,9 +99,9 @@ replace sys_bp_b = 1 if nr_sys_bp <.
 label variable sys_bp_b "Systolic BP (binary)"
 //assign covtype
 replace covtype = 3 if nr_sys_bp <.
-replace nr_data = nr_sys_bp if covtype==3
+replace nr_data = nr_mean_sys_bp if covtype==3
 
-//SMOKING STATUS [Never, Former, Current, Unknown--data not entered or missing] 
+//SMOKING STATUS [Never, Former, Current, Unknown--data not entered or missing]
 //gen categorical, restrict to reasonable values, eliminiate redundancy
 gen smoking =.
 replace smoking =   data1 if enttype==4
@@ -242,9 +244,7 @@ replace cci_g = 3 if wcharlsum == 3
 replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 label variable cci_g "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 drop ynch* weightch* wcharlsum charlindex smchindx
-//gen covtype
-replace covtype=15 if cci_g >=0 & cci_g <.
-replace nr_data = cci_g if covtype==15
+generate cci_g_b = 1 if cci_g >=1
 
 //populate nr_data with co-morbidity binaries
 foreach num of numlist 6/14{
@@ -252,191 +252,68 @@ replace nr_data=1 if covtype==`num'
 }
 
 //Create a varibale for all eligible test dates (i.e. those with real, in-range nr_data)
-gen eltestdate2 = . 
+gen eltestdate2 = .
 replace eltestdate2 = eventdate2 if nr_data <. & eventdate2 <.
 format eltestdate2 %td
 
 //Drop all duplicates for patients of the same covtype on the same day
-quietly bysort patid covtype eltestdate2: gen dupa = cond(_N==1,0,_n)
+bysort patid covtype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
-
+drop dupa
 save `file'_cov, replace
 }
 clear
 
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
-//STUDYENTRYDATE_CPRD
-foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
-use `file', clear 
-//pull out test date of interest
-bysort patid covtype : egen prx_testdate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-format prx_testdate_s %td
-gen prx_test_s_b = 1 if !missing(prx_testdate_s)
-
-//pull out test value of interest
-bysort patid covtype : gen prx_testvalue_s = nr_data if prx_testdate_s==eltestdate2
-
-//create counts
-sort patid covtype eltestdate2
-by patid covtype: generate cov_num = _n
-by patid: egen cov_num_un = count(covtype) if cov_num==1 
-
-by patid: egen cov_num_un_s_temp = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-by patid: egen cov_num_un_s = min(cov_num_un_s_temp)
-drop cov_num_un_s_temp
-
-//Create a new variable that numbers covtypes 1-15
-tostring covtype, generate(covariatetype)
-encode covariatetype, generate(clincov)
-label drop clincov
-
-//only keep the observations relevant to the current window
-drop if prx_testvalue_s >=.
-
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid clincov: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
-
-//Rectangularize data
-fillin patid clincov
-
-//Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs = total(cov_num)
-
-//Drop all fields that aren't wanted in the final dta file
-keep patid totcovs clincov prx_testvalue_s prx_test_s_b
-
-//Reshape
-reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(clincov)
-
-save `file'_s, replace
-
-}
-clear
-use Clinical001_2b_cov_s
-append using Clinical002_2b_cov_s
-append using Clinical003_2b_cov_s
-append using Clinical004_2b_cov_s
-append using Clinical005_2b_cov_s
-append using Clinical006_2b_cov_s
-append using Clinical007_2b_cov_s
-append using Clinical008_2b_cov_s
-append using Clinical009_2b_cov_s
-append using Clinical0010_2b_cov_s
-append using Clinical0011_2b_cov_s
-append using Clinical0012_2b_cov_s
-append using Clinical0013_2b_cov_s
-append using Clinical0014_2b_cov_s
-save ClinicalCovariates_s
-clear
-
-//COHORTENTRY DATE
-foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
-use `file', clear 
-//pull out test date of interest
-bysort patid covtype : egen prx_testdate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
-format prx_testdate_c %td
-gen prx_test_c_b = 1 if !missing(prx_testdate_c)
-
-//pull out test value of interest
-bysort patid covtype : gen prx_testvalue_c = nr_data if prx_testdate_c==eltestdate2
-
-//create counts
-sort patid covtype eltestdate2
-by patid covtype: generate cov_num = _n
-by patid: egen cov_num_un = count(covtype) if cov_num==1 
-
-by patid: egen cov_num_un_c_temp = count(covtype) if cov_num==1 & eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
-by patid: egen cov_num_un_c = min(cov_num_un_c_temp)
-drop cov_num_un_c_temp
-
-//Create a new variable that numbers covtypes 1-15
-tostring covtype, generate(covariatetype)
-encode covariatetype, generate(clincov)
-label drop clincov
-
-//only keep the observations relevant to the current window
-drop if prx_testvalue_c >=.
-
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid clincov: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
-
-//Rectangularize data
-fillin patid clincov
-
-//Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs = total(cov_num)
-
-//Drop all fields that aren't wanted in the final dta file
-keep patid totcovs clincov prx_testvalue_c prx_test_c_b
-
-//Reshape
-reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(clincov)
-
-save `file'_c, replace
-}
-clear
-use Clinical001_2b_cov_c
-append using Clinical002_2b_cov_c
-append using Clinical003_2b_cov_c
-append using Clinical004_2b_cov_c
-append using Clinical005_2b_cov_c
-append using Clinical006_2b_cov_c
-append using Clinical007_2b_cov_c
-append using Clinical008_2b_cov_c
-append using Clinical009_2b_cov_c
-append using Clinical0010_2b_cov_c
-append using Clinical0011_2b_cov_c
-append using Clinical0012_2b_cov_c
-append using Clinical0013_2b_cov_c
-append using Clinical0014_2b_cov_c
-save ClinicalCovariates_c
-clear
-
-//INDEXDATE 
+//INDEXDATE
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
-//pull out test date of interest
-bysort patid covtype : egen prx_testdate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
-format prx_testdate_i %td
-gen prx_test_i_b = 1 if !missing(prx_testdate_i)
-
-//pull out test value of interest
-bysort patid covtype : gen prx_testvalue_i = nr_data if prx_testdate_i==eltestdate2
+//pull out covariate date of interest
+bysort patid covtype : egen prx_covdate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
+format prx_covdate_i %td
+gen prx_cov_i_b = 1 if !missing(prx_covdate_i)
+//pull out covariate value of interest
+bysort patid covtype : gen prx_covvalue_i = nr_data if prx_covdate_i==eltestdate2
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
+format prx_ccidate_i %td
+bysort patid: gen prx_ccivalue_i = cci_g if prx_ccidate_i==eltestdate2
+bysort patid prx_ccivalue_i: gen dupa = cond(_N==1,0,_n)
+replace prx_ccivalue_i=. if dupa > 1
+drop dupa
 
 //create counts
 sort patid covtype eltestdate2
 by patid covtype: generate cov_num = _n
-by patid: egen cov_num_un = count(covtype) if cov_num==1 
-
+by patid: egen cov_num_un = count(covtype) if cov_num==1
 by patid: egen cov_num_un_i_temp = count(covtype) if cov_num==1 & eltestdate2>=indexdate-365 & eltestdate2<indexdate
 by patid: egen cov_num_un_i = min(cov_num_un_i_temp)
 drop cov_num_un_i_temp
 
-//Create a new variable that enumerates covtypes
+//Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
 encode covariatetype, generate(clincov)
 label drop clincov
 
 //only keep the observations relevant to the current window
-drop if prx_testvalue_i >=.
+drop if prx_covvalue_i >=.
 
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid clincov: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+//Check for duplicates again- no duplicates found then continue
+bysort patid clincov: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
 
 //Rectangularize data
 fillin patid clincov
 
 //Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs = total(cov_num)
+bysort patid: egen totcovs = total(cov_num_un_i)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs clincov prx_testvalue_i prx_test_i_b
+keep patid totcovs clincov prx_covvalue_i prx_cov_i_b
 
 //Reshape
-reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(clincov)
+reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(clincov)
 
 save `file'_i, replace
 }
@@ -450,14 +327,276 @@ append using Clinical006_2b_cov_i
 append using Clinical007_2b_cov_i
 append using Clinical008_2b_cov_i
 append using Clinical009_2b_cov_i
-append using Clinical0010_2b_cov_i
-append using Clinical0011_2b_cov_i
-append using Clinical0012_2b_cov_i
-append using Clinical0013_2b_cov_i
-append using Clinical0014_2b_cov_i
-save ClinicalCovariates_i
+append using Clinical010_2b_cov_i
+append using Clinical011_2b_cov_i
+append using Clinical012_2b_cov_i
+append using Clinical013_2b_cov_i
+save ClinicalCovariates_i, replace
 clear
 
+//COHORTENTRY DATE
+foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
+use `file', clear
+//pull out covariate date of interest
+bysort patid covtype : egen prx_covdate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
+format prx_covdate_c %td
+gen prx_cov_c_b = 1 if !missing(prx_covdate_c)
+//pull out covariate value of interest
+bysort patid covtype: gen prx_covvalue_c = nr_data if prx_covdate_c==eltestdate2
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
+format prx_ccidate_c %td
+bysort patid: gen prx_ccivalue_c = cci_g if prx_ccidate_c==eltestdate2
+bysort patid prx_ccivalue_c: gen dupa = cond(_N==1,0,_n)
+replace prx_ccivalue_c=. if dupa>1
+drop dupa
+
+//create counts
+sort patid covtype eltestdate2
+by patid covtype: generate cov_num = _n
+by patid: egen cov_num_un = count(covtype) if cov_num==1
+by patid: egen cov_num_un_c_temp = count(covtype) if cov_num==1 & eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
+by patid: egen cov_num_un_c = min(cov_num_un_c_temp)
+drop cov_num_un_c_temp
+
+count if prx_covvalue_c<.
+
+//only keep the observations relevant to the current window
+drop if prx_covvalue_c >=.
+
+egen null = anycount(patid)
+//Create a new variable that numbers covtypes 1-15
+tostring covtype, generate(covariatetype)
+encode covariatetype, generate(clincov)
+label drop clincov
+
+//Check for duplicates again- no duplicates found then continue
+bysort patid clincov: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+
+//Rectangularize data
+fillin patid clincov
+
+//Fillin the total number of labs in the window of interest
+capture bysort patid: egen totcovs = total(cov_num_un_c)
+
+//Drop all fields that aren't wanted in the final dta file
+capture keep patid totcovs clincov prx_covvalue_c prx_cov_c_b
+
+//Reshape
+reshape wide prx_covvalue_c prx_cov_c_b totcovs, i(patid) j(clincov)
+
+save `file'_c, replace
+}
+clear
+use Clinical001_2b_cov_c
+append using Clinical002_2b_cov_c
+append using Clinical003_2b_cov_c
+append using Clinical004_2b_cov_c
+append using Clinical005_2b_cov_c
+append using Clinical006_2b_cov_c
+append using Clinical007_2b_cov_c
+append using Clinical008_2b_cov_c
+append using Clinical009_2b_cov_c
+append using Clinical010_2b_cov_c
+append using Clinical011_2b_cov_c
+append using Clinical012_2b_cov_c
+append using Clinical013_2b_cov_c
+save ClinicalCovariates_c
+clear
+
+//STUDYENTRYDATE_CPRD
+foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
+use `file', clear
+//pull out covariate date of interest
+bysort patid covtype : egen prx_covdate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+format prx_covdate_s %td
+gen prx_cov_s_b = 1 if !missing(prx_covdate_s)
+//pull out covariate value of interest
+bysort patid covtype : gen prx_covvalue_s = nr_data if prx_covdate_s==eltestdate2
+
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+format prx_ccidate_s %td
+bysort patid: gen prx_ccivalue_s = cci_g if prx_ccidate_s==eltestdate2
+bysort patid prx_ccivalue_s: gen dupa = cond(_N==1,0,_n)
+replace prx_ccivalue_s=. if dupa>1
+drop dupa
+
+//create counts
+sort patid covtype eltestdate2
+by patid covtype: generate cov_num = _n
+by patid: egen cov_num_un = count(covtype) if cov_num==1
+by patid: egen cov_num_un_s_temp = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+by patid: egen cov_num_un_s = min(cov_num_un_s_temp)
+drop cov_num_un_s_temp
+
+//Create a new variable that numbers covtypes 1-15
+tostring covtype, generate(covariatetype)
+encode covariatetype, generate(clincov)
+label drop clincov
+
+//only keep the observations relevant to the current window
+drop if prx_covvalue_s >=.
+
+//Check for duplicates again- no duplicates found then continue
+bysort patid clincov: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+
+//Rectangularize data
+fillin patid clincov
+
+//Fillin the total number of labs in the window of interest
+bysort patid: egen totcovs = total(cov_num_un_s)
+
+//Drop all fields that aren't wanted in the final dta file
+keep patid totcovs clincov prx_covvalue_s prx_cov_s_b
+
+//Reshape
+reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(clincov)
+
+save `file'_s, replace
+}
+clear
+use Clinical001_2b_cov_s
+append using Clinical002_2b_cov_s
+append using Clinical003_2b_cov_s
+append using Clinical004_2b_cov_s
+append using Clinical005_2b_cov_s
+append using Clinical006_2b_cov_s
+append using Clinical007_2b_cov_s
+append using Clinical008_2b_cov_s
+append using Clinical009_2b_cov_s
+append using Clinical010_2b_cov_s
+append using Clinical011_2b_cov_s
+append using Clinical012_2b_cov_s
+append using Clinical013_2b_cov_s
+save ClinicalCovariates_s
+clear
+
+////////////////////////////////////CHARLSON ONLY WINDOWS- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
+//INDEXDATE
+foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
+use `file', clear
+keep patid cci_g cci_g_b eventdate2 indexdate
+drop if eventdate2>=indexdate-365 & eventdate2<indexdate
+bysort patid: egen cci = max(cci_g)
+bysort patid: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+drop cci_g
+rename cci cci_g
+keep patid cci_g cci_g_b
+save `file'_cci_i, replace
+}
+use Clinical001_2b_cov_cci_i
+append using Clinical002_2b_cov_cci_i
+append using Clinical003_2b_cov_cci_i
+append using Clinical004_2b_cov_cci_i
+append using Clinical005_2b_cov_cci_i
+append using Clinical006_2b_cov_cci_i
+append using Clinical007_2b_cov_cci_i
+append using Clinical008_2b_cov_cci_i
+append using Clinical009_2b_cov_cci_i
+append using Clinical010_2b_cov_cci_i
+append using Clinical011_2b_cov_cci_i
+append using Clinical012_2b_cov_cci_i
+append using Clinical013_2b_cov_cci_i
+save Clinical_cci_i
+clear
+
+//COHORTENTRYDATE
+foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
+use `file', clear
+keep patid cci_g cci_g_b cohortentrydate eventdate2
+drop if eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
+bysort patid: egen cci = max(cci_g)
+bysort patid: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+drop cci_g
+rename cci cci_g
+keep patid cci_g cci_g_b
+save `file'_cci_c, replace
+}
+use Clinical001_2b_cov_cci_c
+append using Clinical002_2b_cov_cci_c
+append using Clinical003_2b_cov_cci_c
+append using Clinical004_2b_cov_cci_c
+append using Clinical005_2b_cov_cci_c
+append using Clinical006_2b_cov_cci_c
+append using Clinical007_2b_cov_cci_c
+append using Clinical008_2b_cov_cci_c
+append using Clinical009_2b_cov_cci_c
+append using Clinical010_2b_cov_cci_c
+append using Clinical011_2b_cov_cci_c
+append using Clinical012_2b_cov_cci_c
+append using Clinical013_2b_cov_cci_c
+save Clinical_cci_c
+
+//STUDENTRYDATE_CPRD2
+foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
+use `file', clear
+keep patid cci_g cci_g_b studyentrydate_cprd2 eventdate2
+drop if eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
+bysort patid: egen cci = max(cci_g)
+bysort patid: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+drop cci_g
+rename cci cci_g
+keep patid cci_g cci_g_b
+save `file'_cci_s, replace
+}
+use Clinical001_2b_cov_cci_s
+append using Clinical002_2b_cov_cci_s
+append using Clinical003_2b_cov_cci_s
+append using Clinical004_2b_cov_cci_s
+append using Clinical005_2b_cov_cci_s
+append using Clinical006_2b_cov_cci_s
+append using Clinical007_2b_cov_cci_s
+append using Clinical008_2b_cov_cci_s
+append using Clinical009_2b_cov_cci_s
+append using Clinical010_2b_cov_cci_s
+append using Clinical011_2b_cov_cci_s
+append using Clinical012_2b_cov_cci_s
+append using Clinical013_2b_cov_cci_s
+save Clinical_cci_s
+clear
+
+////////////////////////////////////CREATE CLINICAL COVARIATE WEIGH FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////
+
+foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
+use `file', clear
+keep patid weight eltestdate2
+bysort patid: egen prx_date = max(eltestdate2)
+format prx_date %td
+bysort patid: gen prx_weight = weight if eltestdate2==prx_date
+keep patid prx_weight
+bysort patid: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+rename prx_weight weight
+save `file'_wt, replace
+}
+use Clinical001_2b_cov_wt
+append using Clinical002_2b_cov_wt
+append using Clinical003_2b_cov_wt
+append using Clinical004_2b_cov_wt
+append using Clinical005_2b_cov_wt
+append using Clinical006_2b_cov_wt
+append using Clinical007_2b_cov_wt
+append using Clinical008_2b_cov_wt
+append using Clinical009_2b_cov_wt
+append using Clinical010_2b_cov_wt
+append using Clinical011_2b_cov_wt
+append using Clinical012_2b_cov_wt
+append using Clinical013_2b_cov_wt
+save ClinicalCovariates_wt, replace
+clear
+timer off 1
+timer list 1
 exit
 log close
-

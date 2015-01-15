@@ -6,7 +6,7 @@
 clear all
 capture log close
 set more off
-
+set trace on
 log using Data10.smcl, replace
 timer on 1
 
@@ -19,10 +19,9 @@ append using Test002 Test003 Test004 Test005 Test006 Test007 Test008 Test009 Tes
 sort patid
 merge m:1 patid using Dates, keep(match using) nogen
 merge m:1 patid using Demographic, keep(match using) nogen
-//merge m:1 patid using Clincovs, keep(match using) nogen			
+merge m:1 patid using ClinicalCovariates_wt, keep(match using) nogen			
 timer off 2
 timer list 2
-
 
 ////// #2 Code for variables of physiological values from lab tests. 
 // Within a year prior to studyentrydate, cohortentrydate, indexdate. If more than one within year, value closest to date of interest.
@@ -304,11 +303,12 @@ replace nr_data2 = nr_hemoglobin if enttype==173
 gen testyr = year(testdate2)
 gen testage = testyr-birthyear
 
-//USING 50 IN PLACE OF WEIGHT VARIABLE FOR TESTING PURPOSES!!! MUST CHANGE!!!
+//USING 90 (MEAN) IN PLACE OF WEIGHT VARIABLE FOR TESTING PURPOSES!!! CHANGE???
 gen egfr_cg =.
-replace egfr_cg = ((140-testage)*50*1.2)/nr_scr if sex==0
+replace weight = 90 if weight ==.
+replace egfr_cg = ((140-testage)*weight*1.2)/nr_scr if sex==0
 //multiply by 0.85 for women
-replace egfr_cg = (((140-testage)*50*1.2)/nr_scr)*0.85 if sex==1
+replace egfr_cg = (((140-testage)*weight*1.2)/nr_scr)*0.85 if sex==1
 
 //modified CG continuous variable in SI units (umol/L, years)
 gen egfr_mcg =.
@@ -441,10 +441,12 @@ format eltestdate2 %td
 //Drop all duplicates in nr_data2
 quietly bysort patid enttype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
-
+save LabCovariates, replace
+clear
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
 //INDEXDATE
 //pull out testdate of interest
+use LabCovariates
 bysort patid enttype: egen prx_testdate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
 format prx_testdate_i %td
 gen prx_test_i_b = 1 if !missing(prx_testdate_i)
@@ -469,9 +471,9 @@ label drop labtest
 //only keep the observations relevant to the current window
 drop if prx_testvalue_i >=.
 
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid labtest: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+//Check for duplicates again- no duplicates found then continue
+bysort patid labtest: gen dupck = cond(_N==1,0,_n)
+drop if dupck>1
 
 //Rectangularize data
 fillin patid labtest
@@ -486,10 +488,11 @@ keep patid totlabs labtest prx_testvalue_i prx_test_i_b
 reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(labtest)
 
 //Save
-save Labcovs_indexdate.dta, replace
+save LabCovariates_i.dta, replace
+clear
 
-/*
 //COHORTENTRYDATE
+use LabCovariates
 bysort patid enttype : egen prx_testdate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
 format prx_testdate_c %td
 gen prx_test_c_b = 1 if !missing(prx_testdate_c)
@@ -514,9 +517,9 @@ label drop labtest
 //only keep the observations relevant to the current window
 drop if prx_testvalue_c >=.
 
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid labtest: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+//Check for duplicates again- no duplicates found then continue
+bysort patid labtest: gen dupck = cond(_N==1,0,_n)
+drop if dupck>1
 
 //Rectangularize data
 fillin patid labtest
@@ -531,9 +534,11 @@ keep patid totlabs labtest prx_testvalue_c prx_test_c_b
 reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(labtest)
 
 //Save
-save Labcovs_cohortentrydate, replace
+save LabCovariates_c, replace
+clear
 
 //STUDYENTRYDATE_CPRD
+use LabCovariates
 bysort patid enttype : egen prx_testdate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
 format prx_testdate_s %td
 gen prx_test_s_b = 1 if !missing(prx_testdate_s)
@@ -558,9 +563,9 @@ label drop labtest
 //only keep the observations relevant to the current window
 drop if prx_testvalue_s >=.
 
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid labtest: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+//Check for duplicates again- no duplicates found then continue
+bysort patid labtest: gen dupck = cond(_N==1,0,_n)
+drop if dupck>1
 
 //Rectangularize data
 fillin patid labtest
@@ -574,11 +579,11 @@ keep patid totlabs labtest prx_testvalue_s prx_test_s_b
 //Reshape
 reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(labtest)
 
-save Labcovs_studyentrydate_cprd2, replace
-
+save LabCovariates_s, replace
+clear
 /////////////////////////////////////////ALTERNATE ENDING ////////////////////////////////////////////
 //want one obs per person that shows their values for each lab 	
-collapse (max) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 maincohort metcohort prx_test_i_b prx_test_c_b prx_test_s_b prx_testvalue_i ///
+/*collapse (max) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 maincohort metcohort prx_test_i_b prx_test_c_b prx_test_s_b prx_testvalue_i ///
 			prx_testdate_i prx_testvalue_c prx_testdate_c prx_testvalue_s prx_testdate_s lab_num_un lab_num_un_c lab_num_un_i lab_num_un_s hba1c totchol hdl ///
 			ldl tg scr crcl albumin alt ast bilirubin hemoglobin uma hba1c_b totchol_b hdl_b ldl_b tg_b scr_b crcl_b ///
 			albumin_b alt_b ast_b bilirubin_b hemoglobin_b uma_b, by(patid enttype)	
@@ -600,7 +605,6 @@ save LabCovs.dta, replace
 
 timer off 1 
 timer list 1
-
 exit
 log close
 

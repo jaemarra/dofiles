@@ -231,11 +231,11 @@ do Data08_outcomes_d
 										- rectangularize, fillin, drop unwanted, reshape, save
 */
 do Data09_clinicalcovariates_a
-/*	Files saved:	ClinicalCovariates_s
-					ClinicalCovariates_c
-					ClinicalCovariates_i
+/*	Files saved:	ClinicalCovariates_i.dta
+					ClinicalCovariates_c.dta
+					ClinicalCovariates_s.dta
 
-#9 Data09_clinicalcovariates_b: 	a)	use hes.dta (all hes files merged)
+#9 Data09_clinicalcovariates_b: 	b)	use hes.dta (all hes files merged)
 										- merge m:1 with Dates
 										- generate covtype
 										- generate variables for outcome covariates: MI, stroke, HF, Arr, revasc, htn, afib, pvd, (removed hyperlipidemia)
@@ -246,17 +246,35 @@ do Data09_clinicalcovariates_a
 */
 do Data09_clinicalcovariates_b
 
-/*	Files saved:	hes_cov
-					hes_cov_i.dta
-					hes_cov_c.dta
-					hes_cov_s.dta
+/*	Files saved:	hes_cov.dta
+					hesCovariates_i.dta
+					hesCovariates_c.dta
+					hesCovariates_s.dta
+
+#9 Data09_clinicalcovariates_c: 	c)	use ClinicalCovariates_i
+										- merge 1:1 patid using hesCovariates_i
+										- merge 1:1 patid using Clinical_cci_i
+										- merge 1:1 patid using hes_cci_i
+										use ClinicalCovariates_c
+										- merge 1:1 patid using hesCovariates_c
+										- merge 1:1 patid using Clinical_cci_c
+										- merge 1:1 patid using hes_cci_c
+										use ClinicalCovariates_s
+										- merge 1:1 patid using hesCovariates_s
+										- merge 1:1 patid using Clinical_cci_s
+										- merge 1:1 patid using hes_cci_s
 */
-					
+do Data09_clinicalcovariates_c
+
+/*	Files saved:	ClinicalCovariates_merged_i.dta
+					ClinicalCovariates_merged_c.dta
+					ClinicalCovariates_merged_s.dta
+					ClinicalCovariates_wt.dta
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/* #10 Data10_labcovariates:  	use Test001-014
+#10 Data10_labcovariates:  			use Test001-014
 									- merge m:1 with Dates
 									- merge m:1 with Demographic
-									- merge m:1 with Clincovs
+									- merge m:1 with ClinicalCovariates_wt
 									- generate continuous lab variables
 									- estimate eGFR
 									- generate binary lab variables
@@ -265,14 +283,12 @@ do Data09_clinicalcovariates_b
 									- rectangularize, fillin, drop unwanted, reshape, save
 */
 do Data10_labcovariates
-/*	Files saved: 	Labcovs_indexdate.dta
-					Labcovs_cohortentrydate.dta
-					Labcovs_studyentrydate_cprd2.dta
-					Labcovs.dta
-*/
-
+/*	Files saved: 	LabCovariates.dta (intermediate)
+					LabCovariates_c.dta
+					LabCovariates_s.dta
+					LabCovariates_i.dta
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/* #11 Data11_servicescovariates:	use Clinical001_2b-013_2b
+#11 Data11_servicescovariates:	use Clinical001_2b-013_2b
 									- generate servtype
 									- generate variables for all service utilization covariates of interest: physician visits, hospital visits, days in hospital
 									- create variable for eligible dates
@@ -280,16 +296,22 @@ do Data10_labcovariates
 									- rectangularize, fillin, drop unwanted, reshape, save
 */
 do Data11_servicescovariates_a
-/*Files saved:		Clin_serv.dta
+/*Files saved:		Clin_serv.dta (intermediate file)
 					Clin_serv_s.dta
 					Clin_serv_c.dta
 					Clin_serv_i.dta
 */
 do Data11_servicescovariates_b
-/*Files saved:		hes_serv.dta
+/*Files saved:		hes_serv.dta (intermediate file)
 					hes_serv_s.dta
 					hes_serv_c.dta
 					hes_serv_i.dta
+*/
+do Data11_servicescovariates_c
+/*Files saved:	ServicesCovariates_s.dta
+				ServicesCovariates_c.dta
+				ServicesCovariates_i.dta
+				
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IN PROCESS #11 Data11_analytic_dataset --> Create main analytic cohort by merging 1) Exposure dataset, 2) Immunizations dataset, 		
 //												  3) Demographic dataset, 4) SES dataset, 5) Outcome dataset, 6) Labcovariate dataset, 

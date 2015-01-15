@@ -6,8 +6,9 @@
 clear all
 capture log close
 set more off
-
+set trace on
 log using Data11a.log, replace
+timer on 1
 
 // #1 Use data files generated in Data02 (Support)
 // Keep only if eventdate2 is before indexdate.
@@ -16,7 +17,7 @@ foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clin
 
 use `file', clear
 keep if eventdate2<indexdate
-keep patid eventdate2 constype studyentrydate_cprd2 cohortentrydate pracid
+keep patid eventdate2 constype studyentrydate_cprd2 cohortentrydate indexdate pracid
 ////// #1 Generate binary variables coding for each Health Service. Code so 0=no interaction and 1=interaction. For each interaction: generate, replace, label
 
 //servtype key: 1=physican visit, 2 = hospital visit, 3 = days in hospital
@@ -28,153 +29,190 @@ gen nr_data = .
 gen physician_visit = .
 replace physician_visit = 1 if constype== 1 | constype== 3 | constype== 6 | constype== 7 | constype== 8 | constype== 11 | constype== 14 | constype== 15 | constype== 30 | constype== 31 | constype== 34 | constype== 37 | constype== 38 | constype== 39 | constype== 40 | constype== 49 | constype== 50 | constype== 53
 label var physician_visit "Physician visits"
-//remove duplicates
-quietly bysort patid eventdate2: gen dupa = cond(_N==1,0,_n)
-drop if dupa>1
-//create counts
-sort patid eventdate2
-by patid: generate visit_num = _n
-by patid: generate visit_tot = _N
-label variable visit_tot "Total number of physician visits"
 //generate binary variable
 gen physician_visit_b = 0
 replace physician_visit_b = 1 if physician_visit>0 & physician_visit <.
 label variable physician_visit_b "Physician visits (binary) 0= no visit, 1= at least 1 visit"
 replace servtype=1 if physician_visit == 1
-replace nr_data = visit_tot if servtype==1
+replace nr_data = constype if servtype==1
 
 //Create a variable for all eligible utilization dates (i.e. those with real, non-missing data)
 gen elgdate2 = . 
 replace elgdate2 = eventdate2 if eventdate2 <. & nr_data <.
 format elgdate2 %td
 
-/*Drop all duplicates for patients of the same constype on the same day
+//Drop all duplicates for patients of the same constype on the same day
 quietly bysort patid servtype elgdate2: gen dupa = cond(_N==1,0,_n)
-drop if dupa>1*/
+drop if dupa>1
+drop dupa
+save serv_`file', replace
+}
+clear
+
+use serv_Clinical001_2b
+append using serv_Clinical002_2b
+append using serv_Clinical003_2b
+append using serv_Clinical004_2b
+append using serv_Clinical005_2b
+append using serv_Clinical006_2b
+append using serv_Clinical007_2b
+append using serv_Clinical008_2b
+append using serv_Clinical009_2b
+append using serv_Clinical010_2b
+append using serv_Clinical011_2b
+append using serv_Clinical012_2b
+append using serv_Clinical013_2b
 save Clin_serv, replace
-
+clear
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
-//STUDY ENTRY DATE
-//pull out dates of interest
-bysort patid: egen prx_servdate_s = max(elgdate2) if elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
-format prx_servdate_s %td
-gen prx_serv_s_b = 1 if !missing(prx_servdate_s)
+//STUDYENTRY DATE
+use Clin_serv
+keep if elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
+//pull out covariate date of interest
+bysort patid servtype : egen prx_covdate_s = max(elgdate2) if elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
+format prx_covdate_s %td
+gen prx_cov_s_b = 1 if !missing(prx_covdate_s)
+//pull out type of doctor visit
+bysort patid: gen prx_servvalue_s = nr_data
 
-//pull out test value of interest
-bysort patid: gen prx_servvalue_s = nr_data if prx_testdate_s==elgdate2
+//CREATE COUNTS
+//serv_num_un = ennumerates all doctor visits of each type per patient
+bysort patid prx_servvalue_s: generate serv_num_un = _n
+//serv_total_un = max(serv_num_un) = total doctor visits of each type per patient
+bysort patid prx_servvalue_s:egen serv_total_un = max(serv_num_un)
+//serv_num = ennumerates all doctor visits per patient
+bysort patid: gen serv_num = _n
+//serv_total = max(serv_num) = grand total of doctor visits in window of interest
+bysort patid: egen serv_total = max(serv_num)
 
-//create counts
-sort patid servtype elgdate2
-by patid servtype: generate serv_num = _n
-by patid: egen serv_num_un = count(servtype) if serv_num==1 
-
-by patid: egen serv_num_un_s_temp = count(servtype) if serv_num==1 & elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
-by patid: egen serv_num_un_s = min(serv_num_un_s_temp)
-drop serv_num_un_s_temp
-
-//only keep the observations relevant to the current window
-drop if prx_servvalue_s >=.
-
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid servtype: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+//Pull most recent date of a doctor appointment
+bysort patid: egen prx_servdate_s= max(elgdate)
+format prx_type_servdate_s %td
+keep if elgdate2==prx_servdate_s
+bysort patid: gen dupck= cond(_N==1, 0, _n)
+drop if dupck>1
 
 //Rectangularize data
-fillin patid servtype
+fillin patid prx_servvalue_s
 
-//Fillin the total number of labs in the window of interest
-bysort patid: egen totserv = total(serv_num)
+//Generate binary
+gen prx_serv_s_b = 0
+replace prx_serv_s_b = 1 if !missing(prx_type_servdate_s)
+replace servtype=1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totserv servtype prx_servvalue_s prx_serv_s_b
+keep patid serv_total servtype prx_servvalue_s prx_serv_s_b
 
 //Reshape
-reshape wide prx_servvalue_s prx_serv_s_b, i(patid) j(servtype)
+reshape wide prx_servvalue_s serv_total prx_serv_s_b, i(patid) j(servtype)
 
 save Clin_serv_s, replace
-clear 
+clear
 
 //COHORTENTRYDATE
 //pull out dates of interest
-use hes_serv
-bysort patid: egen prx_servdate_c = max(elgdate2) if elgdate2>=cohortentrydate-365 & elgdate2<cohortentrydate
-format prx_servdate_c %td
-gen prx_serv_c_b = 1 if !missing(prx_servdate_c)
+use Clin_serv
+keep if elgdate2>=cohortentrydate-365 & elgdate2<cohortentrydate
 
-//pull out test value of interest
-bysort patid: gen prx_servvalue_c = nr_data if prx_testdate_c==elgdate2
+//pull out type of doctor visit
+bysort patid: gen prx_servvalue_c = nr_data
 
-//create counts
-sort patid servtype elgdate2
-by patid servtype: generate serv_num = _n
-by patid: egen serv_num_un = count(servtype) if serv_num==1 
+//check for duplicates-NO ACTION
+bysort patid prx_servvalue_c elgdate2: gen dupck= cond(_N==1, 0, _n)
 
-by patid: egen serv_num_un_c_temp = count(servtype) if serv_num==1 & elgdate2>=cohortentrydate-365 & elgdate2<cohortentrydate
-by patid: egen serv_num_un_c = min(serv_num_un_c_temp)
-drop serv_num_un_c_temp
+//CREATE COUNTS
+//serv_num_un = ennumerates all doctor visits of each type per patient
+bysort patid prx_servvalue_c: generate serv_num_un = _n
+//serv_total_un = max(serv_num_un) = total doctor visits of each type per patient
+bysort patid prx_servvalue_c:egen serv_total_un = max(serv_num_un)
+//serv_num = ennumerates all doctor visits per patient
+bysort patid: gen serv_num = _n
+//serv_total = max(serv_num) = grand total of doctor visits in window of interest
+bysort patid: egen serv_total = max(serv_num)
 
-//only keep the observations relevant to the current window
-drop if prx_servvalue_c >=.
-
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid servtype: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+//Pull most recent date of each type 
+bysort patid prx_servvalue_c: egen prx_type_servdate_c= max(elgdate)
+format prx_type_servdate_c %td
+keep if elgdate2==prx_type_servdate_c
+drop if dupck>1
 
 //Rectangularize data
-fillin patid servtype
+fillin patid prx_servvalue_c
 
-//Fillin the total number of labs in the window of interest
-bysort patid: egen totserv = total(serv_num)
+//Generate binary
+gen prx_serv_c_b = 0
+replace prx_serv_c_b = 1 if !missing(prx_type_servdate_c)
+replace servtype=1
+
+// IF WE WANT TO RESHAPE, collapse down to one observation for each patid
+bysort patid: egen prx_servdate_c = max(prx_type_servdate_c)
+format prx_servdate_c %td
+keep if elgdate2==prx_servdate_c
+bysort patid: gen dupck2= cond(_N==1, 0, _n)
+drop if dupck2>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totserv servtype prx_servvalue_c prx_serv_c_b
+keep patid serv_total servtype prx_servvalue_c prx_serv_c_b
 
 //Reshape
-reshape wide prx_servvalue_c prx_serv_c_b, i(patid) j(servtype)
+reshape wide prx_servvalue_c serv_total prx_serv_c_b, i(patid) j(servtype)
 
 save Clin_serv_c, replace
 clear
 
 //INDEX DATE
-//pull out dates of interest
-use hes_serv
-bysort patid: egen prx_servdate_i = max(elgdate2) if elgdate2>=indexdate-365 & elgdate2<indexdate
-format prx_servdate_i %td
-gen prx_serv_i_b = 1 if !missing(prx_servdate_i)
+//use file generated above
+use Clin_serv
+keep if elgdate2>=indexdate-365 & elgdate2<indexdate
 
-//pull out test value of interest
-bysort patid: gen prx_servvalue_i = nr_data if prx_testdate_i==elgdate2
+//pull out type of doctor visit
+bysort patid: gen prx_servvalue_i = nr_data
 
-//create counts
-sort patid servtype elgdate2
-by patid servtype: generate serv_num = _n
-by patid: egen serv_num_un = count(servtype) if serv_num==1 
+//check for duplicates-NO ACTION
+bysort patid prx_servvalue_i elgdate2: gen dupck= cond(_N==1, 0, _n)
 
-by patid: egen serv_num_un_i_temp = count(servtype) if serv_num==1 & elgdate2>=indexdate-365 & elgdate2<indexdate
-by patid: egen serv_num_un_i = min(serv_num_un_i_temp)
-drop serv_num_un_i_temp
+//CREATE COUNTS
+//serv_num_un = ennumerates all doctor visits of each type per patient
+bysort patid prx_servvalue_i: generate serv_num_un = _n
+//serv_total_un = max(serv_num_un) = total doctor visits of each type per patient
+bysort patid prx_servvalue_i:egen serv_total_un = max(serv_num_un)
+//serv_num = ennumerates all doctor visits per patient
+bysort patid: gen serv_num = _n
+//serv_total = max(serv_num) = grand total of doctor visits in window of interest
+bysort patid: egen serv_total = max(serv_num)
 
-//only keep the observations relevant to the current window
-drop if prx_servvalue_i >=.
-
-/*Check for duplicates again- no duplicates found then continue
-quietly bysort patid servtype: gen dupck = cond(_N==1,0,_n)
-drop if dupck>1*/
+//Pull most recent date of each type 
+bysort patid prx_servvalue_i: egen prx_type_servdate_i= max(elgdate)
+format prx_type_servdate_i %td
+keep if elgdate2==prx_type_servdate_i
+drop if dupck>1
 
 //Rectangularize data
-fillin patid servtype
+fillin patid prx_servvalue_i
 
-//Fillin the total number of labs in the window of interest
-bysort patid: egen totserv = total(serv_num)
+//Generate binary
+gen prx_serv_i_b = 0
+replace prx_serv_i_b = 1 if !missing(prx_type_servdate_i)
+replace servtype=1
+
+// IF WE WANT TO RESHAPE, collapse down to one observation for each patid
+bysort patid: egen prx_servdate_i = max(prx_type_servdate_i)
+format prx_servdate_i %td
+keep if elgdate2==prx_servdate_i
+bysort patid: gen dupck2= cond(_N==1, 0, _n)
+drop if dupck2>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totserv servtype prx_servvalue_i prx_serv_i_b
+keep patid serv_total servtype prx_servvalue_i prx_serv_i_b
 
 //Reshape
-reshape wide prx_servvalue_i prx_serv_i_b, i(patid) j(servtype)
+reshape wide prx_servvalue_i serv_total prx_serv_i_b, i(patid) j(servtype)
 
 save Clin_serv_i, replace
 clear
+
+timer off 1
+timer list 1
 exit
 log close
 
