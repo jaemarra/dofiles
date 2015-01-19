@@ -5,7 +5,7 @@
 
 //	Run the following .do files, in order listed, to complete dataset management and cohort preparation. 
 
-clear _all
+clear all
 capture log close
 log using Data_master.smcl, replace
 timer on 1
@@ -335,7 +335,12 @@ do Data11_servicescovariates_c
 //												-set datasignature at the end of this file
 */
 do Data12_analytic_dataset
-
+/* Files saved:	raw_dataset.dta
+				raw_dataset_o.dta
+				Analytic_Dataset_s.dta
+				Analytic_Dataset_c.dta
+				Analytic_Dataset_i.dta
+*/
 ////////////////////////////////////////////
 timer off 1
 timer list 1

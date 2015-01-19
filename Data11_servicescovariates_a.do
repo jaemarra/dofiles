@@ -86,9 +86,9 @@ bysort patid: gen serv_num = _n
 bysort patid: egen serv_total = max(serv_num)
 
 //Pull most recent date of a doctor appointment
-bysort patid: egen prx_servdate_s= max(elgdate)
+bysort patid: egen prx_type_servdate_s= max(elgdate)
 format prx_type_servdate_s %td
-keep if elgdate2==prx_servdate_s
+keep if elgdate2==prx_type_servdate_s
 bysort patid: gen dupck= cond(_N==1, 0, _n)
 drop if dupck>1
 
@@ -102,6 +102,9 @@ replace servtype=1
 
 //Drop all fields that aren't wanted in the final dta file
 keep patid serv_total servtype prx_servvalue_s prx_serv_s_b
+
+bysort patid: gen dupb= cond(_N==1, 0, _n)
+drop if dupb>1
 
 //Reshape
 reshape wide prx_servvalue_s serv_total prx_serv_s_b, i(patid) j(servtype)

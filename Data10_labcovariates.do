@@ -1,7 +1,7 @@
 //  program:    Data10_labCovariates.do
 //  task:		Generate variables for lab test covariates (based on Test file)
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
-//  author:     MA - May2014 \ modified by JM & JMG Nov 2014
+//  author:     MA - May2014 \ modified by JM & JMG Jan 2015
 
 clear all
 capture log close
@@ -208,9 +208,12 @@ label variable hemoglobin "Hemoglobin (g/dL)"
 
 ***//RESTRICT CONTINUOUS VARS TO ACCEPTABLE RANGE OF VALS & GEN NONREDUNDANT CONTINUOUS VARS//***
 //.a "too low" and .b "too high" and .c "missing units" and recombine all non-redundant labs into one variable nr_data2
-
+gen testdate2= .
+replace testdate2=eventdate2
+format testdate2 %td
 sort patid enttype testdate2
 gen nr_data2 = .
+
 //HBA1C
 replace hba1c =.a if hba1c <= 2
 replace hba1c =.b if hba1c >= 25 & hba1c <.
@@ -377,10 +380,10 @@ replace ckd_ce=5 if egfr_ce < 15 //do we have a marker for dialysis???
 label define ckd_ce_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
 
 ***//CHECK NEW CONTINUOUS AND CATEGORICAL VARS FOR DISTRIBUTION
-foreach var of varlist egfr_cg egfr_ mcg egfr_amdrd egfr_ce ckd_cg ckd_mcg ckd_amdrd ckd_ce nr*{
+/*foreach var of varlist egfr_cg egfr_ mcg egfr_amdrd egfr_ce ckd_cg ckd_mcg ckd_amdrd ckd_ce nr*{
 summ `var', detail
 histogram `var', saving(gr`var', replace)
-}
+}*/
 
 ***//GENERATE BINARIES//***
 
@@ -435,12 +438,13 @@ label variable hemoglobin_b "Hemoglobin (binary)"
 
 //Create a varibale for all eligible test dates (i.e. those with real, in-range nr_data2)
 gen eltestdate2 = . 
-replace eltestdate2 = testdate2 if nr_data2<. & testdate2 !missing
+replace eltestdate2 = testdate2 if nr_data2<. & testdate2 <.
 format eltestdate2 %td
 
 //Drop all duplicates in nr_data2
 quietly bysort patid enttype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
+
 save LabCovariates, replace
 clear
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////

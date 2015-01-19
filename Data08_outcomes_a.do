@@ -126,19 +126,19 @@ compress
 save Outcomes_gold_`file'.dta, replace
 }
 
-use Outcomes_gold_Clinical001_2, clear 
-append using Outcomes_gold_Clinical002_2
-append using Outcomes_gold_Clinical003_2
-append using Outcomes_gold_Clinical004_2
-append using Outcomes_gold_Clinical005_2
-append using Outcomes_gold_Clinical006_2
-append using Outcomes_gold_Clinical007_2
-append using Outcomes_gold_Clinical008_2
-append using Outcomes_gold_Clinical009_2
-append using Outcomes_gold_Clinical010_2
-append using Outcomes_gold_Clinical011_2
-append using Outcomes_gold_Clinical012_2
-append using Outcomes_gold_Clinical013_2
+use Outcomes_gold_Clinical001_2a, clear 
+append using Outcomes_gold_Clinical002_2a
+append using Outcomes_gold_Clinical003_2a
+append using Outcomes_gold_Clinical004_2a
+append using Outcomes_gold_Clinical005_2a
+append using Outcomes_gold_Clinical006_2a
+append using Outcomes_gold_Clinical007_2a
+append using Outcomes_gold_Clinical008_2a
+append using Outcomes_gold_Clinical009_2a
+append using Outcomes_gold_Clinical010_2a
+append using Outcomes_gold_Clinical011_2a
+append using Outcomes_gold_Clinical012_2a
+append using Outcomes_gold_Clinical013_2a
 
 save Outcomes_gold.dta, replace
 
