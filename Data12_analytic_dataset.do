@@ -21,6 +21,7 @@ merge 1:1 patid using Immunisation2, nogen
 merge 1:1 patid using Demographic, nogen
 merge 1:1 patid using ses, nogen
 merge 1:1 patid using Outcomes, nogen
+merge 1:1 patid using Exclusion_merged, nogen
 save raw_dataset, replace
 
 //Generate 3 datasets for studyentry, cohortentry and indexdate windows
@@ -30,7 +31,7 @@ merge 1:1 patid using ClinicalCovariates_merged_s, nogen
 merge 1:1 patid using LabCovariates_s, nogen
 merge 1:1 patid using ServicesCovariates_merged_s, nogen
 drop if age_cohortdate<30
-//drop if pcos==1|pregnant==1|gest_diab==1
+drop if pcos==1|preg==1|gest_diab==1
 datasignature set, reset
 save Analytic_Dataset_s, replace
 clear
@@ -41,7 +42,7 @@ merge 1:1 patid using ClinicalCovariates_merged_c, nogen
 merge 1:1 patid using LabCovariates_c, nogen
 merge 1:1 patid using ServicesCovariates_merged_c, nogen
 drop if age_cohortdate<30
-//drop if pcos==1|pregnant==1|gest_diab==1
+drop if pcos==1|preg==1|gest_diab==1
 datasignature set, reset
 save Analytic_Dataset_c, replace
 clear
@@ -52,7 +53,7 @@ merge 1:1 patid using ClinicalCovariates_merged_i, nogen
 merge 1:1 patid using LabCovariates_i, nogen
 merge 1:1 patid using ServicesCovariates_merged_i.dta, nogen
 drop if age_cohortdate<30
-//drop if pcos==1|pregnant==1|gest_diab==1
+drop if pcos==1|preg==1|gest_diab==1
 datasignature set, reset
 save Analytic_Dataset_i, replace
 

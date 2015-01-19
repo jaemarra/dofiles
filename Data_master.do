@@ -334,6 +334,12 @@ do Data11_servicescovariates_c
 //				 							    -apply exclusion criteria (patients age <30 years of age on cohort entry, patients w PCOS, patients who are pregnant) 
 //												-set datasignature at the end of this file
 */
+do Data00_exclusion
+/* Files saved:	Exclusion_cprd.dta
+				Exclusion_hes.dta
+				Exclusion_hes_mat.dta
+				Exclusion_merged.dta
+*/
 do Data12_analytic_dataset
 /* Files saved:	raw_dataset.dta
 				raw_dataset_o.dta
