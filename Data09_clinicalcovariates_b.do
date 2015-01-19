@@ -129,7 +129,6 @@ label variable cci_h "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
 drop ynch* weightch* wcharlsum charlindex smchindx
 gen cci_h_b = 1 if cci_h >=1 & cci_h <.
 
-
 foreach num of numlist 6/14 {
 replace nr_data=1 if covtype==`num'
 }
