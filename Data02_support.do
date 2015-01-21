@@ -108,11 +108,12 @@ clear all
 		merge m:1 packtype using packtype, keep(match master) nogen
 		sort prodcode
 		merge m:1 prodcode using product, keep(match master) nogen
+		drop route bnfchapter formulation strength gemscriptcode packtype_desc packtype pracid issueseq numpacks numdays consid
 		compress
 		save Therapy_`i'.dta, replace
 		}
-
-//Merge medical into Clinical using key variable medcode
+		
+		//Merge medical into Clinical using key variable medcode
 foreach file in Clinical001 Clinical002 Clinical003 Clinical004 Clinical005 ///
 		Clinical006 Clinical007 Clinical008 Clinical009 Clinical010 Clinical011 Clinical012 Clinical013 {
 		clear all

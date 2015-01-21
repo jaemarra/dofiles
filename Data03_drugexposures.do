@@ -1,7 +1,7 @@
 //  program:    Data03_drugexposures.do
 //  task:		Generate variables indicating drug exposures in CPRD Dataset, using individual Therapy files
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
-//  author:     MA \ May2014 Modified JM \ Nov2014
+//  author:     MA \ May2014 Modified JM \ Jan2015
 
 
 clear all
@@ -1292,6 +1292,22 @@ collapse (max) rxdate2 studyentrydate_cprd2 group_cut insulins_short insulins_in
 				mpr_top_i mpr_i mpr_i_b avg_mpr_i avg_mpr_i_b mpr_start_c mpr_dur_c mpr_top_c mpr_c mpr_c_b avg_mpr_c avg_mpr_c_b mpr_start_s mpr_dur_s ///
 				mpr_top_s mpr_s mpr_s_b avg_mpr_s avg_mpr_s_b, by(patid)
 compress
+//set local macros for the unique drug lists of interest
+local rxlist = "insulins_short insulins_intlong insulin sulfonylurea metformin tzd dpp glp otherantidiab exenatide liraglutide lixisenatide glp_combo alogliptin linagliptin sitagliptin saxagliptin vildagliptin dpp_combo ins_sub aspart glulisine lispro degludec detemir glargine ins_zinc isophane_ins protamine_zinc_ins aspart_biphasic lispro_biphasic isophane_biphasic insulin_rapid insulin_regular insulin_int_long insulin_ultralong insulin_premixed insulin_combo metcohort other everother maincohort studyentry everstudyentry met_startdate cohortentrydate other_startdate indexdate studyentrydate h2recep ppi cortico_gi thiazdiur loopdiur potsparediur_aldos potsparediur_other antiarrhythmic betablock acei angiotensin2recepant renini ras nitrates calchan anticoag_oral antiplat statin fibrates ezetimibe bileacidseq lipidreg bronchodil cortico_inh leukotri antihist hyp_anx psychoses antidepress antiobes opioid1 antiepilep antipark_dop penicillin ceph_carb_betalac tetracyc aminoglyc macrolide clinda otherantibiot sulfo_trimeth antituberc antileprotic metro_tinidazole quinolone uti_drugs antibacterial antifungal antiviral antiprotoz anthelmintic thyroidhorm cortico_endocr estro_hrt bisphos cytotoxic antiprolif otherimmunosuppress antilymph_mab otherimmunomodul immunosuppress_all iron_oral iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral"
+local rxlistc = "h2recep_c ppi_c cortico_gi_c thiazdiur_c loopdiur_c potsparediur_aldos_c potsparediur_other_c antiarrhythmic_c betablock_c acei_c angiotensin2recepant_c renini_c ras_c nitrates_c calchan_c anticoag_oral_c antiplat_c statin_c fibrates_c ezetimibe_c bileacidseq_c lipidreg_c bronchodil_c cortico_inh_c leukotri_c antihist_c hyp_anx_c psychoses_c antidepress_c antiobes_c opioid1_c antiepilep_c antipark_dop_c penicillin_c ceph_carb_betalac_c tetracyc_c aminoglyc_c macrolide_c clinda_c otherantibiot_c sulfo_trimeth_c antituberc_c antileprotic_c metro_tinidazole_c quinolone_c uti_drugs_c antibacterial_c antifungal_c antiviral_c antiprotoz_c anthelmintic_c thyroidhorm_c cortico_endocr_c estro_hrt_c bisphos_c cytotoxic_c antiprolif_c otherimmunosuppress_c antilymph_mab_c otherimmunomodul_c immunosuppress_all_c iron_oral_c iron_parenteral_c potassium_oral_c multivit_c nsaid_c antigout_c antirheum_c benzo_c opioid2_c opioid_c cortico_oral_c"
+local rxlisti = "h2recep_i ppi_i cortico_gi_i thiazdiur_i loopdiur_i potsparediur_aldos_i potsparediur_other_i antiarrhythmic_i betablock_i acei_i angiotensin2recepant_i renini_i ras_i nitrates_i calchan_i anticoag_oral_i antiplat_i statin_i fibrates_i ezetimibe_i bileacidseq_i lipidreg_i bronchodil_i cortico_inh_i leukotri_i antihist_i hyp_anx_i psychoses_i antidepress_i antiobes_i opioid1_i antiepilep_i antipark_dop_i penicillin_i ceph_carb_betalac_i tetracyc_i aminoglyc_i macrolide_i clinda_i otherantibiot_i sulfo_trimeth_i antituberc_i antileprotic_i metro_tinidazole_i quinolone_i uti_drugs_i antibacterial_i antifungal_i antiviral_i antiprotoz_i anthelmintic_i thyroidhorm_i cortico_endocr_i estro_hrt_i bisphos_i cytotoxic_i antiprolif_i otherimmunosuppress_i antilymph_mab_i otherimmunomodul_i immunosuppress_all_i iron_oral_i iron_parenteral_i potassium_oral_i multivit_i nsaid_i antigout_i antirheum_i benzo_i opioid2_i opioid_i cortico_oral_i"
+local rxlists = "h2recep_s ppi_s cortico_gi_s thiazdiur_s loopdiur_s potsparediur_aldos_s potsparediur_other_s antiarrhythmic_s betablock_s acei_s angiotensin2recepant_s renini_s ras_s nitrates_s calchan_s anticoag_oral_s antiplat_s statin_s fibrates_s ezetimibe_s bileacidseq_s lipidreg_s bronchodil_s cortico_inh_s leukotri_s antihist_s hyp_anx_s psychoses_s antidepress_s antiobes_s opioid1_s antiepilep_s antipark_dop_s penicillin_s ceph_carb_betalac_s tetracyc_s aminoglyc_s macrolide_s clinda_s otherantibiot_s sulfo_trimeth_s antituberc_s antileprotic_s metro_tinidazole_s quinolone_s uti_drugs_s antibacterial_s antifungal_s antiviral_s antiprotoz_s anthelmintic_s thyroidhorm_s cortico_endocr_s estro_hrt_s bisphos_s cytotoxic_s antiprolif_s otherimmunosuppress_s antilymph_mab_s otherimmunomodul_s immunosuppress_all_s iron_oral_s iron_parenteral_s potassium_oral_s multivit_s nsaid_s antigout_s antirheum_s benzo_s opioid2_s opioid_s cortico_oral_s"
+
+//generate the variables for the unique drug windows
+egen unqrx= anycount(`rxlist'), values(1)
+label var unqrx "Total number of unique drugs"
+egen unqrxc= anycount(`rxlistc'), values(1)
+label var unqrxc "Total number of unique drugs in the year prior to cohort entry date"
+egen unqrxi= anycount(`rxlisti'), values(1)
+label var unqrxi "Total number of unique drugs in the year prior to index date"
+egen unqrxs= anycount(`rxlists'), values(1)
+label var unqrxs "Total number of unique drugs in the year prior to study entry date"
+
 save Exposures_`i'.dta, replace
 	}
 use Exposures_0, clear 

@@ -1,14 +1,13 @@
-//  program:    Data01_import_v4.do
+//  program:    Data01_import.do
 //  task:		Data management of CPRD Data
 //				for each data file, import .txt file, re-label variables, change date formats and save as .dta files. Summary_log does not need to be done.
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     MA \ May2014 (some codes from Cindy's original coding. See sample dataset .do files for more info on what came from her)  
-//				Modified: JM \ Nov 2014
+//				Modified: JM \ Jan2015
 
 clear all
 capture log close
 set more off
-
 log using Data01.smcl, replace
 timer on 1
 
@@ -168,7 +167,7 @@ merge m:1 pracid using Practice
 drop _merge
 compress
 //restrict to patients registered at an up to standard practice at least 1 year prior to entry date
-drop if uts >= studyentrydate_cprd2-365
+drop if uts >= studyentrydate_cprd2-365 // THIS IS WHERE WE DROP 16 PATIENTS
 save BaseCohort.dta, replace
 //create abbreviated BaseCohort with ONLY patid, studyentrydate_cprd2, and pracid
 keep patid pracid studyentrydate_cprd2
@@ -199,21 +198,16 @@ compress
 //restrict Consultation to only include data one year prior to studyentrydate_cprd2
 drop if eventdate2<studyentrydate_cprd2-365
 save `file'.dta, replace
-}
-
-//create one Consultation file
-use Consultation001, clear
-append using Consultation002
-append using Consultation003
-append using Consultation004
-append using Consultation005
-append using Consultation006
-append using Consultation007
-append using Consultation008
-append using Consultation009
-append using Consultation010
+//consolidate into one Consultation file
+if "`file'"=="Consultation001"	{
 save Consultation, replace
-clear 
+}
+else {
+append using Consultation
+save Consultation, replace
+}
+}
+clear
 
 //Clinical: patid, eventdate2, constype, consid, medcode, episode, enttype, adid, studyentrydate_cprd2
 foreach file in Clinical001 Clinical002 Clinical003 Clinical004 Clinical005 ///
@@ -251,23 +245,15 @@ compress
 //restrict Clinical to only include data one year prior to studyentrydate_cprd2
 drop if eventdate2<studyentrydate_cprd2-365
 save `file'.dta, replace
-}
-clear
-
-use Clinical001
-append using Clinical002
-append using Clinical003
-append using Clinical004
-append using Clinical005
-append using Clinical006
-append using Clinical007
-append using Clinical008
-append using Clinical009
-append using Clinical010
-append using Clinical011
-append using Clinical012
-append using Clinical013
+//Consolidate into one Clinical file
+if "`file'"=="Clinical001"	{
 save Clinical, replace
+}
+else	{
+append using Clinical
+save Clinical, replace
+}
+}
 clear
 
 //Additional: patid, enttype, data1, data2, data3, data4, data5, data6, data7, studyentrydate_cprd2
@@ -405,23 +391,15 @@ compress
 //restrict to one year prior to studyentrydate_cprd2
 drop if eventdate2<studyentrydate_cprd2-365
 save `file'.dta, replace
-}
-clear
-use Test001
-append using Test002
-append using Test003
-append using Test004
-append using Test005
-append using Test006
-append using Test007
-append using Test008
-append using Test009
-append using Test010
-append using Test011
-append using Test012
-append using Test013
-append using Test014
+//Consolidate into one Test file
+if "`file'"=="Test001"	{
 save Test, replace
+}
+else	{
+append using Test, 
+save Test, replace
+}
+}
 clear   
 
 //Therapy: patid, eventdate2, consid, prodcode, bnfcode, qty, ndd, numdays, numpacks, packtype, issueseq, studyentrydate_cprd2
@@ -447,7 +425,7 @@ label variable numpacks "Number of individual product packs prescribed"
 label variable packtype "Pack size or type of prescribed product"
 label variable issueseq "Issue sequence number, 0=no repeat"
 //drop irrelevant variables
-drop sysdate staffid textid
+capture drop sysdate staffid textid bnfchapter
 //sort, merge with patients (patid, studyentrydate_cprd2), optimze data storage
 sort patid
 merge m:1 patid using BasePatidDate, keep(match) nogen
@@ -455,29 +433,19 @@ compress
 //restrict to 1 year prior to studyentrydate_cprd2
 drop if rxdate2<studyentrydate_cprd2-365
 save `file'.dta, replace
+//Consolidate into one therapy file
+if "`file'"=="Therapy001"	{
+save Therapy, replace
 }
-clear
-//create one file for therapy
-use Therapy001
-append using Therapy002
-append using Therapy003
-append using Therapy004
-append using Therapy005
-append using Therapy006
-append using Therapy007
-append using Therapy008
-append using Therapy009
-append using Therapy010
-append using Therapy011
-append using Therapy012
-append using Therapy013
-append using Therapy014
-append using Therapy015
-append using Therapy016
-append using Therapy017
+else	{
+append using Therapy
+save Therapy, replace
+}
+}
+//Mark Therapy.dta for splitting into 50 files
 egen group_cut=cut(patid), group(50)
 save Therapy.dta, replace 
-//break into groups of 50
+//Split into groups of 50
 	forval i=0/49   {         
 		use Therapy if group_cut==`i', clear
 		save Therapy_`i', replace

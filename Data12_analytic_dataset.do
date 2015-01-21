@@ -57,6 +57,8 @@ drop if pcos==1|preg==1|gest_diab==1
 datasignature set, reset
 save Analytic_Dataset_i, replace
 
+//TRY MERGING EVERTHING TOGETHER FOR ON MASTER ANALYIC DATASET!!!!!!!!!!!!
+
 timer off 1 
 timer list 1
 

@@ -209,10 +209,12 @@ label variable hemoglobin "Hemoglobin (g/dL)"
 ***//RESTRICT CONTINUOUS VARS TO ACCEPTABLE RANGE OF VALS & GEN NONREDUNDANT CONTINUOUS VARS//***
 //.a "too low" and .b "too high" and .c "missing units" and recombine all non-redundant labs into one variable nr_data2
 gen testdate2= .
+label var testdate2 "Eventdate2"
 replace testdate2=eventdate2
 format testdate2 %td
 sort patid enttype testdate2
 gen nr_data2 = .
+label var nr_data2 "Non-redundant data for each enttype"
 
 //HBA1C
 replace hba1c =.a if hba1c <= 2
@@ -299,32 +301,32 @@ by patid enttype testdate2: egen nr_hemoglobin=mean(hemoglobin) if hemoglobin<.
 replace nr_data2 = nr_hemoglobin if enttype==173
 
 ***//ESTIMATE GLOMERULAR FILTRATION RATE//***
-
 //ref for CG and MDRD formulas: http://cjhp-online.ca/index.php/cjhp/article/viewFile/31/30
-
 //Cockcroft-Galt continuous variable in SI units (umol/L, years, kg)
 gen testyr = year(testdate2)
 gen testage = testyr-birthyear
 
-//USING 90 (MEAN) IN PLACE OF WEIGHT VARIABLE FOR TESTING PURPOSES!!! CHANGE???
+//USING 90 (MEAN) IN PLACE OF WEIGHT VARIABLE WHERE WEIGHT IS MISSING!!! CHANGE???
 gen egfr_cg =.
 replace weight = 90 if weight ==.
 replace egfr_cg = ((140-testage)*weight*1.2)/nr_scr if sex==0
 //multiply by 0.85 for women
 replace egfr_cg = (((140-testage)*weight*1.2)/nr_scr)*0.85 if sex==1
+label var egfr_cg "Estimated glomerular filtration rate- Cockcroft-Galt method"
 
 //modified CG continuous variable in SI units (umol/L, years)
 gen egfr_mcg =.
 replace egfr_mcg = ((140-testage)*90)/nr_scr
+label var egfr_mcg "Estimated glomerular filtration rate- modified Cockcroft-Galt method"
 
 //abbreviated MDRD continuous variable
 gen egfr_amdrd=. 
 replace egfr_amdrd = 186.3*((nr_scr/88.4)^-1.154)*testage^-0.203 if sex==0
 //multiply by 0.742 for women **note there is a race factor usually included: if race==black (*1.21)
 replace egfr_amdrd = (186.3*((nr_scr/88.4)^-1.154)*testage^-0.203)*0.742 if sex==1
+label var egfr_amdrd "Estimated glomerular filtration rate- abbreviated MDRD method"
 
 //ref for CKD-EPI formulas: http://www.biomedcentral.com/1471-2318/13/113/table/T1
-
 //CKD-EPI continuous variable
 gen egfr_ce=.
 //populate with CKD-EPI estimate for males with scr<=80
@@ -335,9 +337,9 @@ replace egfr_ce = (141*((nr_scr/88.4/0.7)^-1.209)*(0.993^testage)) if nr_scr>80 
 replace egfr_ce = (144*((nr_scr/88.4/0.7)^-0.329)*(0.993^testage)) if nr_scr<=62 & sex==1
 //populate with CKD-EPI estimate for females with scr>62
 replace egfr_ce = (144*((nr_scr/88.4/0.7)^-1.209)*(0.993^testage)) if nr_scr>62 & sex==1
+label var egfr_ce "Estimated glomerular filtration rate- CKD-EPI method"
 
 ***//CREATE CATEGORICAL VARIABLES//***
-
 //CKD (GFR ³90; 89.9-60; 59.9-30; 29.9-15; <15 or dialysis)
 // generate the categorical variable for the Cockcroft-Galt eGFR
 gen ckd_cg= .
@@ -346,8 +348,10 @@ replace ckd_cg=2 if egfr_cg < 90 & egfr_cg >= 60
 replace ckd_cg=3 if egfr_cg < 60 & egfr_cg >= 30
 replace ckd_cg=4 if egfr_cg < 30 & egfr_cg >= 15
 replace ckd_cg=5 if egfr_cg < 15 //do we have a marker for dialysis???
+label var ckd_cg "Chronic kidney disease categories using CG eGFR"
 //create value labels for ckd 1-5
 label define ckd_cg_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
+label values ckd_cg ckd_cg_labels
 
 // generate the categorical variable for the modified Cockcroft-Galt eGFR
 gen ckd_mcg= .
@@ -356,8 +360,10 @@ replace ckd_mcg=2 if egfr_mcg < 90 & egfr_mcg >= 60
 replace ckd_mcg=3 if egfr_mcg < 60 & egfr_mcg >= 30
 replace ckd_mcg=4 if egfr_mcg < 30 & egfr_mcg >= 15
 replace ckd_mcg=5 if egfr_mcg < 15 //do we have a marker for dialysis???
+label var ckd_mcg "Chronic kidney disease categories using mCG eGFR"
 //create value labels for ckd 1-5
 label define ckd_mcg_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
+label values ckd_mcg ckd_mcg_labels
 
 // generate the categorical variable for the abbreviated MDRD eGFR
 gen ckd_amdrd= .
@@ -368,6 +374,7 @@ replace ckd_amdrd=4 if egfr_amdrd < 30 & egfr_amdrd >= 15
 replace ckd_amdrd=5 if egfr_amdrd < 15 //do we have a marker for dialysis???
 //create value labels for ckd 1-5
 label define ckd_amdrd_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
+label values ckd_amdrd ckd_amdrd_labels
 
 // generate the categorical variable for the CKD-EPI eGFR
 gen ckd_ce= .
@@ -378,6 +385,7 @@ replace ckd_ce=4 if egfr_ce < 30 & egfr_ce >= 15
 replace ckd_ce=5 if egfr_ce < 15 //do we have a marker for dialysis???
 //create value labels for ckd 1-5
 label define ckd_ce_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
+label values ckd_ce ckd_ce_labels
 
 ***//CHECK NEW CONTINUOUS AND CATEGORICAL VARS FOR DISTRIBUTION
 /*foreach var of varlist egfr_cg egfr_ mcg egfr_amdrd egfr_ce ckd_cg ckd_mcg ckd_amdrd ckd_ce nr*{
@@ -386,7 +394,6 @@ histogram `var', saving(gr`var', replace)
 }*/
 
 ***//GENERATE BINARIES//***
-
 //hba1c
 gen hba1c_b = 0
 replace hba1c_b = 1 if nr_hba1c < .
@@ -440,10 +447,12 @@ label variable hemoglobin_b "Hemoglobin (binary)"
 gen eltestdate2 = . 
 replace eltestdate2 = testdate2 if nr_data2<. & testdate2 <.
 format eltestdate2 %td
+label var eltstdate2 "Eventdate2 restricted to dates with eligible, non-redundant data"
 
 //Drop all duplicates in nr_data2
 quietly bysort patid enttype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
+drop dupa
 
 save LabCovariates, replace
 clear
@@ -490,6 +499,8 @@ keep patid totlabs labtest prx_testvalue_i prx_test_i_b
 
 //Reshape
 reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(labtest)
+label var prx_testvalue_i "Value of most proximal, eligible lab test"
+label var prx_test_i_b "Lab test binary; 1=test, 0=no test"
 
 //Save
 save LabCovariates_i.dta, replace
@@ -536,6 +547,8 @@ keep patid totlabs labtest prx_testvalue_c prx_test_c_b
 
 //Reshape
 reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(labtest)
+label var prx_testvalue_c "Value of most proximal, eligible lab test"
+label var prx_test_c_b "Lab test binary; 1=test, 0=no test"
 
 //Save
 save LabCovariates_c, replace
@@ -582,6 +595,8 @@ keep patid totlabs labtest prx_testvalue_s prx_test_s_b
 
 //Reshape
 reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(labtest)
+label var prx_testvalue_s "Value of most proximal, eligible lab test"
+label var prx_test_s_b "Lab test binary; 1= eligible test, 0=no eligible test"
 
 save LabCovariates_s, replace
 clear
@@ -611,13 +626,3 @@ timer off 1
 timer list 1
 exit
 log close
-
-
-
-
-
-
-
-
-
-

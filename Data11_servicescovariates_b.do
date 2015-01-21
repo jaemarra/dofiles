@@ -6,7 +6,6 @@
 clear all
 capture log close
 set more off
-set trace on
 log using Data11b.log, replace
 timer on 1
 
@@ -95,11 +94,10 @@ gen prx_servvalue4_s_b=.
 replace prx_servvalue4_s_b = mean_servs if servtype4==1
 
 bysort patid: egen temp_tot_4 = total(prx_serv4_s_b)
-bysort patid: egen temp_tot_3 = total(prx_serv3_s_b)
 bysort patid: egen temp_tot_2 = total(prx_serv2_s_b)
 
 gen totservs_s = .
-replace totservs_s = temp_tot_4 + temp_tot_3 + temp_tot_2
+replace totservs_s = temp_tot_4 + temp_tot_2
 
 //only keep the observations relevant to the current window
 drop if prx_servvalue4_s >=. | prx_servvalue3_s >=. | prx_servvalue2_s >=.
@@ -110,6 +108,13 @@ drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
 keep patid totservs_s prx_serv*
+label var totservs_s "Total services utilized in studyentry window: number of hospital visits + number of hospital services"
+label var prx_servvalue2_s "Number of hospital visits during studyentry window"
+label var prx_servvalue3_s "Number of days spent in hospital during studyentry window"
+label var prx_servvalue4_s "Mean number of hospital services used per visit in studyentry window"
+label var prx_serv4_s_b "Hospital visits binary; 1=at least 1 hospital visit during studyentry window, 0=no hospital visit"
+label var prx_serv3_s_b "Hospital duration binary; 1=hospital duration >=1 day during studyentry window, 0=no hospital duration"
+label var prx_serv2_s_b "Hospital services binary; 1=at least one hospital service during studyentry window, no hospital service"
 
 save hes_serv_s, replace
 clear 
@@ -175,11 +180,10 @@ gen prx_servvalue4_c_b=.
 replace prx_servvalue4_c_b = mean_servs if servtype4==1
 
 bysort patid: egen temp_tot_4 = total(prx_serv4_c_b)
-bysort patid: egen temp_tot_3 = total(prx_serv3_c_b)
 bysort patid: egen temp_tot_2 = total(prx_serv2_c_b)
 
 gen totservs_c = .
-replace totservs_c = temp_tot_4 + temp_tot_3 + temp_tot_2
+replace totservs_c = temp_tot_4 + temp_tot_2
 
 //only keep the observations relevant to the current window
 drop if prx_servvalue4_c >=. | prx_servvalue3_c >=. | prx_servvalue2_c >=.
@@ -190,6 +194,13 @@ drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
 keep patid totservs_c prx_serv*
+label var totservs_c "Total services utilized in cohort window: number of hospital visits + number of hospital services"
+label var prx_servvalue2_c "Number of hospital visits during cohort window"
+label var prx_servvalue3_c "Number of days spent in hospital during cohort window"
+label var prx_servvalue4_c "Mean number of hospital services used per visit in cohort window"
+label var prx_serv4_c_b "Hospital visits binary; 1=at least 1 hospital visit during cohort window, 0=no hospital visit"
+label var prx_serv3_c_b "Hospital duration binary; 1=hospital duration >=1 day during cohort window, 0=no hospital duration"
+label var prx_serv2_c_b "Hospital services binary; 1=at least one hospital service during cohort window, no hospital service"
 
 save hes_serv_c, replace
 clear
@@ -255,11 +266,10 @@ gen prx_servvalue4_i_b=.
 replace prx_servvalue4_i_b = mean_servs if servtype4==1
 
 bysort patid: egen temp_tot_4 = total(prx_serv4_i_b)
-bysort patid: egen temp_tot_3 = total(prx_serv3_i_b)
 bysort patid: egen temp_tot_2 = total(prx_serv2_i_b)
 
 gen totservs_i = .
-replace totservs_i = temp_tot_4 + temp_tot_3 + temp_tot_2
+replace totservs_i = temp_tot_4 + temp_tot_2
 
 //only keep the observations relevant to the current window
 drop if prx_servvalue4_i >=. | prx_servvalue3_i >=. | prx_servvalue2_i >=.
@@ -270,6 +280,13 @@ drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
 keep patid totservs_i prx_serv*
+label var totservs_i "Total services utilized in index window: number of hospital visits + number of hospital services"
+label var prx_servvalue2_i "Number of hospital visits during index window"
+label var prx_servvalue3_i "Number of days spent in hospital during index window"
+label var prx_servvalue4_i "Mean number of hospital services used per visit in index window"
+label var prx_serv4_i_b "Hospital visits binary; 1=at least 1 hospital visit during index window, 0=no hospital visit"
+label var prx_serv3_i_b "Hospital duration binary; 1=hospital duration >=1 day during index window, 0=no hospital duration"
+label var prx_serv2_i_b "Hospital services binary; 1=at least one hospital service during index window, no hospital service"
 
 save hes_serv_i, replace
 clear

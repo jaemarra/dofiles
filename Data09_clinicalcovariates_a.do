@@ -10,7 +10,7 @@ set trace on
 log using Data09a.log, replace
 timer on 1
 
-// #1 Use data files generated in Data08 (Outcome).
+// #1 Use data files generated in Data02_Support
 // Keep only if eventdate2 is before indexdate.
 timer on 2
 foreach file in Clinical001_2 Clinical002_2 Clinical003_2 Clinical004_2 Clinical005_2 Clinical006_2 Clinical007_2 Clinical008_2 ///
@@ -29,36 +29,35 @@ clear
 timer off 2
 timer list 2
 
+//Use Clinical files merged with Dates, Additional, and Patient for all subsequent work
 foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clinical005_2b Clinical006_2b Clinical007_2b Clinical008_2b Clinical009_2b Clinical010_2b Clinical011_2b Clinical012_2b Clinical013_2b {
 use `file', clear
-
 keep patid enttype eventdate2 studyentrydate_cprd2 readcode cohortentrydate indexdate data1 data2
 sort patid
 //only keep if prior to follow-up
 keep if eventdate2<indexdate
-// merge in hes_primary_diag_hosp, hes_diagnosis_hosp, hes_diagnosis_epi
-
 //generate covariate type
-/* COVTYPE KEY: 1=ht, 2=wt, 3=sbp, 4=smoking, 5=alc abuse, 6=MI, 7=stroke, 8=HF, 9=arryth, 10=angina, 11=urgent revasc, 12=HTN,
-13=AFIB, 14=PVD 15=CCI*/
-gen covtype = .
-gen nr_data = .
+gen covtype =.
+label variable covtype "Covariate type"
+label define covtypes 1 "HT" 2 "WT" 3 "SBP" 4 "smoking status" 5 "alcohol abuse" 6 "MI" 7 "Stroke" 8 "Heart Failure" 9 "Arrhytmia" 10 "Angina" 11 "urgent revasc" 12 "Hypertension" 13 "AFib" 14 "PVD"
+label values covtype covtypes
+//generate nr_data
+gen nr_data =.
+label var nr_data "Non-redundant data for each covariate"
 
 // #2 Generate variables (continuous and binary) for clinical covariates; restrict to appropriate ranges; assign covtype.
 //HEIGHT
 //gen continuous
-gen height = .
+gen height =.
 replace height =   data1 if enttype==14
-label variable height "Height value (m)"
+label variable height "Height (m)"
 //restrict
-replace height =.a if height <= 1
-replace height =.b if height >= 3 & height <.
-replace height =.c if enttype==14 & data1==0
+replace height =. if height<=1|(height >= 3 & height <.)|(enttype==14 & data1==0)
 //eliminate redundancy
 bysort patid enttype: egen nr_height=mean(height) if height<.
-qui bysort patid enttype:  gen dup_ht = cond(_N==1,0,_n)
-replace nr_height = .d if dup_ht >1 & nr_height<.
-drop dup_ht
+tempvar dup_ht
+qui bysort patid enttype: gen `dup_ht' = cond(_N==1,0,_n)
+replace nr_height =. if `dup_ht'>1 & nr_height<.
 //gen binary
 gen height_b = 0
 replace height_b = 1 if nr_height<.
@@ -69,28 +68,25 @@ replace nr_data = nr_height if covtype==1
 
 //WEIGHT
 //gen continuous, restrict to reasonable values, eliminiate redundancy
-gen weight = .
-replace weight =   data1 if enttype==13
+gen weight =.
+replace weight = data1 if enttype==13
 label variable weight "Weight value (kg)"
-replace weight =.a if weight <= 20
-replace weight =.b if weight >= 300 & weight <.
-replace weight =.c if enttype==13 &   data1==0
-bysort patid enttype eventdate2: egen nr_weight=mean(weight) if weight<.
-qui bysort patid enttype eventdate2: gen dup_wt = cond(_N==1,0,_n)
-replace nr_weight = .d if dup_wt>1 & nr_weight<.
-drop dup_wt
+replace weight =. if weight <= 20 | (weight >= 300 & weight <.) | (enttype==13 & data1==0)
+tempvar dup_wt dup_mean_wt nr_mean_weight nr_weight
+bysort patid enttype eventdate2: egen `nr_weight'=mean(weight) if weight<.
+qui bysort patid enttype eventdate2: gen `dup_wt' = cond(_N==1,0,_n)
+replace `nr_weight' =. if `dup_wt' >1 & `nr_weight'<.
 //gen continuous mean_weight (from the restricted weight variable), eliminate redundancy
-qui bysort patid enttype: egen nr_mean_weight = mean(nr_weight) if nr_weight<.
-qui bysort patid enttyp: gen dup_mean_wt = cond(_N==1, 0, _n)
-replace nr_mean_weight = . if dup_mean_wt>1 & nr_mean_weight<.
-drop dup_mean_wt
+qui bysort patid enttype: egen `nr_mean_weight' = mean(`nr_weight') if `nr_weight'<.
+qui bysort patid enttyp: gen `dup_mean_wt' = cond(_N==1, 0, _n)
+replace `nr_mean_weight'=. if `dup_mean_wt'>1 & `nr_mean_weight'<.
 //gen binary based on weight (NOT mean_weight)
 gen weight_b = 0
-replace weight_b = 1 if nr_weight<.
+replace weight_b = 1 if `nr_weight'<.
 label variable weight_b "Weight (binary)"
 //assign covtype
-replace covtype = 2 if nr_weight <.
-replace nr_data = nr_mean_weight if covtype==2
+replace covtype = 2 if `nr_weight' <.
+replace nr_data = `nr_mean_weight' if covtype==2
 
 //SYSTOLIC BLOOD PRESSURE
 //gen continuous, restrict to reasonable values, eliminiate redundancy
@@ -254,13 +250,14 @@ replace covtype=14 if pervascdis_g ==1
 //CPRD GOLD
 charlsonreadadd readcode, icd(00)
 gen cci_g = 0
-replace cci_g = 1 if wcharlsum == 1
-replace cci_g = 2 if wcharlsum == 2
-replace cci_g = 3 if wcharlsum == 3
-replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
-label variable cci_g "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+replace cci_g = 1 if charlindex == 1
+replace cci_g = 2 if charlindex == 2
+replace cci_g = 3 if charlindex == 3
+replace cci_g = 4 if charlindex >= 4 & charlindex <.
+label variable cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 drop ynch* weightch* wcharlsum charlindex smchindx
 generate cci_g_b = 1 if cci_g >=1
+label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 
 //populate nr_data with co-morbidity binaries
 foreach num of numlist 6/14{
@@ -299,13 +296,14 @@ replace prx_ccivalue_i=. if dupa > 1
 drop dupa
 
 //create counts
+tempvar cov_num_un_i_temp
 sort patid covtype eltestdate2
 by patid covtype: generate cov_num = _n
+label var cov_num "Number of each type of covtpe per patid (_n)"
 by patid: egen cov_num_un = count(covtype) if cov_num==1
-by patid: egen cov_num_un_i_temp = count(covtype) if cov_num==1 & eltestdate2>=indexdate-365 & eltestdate2<indexdate
-by patid: egen cov_num_un_i = min(cov_num_un_i_temp)
-drop cov_num_un_i_temp
-
+by patid: egen `cov_num_un_i_temp' = count(covtype) if cov_num==1 & eltestdate2>=indexdate-365 & eltestdate2<indexdate
+by patid: egen cov_num_un_i = min(`cov_num_un_i_temp')
+label var cov_num_un_i "Identifies most recent entry for each covtype in the index window"
 //Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
 encode covariatetype, generate(clincov)
@@ -331,23 +329,15 @@ keep patid totcovs clincov prx_covvalue_i prx_cov_i_b
 //Reshape
 reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(clincov)
 
-save `file'_i, replace
+//Save and append
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_Covariates_i, replace
 }
-clear
-use Clinical001_2b_cov_i
-append using Clinical002_2b_cov_i
-append using Clinical003_2b_cov_i
-append using Clinical004_2b_cov_i
-append using Clinical005_2b_cov_i
-append using Clinical006_2b_cov_i
-append using Clinical007_2b_cov_i
-append using Clinical008_2b_cov_i
-append using Clinical009_2b_cov_i
-append using Clinical010_2b_cov_i
-append using Clinical011_2b_cov_i
-append using Clinical012_2b_cov_i
-append using Clinical013_2b_cov_i
-save ClinicalCovariates_i, replace
+else {
+append using Clinical_Covariates_i
+save Clinical_Covariates_i, replace
+}
+}
 clear
 
 //COHORTENTRY DATE
@@ -368,12 +358,14 @@ replace prx_ccivalue_c=. if dupa>1
 drop dupa
 
 //create counts
+tempvar cov_num_un_c_temp
 sort patid covtype eltestdate2
 by patid covtype: generate cov_num = _n
+label var cov_num "Number of each type of covtpe per patid (_n)"
 by patid: egen cov_num_un = count(covtype) if cov_num==1
-by patid: egen cov_num_un_c_temp = count(covtype) if cov_num==1 & eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
-by patid: egen cov_num_un_c = min(cov_num_un_c_temp)
-drop cov_num_un_c_temp
+by patid: egen `cov_num_un_c_temp' = count(covtype) if cov_num==1 & eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
+by patid: egen cov_num_un_c = min(`cov_num_un_c_temp')
+label var cov_num_un_c "Identifies most recent entry for each covtype in the cohort entry window"
 
 //Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
@@ -400,23 +392,15 @@ capture keep patid totcovs clincov prx_covvalue_c prx_cov_c_b
 //Reshape
 reshape wide prx_covvalue_c prx_cov_c_b totcovs, i(patid) j(clincov)
 
-save `file'_c, replace
+//Save and append
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_Covariates_c, replace
 }
-clear
-use Clinical001_2b_cov_c
-append using Clinical002_2b_cov_c
-append using Clinical003_2b_cov_c
-append using Clinical004_2b_cov_c
-append using Clinical005_2b_cov_c
-append using Clinical006_2b_cov_c
-append using Clinical007_2b_cov_c
-append using Clinical008_2b_cov_c
-append using Clinical009_2b_cov_c
-append using Clinical010_2b_cov_c
-append using Clinical011_2b_cov_c
-append using Clinical012_2b_cov_c
-append using Clinical013_2b_cov_c
-save ClinicalCovariates_c
+else {
+append using Clinical_Covariates_c
+save Clinical_Covariates_c, replace
+}
+}
 clear
 
 //STUDYENTRYDATE_CPRD
@@ -438,13 +422,14 @@ replace prx_ccivalue_s=. if dupa>1
 drop dupa
 
 //create counts
+tempvar cov_num_un_s_temp
 sort patid covtype eltestdate2
 by patid covtype: generate cov_num = _n
+label var cov_num "Number of each type of covtpe per patid (_n)"
 by patid: egen cov_num_un = count(covtype) if cov_num==1
-by patid: egen cov_num_un_s_temp = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-by patid: egen cov_num_un_s = min(cov_num_un_s_temp)
-drop cov_num_un_s_temp
-
+by patid: egen `cov_num_un_s_temp' = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+by patid: egen cov_num_un_s = min(`cov_num_un_s_temp')
+label var cov_num_un_s "Identifies most recent entry for each covtype in the study entry window"
 //Create a new variable that numbers covtypes 1-15
 tostring covtype, generate(covariatetype)
 encode covariatetype, generate(clincov)
@@ -470,23 +455,15 @@ keep patid totcovs clincov prx_covvalue_s prx_cov_s_b
 //Reshape
 reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(clincov)
 
-save `file'_s, replace
+//Save and append
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_Covariates_s, replace
 }
-clear
-use Clinical001_2b_cov_s
-append using Clinical002_2b_cov_s
-append using Clinical003_2b_cov_s
-append using Clinical004_2b_cov_s
-append using Clinical005_2b_cov_s
-append using Clinical006_2b_cov_s
-append using Clinical007_2b_cov_s
-append using Clinical008_2b_cov_s
-append using Clinical009_2b_cov_s
-append using Clinical010_2b_cov_s
-append using Clinical011_2b_cov_s
-append using Clinical012_2b_cov_s
-append using Clinical013_2b_cov_s
-save ClinicalCovariates_s
+else {
+append using Clinical_Covariates_s
+save Clinical_Covariates_s, replace
+}
+}
 clear
 
 ////////////////////////////////////CHARLSON ONLY WINDOWS- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
@@ -501,23 +478,16 @@ drop if dupa>1
 drop dupa
 drop cci_g
 rename cci cci_g
+label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 keep patid cci_g cci_g_b
-save `file'_cci_i, replace
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_cci_i, replace
 }
-use Clinical001_2b_cov_cci_i
-append using Clinical002_2b_cov_cci_i
-append using Clinical003_2b_cov_cci_i
-append using Clinical004_2b_cov_cci_i
-append using Clinical005_2b_cov_cci_i
-append using Clinical006_2b_cov_cci_i
-append using Clinical007_2b_cov_cci_i
-append using Clinical008_2b_cov_cci_i
-append using Clinical009_2b_cov_cci_i
-append using Clinical010_2b_cov_cci_i
-append using Clinical011_2b_cov_cci_i
-append using Clinical012_2b_cov_cci_i
-append using Clinical013_2b_cov_cci_i
-save Clinical_cci_i
+else {
+append using Clinical_cci_i
+save Clinical_cci_i, replace
+}
+}
 clear
 
 //COHORTENTRYDATE
@@ -531,23 +501,17 @@ drop if dupa>1
 drop dupa
 drop cci_g
 rename cci cci_g
+label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 keep patid cci_g cci_g_b
-save `file'_cci_c, replace
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_cci_c, replace
 }
-use Clinical001_2b_cov_cci_c
-append using Clinical002_2b_cov_cci_c
-append using Clinical003_2b_cov_cci_c
-append using Clinical004_2b_cov_cci_c
-append using Clinical005_2b_cov_cci_c
-append using Clinical006_2b_cov_cci_c
-append using Clinical007_2b_cov_cci_c
-append using Clinical008_2b_cov_cci_c
-append using Clinical009_2b_cov_cci_c
-append using Clinical010_2b_cov_cci_c
-append using Clinical011_2b_cov_cci_c
-append using Clinical012_2b_cov_cci_c
-append using Clinical013_2b_cov_cci_c
-save Clinical_cci_c
+else {
+append using Clinical_cci_c
+save Clinical_cci_c, replace
+}
+}
+clear
 
 //STUDENTRYDATE_CPRD2
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
@@ -555,59 +519,45 @@ use `file', clear
 keep patid cci_g cci_g_b studyentrydate_cprd2 eventdate2
 drop if eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
 bysort patid: egen cci = max(cci_g)
-bysort patid: gen dupa = cond(_N==1,0,_n)
-drop if dupa>1
-drop dupa
+tempvar dupa
+bysort patid: gen `dupa' = cond(_N==1,0,_n)
+drop if `dupa'>1
 drop cci_g
 rename cci cci_g
+label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 keep patid cci_g cci_g_b
-save `file'_cci_s, replace
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_cci_s, replace
 }
-use Clinical001_2b_cov_cci_s
-append using Clinical002_2b_cov_cci_s
-append using Clinical003_2b_cov_cci_s
-append using Clinical004_2b_cov_cci_s
-append using Clinical005_2b_cov_cci_s
-append using Clinical006_2b_cov_cci_s
-append using Clinical007_2b_cov_cci_s
-append using Clinical008_2b_cov_cci_s
-append using Clinical009_2b_cov_cci_s
-append using Clinical010_2b_cov_cci_s
-append using Clinical011_2b_cov_cci_s
-append using Clinical012_2b_cov_cci_s
-append using Clinical013_2b_cov_cci_s
-save Clinical_cci_s
+else {
+append using Clinical_cci_s
+save Clinical_cci_s, replace
+}
+}
 clear
-
 ////////////////////////////////////CREATE CLINICAL COVARIATE WEIGH FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////
 
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
 keep patid weight eltestdate2
 bysort patid: egen prx_date = max(eltestdate2)
+label var prx_date "Most proximal date"
 format prx_date %td
 bysort patid: gen prx_weight = weight if eltestdate2==prx_date
 keep patid prx_weight
+label var prx_weight "Most recent mean weight"
 bysort patid: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
 rename prx_weight weight
-save `file'_wt, replace
-}
-use Clinical001_2b_cov_wt
-append using Clinical002_2b_cov_wt
-append using Clinical003_2b_cov_wt
-append using Clinical004_2b_cov_wt
-append using Clinical005_2b_cov_wt
-append using Clinical006_2b_cov_wt
-append using Clinical007_2b_cov_wt
-append using Clinical008_2b_cov_wt
-append using Clinical009_2b_cov_wt
-append using Clinical010_2b_cov_wt
-append using Clinical011_2b_cov_wt
-append using Clinical012_2b_cov_wt
-append using Clinical013_2b_cov_wt
+if "`file'"=="Clinical001_2b_cov" {
 save ClinicalCovariates_wt, replace
+}
+else {
+append using ClinicalCovariates_wt
+save ClinicalCovariates_wt, replace
+}
+}
 clear
 timer off 1
 timer list 1
