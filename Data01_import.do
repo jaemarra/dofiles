@@ -110,7 +110,7 @@ sort patid
 merge 1:1 patid using patid_date.dta
 drop _merge
 compress
-save Patient.dta, replace 
+save Patient.dta, replace
 clear 
 
 //Practice: pracid, lcd, uts 
@@ -169,6 +169,16 @@ compress
 //restrict to patients registered at an up to standard practice at least 1 year prior to entry date
 drop if uts >= studyentrydate_cprd2-365 // THIS IS WHERE WE DROP 16 PATIENTS
 save BaseCohort.dta, replace
+//create an abbreviated dataset of the dates needed to censor each patient (end of reliable data)
+preserve
+keep patid tod2 deathdate2 lcd2
+gen end="31oct2013"
+gen studyenddate=date(end, "DMY")
+drop end
+label var studyenddate "End date for CPRD-GOLD data: 31oct2013"
+format studyenddate %td
+save Censor.dta, replace
+restore
 //create abbreviated BaseCohort with ONLY patid, studyentrydate_cprd2, and pracid
 keep patid pracid studyentrydate_cprd2
 save BasePatidDate.dta, replace

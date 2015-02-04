@@ -17,7 +17,7 @@ timer on 1
 import delimited bnfcodes.txt
 //bnfcode formerly bnf_nom
 rename bnfcode bnf_nom
-label variable bnf_nom "Coded value for the actual BNF code of product"
+label variable bnf_nom "Secondary code for the actual BNF code of product"
 rename bnf bnfcode
 label variable bnfcode "Chapter and section for the product (nn.nn.nn.nn: nnnnnnnn)"
 sort bnfcode
@@ -108,7 +108,7 @@ clear all
 		merge m:1 packtype using packtype, keep(match master) nogen
 		sort prodcode
 		merge m:1 prodcode using product, keep(match master) nogen
-		drop route bnfchapter formulation strength gemscriptcode packtype_desc packtype pracid issueseq numpacks numdays consid
+		drop bnfchapter formulation strength consid
 		compress
 		save Therapy_`i'.dta, replace
 		}
