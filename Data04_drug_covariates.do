@@ -1,7 +1,7 @@
 //  program:    Data04_drug_covariates.do
 //  task:		Generate variables indicating  exposure to drug covariates in CPRD Dataset, using individual Therapy files
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
-//  author:     MA \ May2014 Modified JM \ Feb2015
+//  author:     MA \ May2014 JM \ Feb2015
 
 clear all
 capture log close
