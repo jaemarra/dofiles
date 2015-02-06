@@ -312,7 +312,7 @@ local rxlist = "insulin sulfonylurea metformin tzd dpp glp otherantidiab"
 egen unqrx= anycount(`rxlist'), values(1)
 label var unqrx "Total number of unique drugs"
 
-save drugexpa_`i'
+save drugexpa_`i', replace
 }
 use drugexpa_0, clear
 forval i=1/49 {		
