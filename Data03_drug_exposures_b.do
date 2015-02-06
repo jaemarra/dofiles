@@ -197,13 +197,13 @@ local rxlist = "exenatide liraglutide lixisenatide glp_combo alogliptin linaglip
 egen unqrx= anycount(`rxlist'), values(1)
 label var unqrx "Total number of unique drugs"
 
-save Exposures_subadm`i'.dta, replace
+save drugexpb`i'.dta, replace
 	}
-use Exposures_subadm0, clear 
+use drugexpb0, clear 
 forval i=1/49 {		
-	append using Exposures_subadm`i'
+	append using drugexpb`i'
 	}
-save Exposures_subadm.dta, replace
+save Drug_Exposures_b.dta, replace
 
 ////////////////////////////////////////////
 

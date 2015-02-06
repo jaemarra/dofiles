@@ -50,6 +50,8 @@ do Data01_import
 /* Files saved:			patid_dates.dta
 						Patient.dta
 						Practice.dta
+						BaseCohort.dta
+						Censor.dta
 						BasePatidDate.dta
 						Consultation.dta (appended Consultation001-010)
 						Clinical.dta (appended Clinical001-013)
@@ -97,23 +99,45 @@ Merged files saved:		Therapy_0-99.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 pr
 */			
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
-/* #3 Data03_drugexposures:	use Therapy_0-99
-							- generate variables indicating drug exposures for antidiabetic drugs				
-							- generate cohortentrydate, indexdate and studyentrydate variables
-							- generate duration, gap dates and stop dates										
-							- generate variables indicating drug exposures for potential medication covariates
-							- generate variables for number of unique drugs and medication adherence
+/* #3 Data03_drug_exposures_a:	use Therapy_0-49
+								- prepare Therapy files and product.txt
+								- generate variables indicating drug exposures to antidiabetic drugs				
+								- encode categorical variable (rxtype)
+								- generate count and date variables including metformint0 and indext0
+								- generate switch/add, duration, gap dates, and stop dates										
+								- apply censor dates
+								- generate total exposure duration to each class of interest
+								- generate variables for number of unique drugs and medication adherence
+								- generate Dates.dta dataset with patid, studyentrydate_cprd2, cohortentrydate, and indexdate
 */
 
-do Data03_drugexposures
-//	Files saved:	Exposures.dta
+do Data03_drug_exposures_a
+/*	Files saved:	Therapy_0-49dm
+					drugexpa_0-49
+					Drug_Exposures_a.dta
+					Dates.dta
+*/
+/* #3 Data03_drug_exposures_b:	use Therapy_0-49
+								- prepare Therapy files and product.txt
+								- generate variables indicating drug exposures to subclasses of antidiabetic drugs				
+								- generate variables for number of unique drugs and medication adherence
+*/
 
+do Data03_drug_exposures_b
+/*	Files saved:	drugexpb_0-49
+					Drug_Exposures_b.dta
+*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// #4 Data04_dates:	use Exposures.dta to keep dataset of patid, cohort entry date, index date, study entry date
+/* #3 Data04_drug_covariates:	use Therapy_0-49
+								- Extract medication covariates of interest using gemscriptcodes
+								- restrict to one year prior to the dates of interest		
+								- generate variables for number of unique drugs and medication adherence
+*/
 
-do Data04_dates
-// 	Files saved: 	Dates.dta  				
-
+do Data04_drug_covariates
+/* 	Files saved: 	drug_covariates_0-49
+					Drug_Covariates
+*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* #5 Data05_immunisations: - use Immunisation
 							- merge 1:1 with Dates.dta

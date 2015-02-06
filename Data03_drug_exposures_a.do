@@ -310,13 +310,20 @@ local rxlist = "insulins_short insulins_intlong insulin sulfonylurea metformin t
 egen unqrx= anycount(`rxlist'), values(1)
 label var unqrx "Total number of unique drugs"
 
-save drugexpa_`i'dm
+save drugexpa_`i'
 }
 use drugexpa_0dm, clear
 forval i=1/49 {		
-	append using drugexpa_`i'dm
+	append using drugexpa_`i'
 	}
 save Drug_Exposures_a.dta, replace
+
+//#10 generate "dates" dataset
+keep patid studyentrydate_cprd2 metformint0 indext0 
+rename metformint0 cohortentrydate
+rename indext0 indexdate
+save Dates.dta, replace
+clear
 
 /////////////////////////////////////////FOR INITIAL DATA EXTRACTION, YOU CAN USE THE CODE BELOW TO GET SOME DESCRIPTIVE STATS////////////////////////////////////////
 /*
