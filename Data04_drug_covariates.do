@@ -7,12 +7,12 @@ clear all
 capture log close
 set more off
 
-log using Data03test.smcl, replace
+log using Data04.txt, replace
 timer on 1
 
 forval i=0/49 {
 	use Therapy_`i', clear	 
-
+	keep patid gemscriptcode studyentrydate_cprd2 cohortentrydate indexdate
 //#1 Extract medication covariates of interest using gemscriptcodes. Code so 0=no exposure and 1=exposure. 
 // restrict to exposure in year prior to both cohort entry and index date (see end of this section for loops for this)
 
@@ -461,7 +461,7 @@ label variable cortico_oral "any oral corticosteroid exposure: 0=no exp, 1=exp"
 					estro_hrt bisphos cytotoxic antiprolif otherimmunosuppress antilymph_mab otherimmunomodul immunosuppress_all iron_oral     ///
 					iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral {             
 			generate `x'_c = 0										
-			replace `x'_c = 1 if `x'==1 & rxdate2>=metformint0-365 & rxdate2<metformint0
+			replace `x'_c = 1 if `x'==1 & rxdate2>=cohortentrydate-365 & rxdate2<cohortentrydate
 			}
 
 			foreach y of varlist h2recep ppi cortico_gi thiazdiur loopdiur potsparediur_aldos potsparediur_other antiarrhythmic betablock            /// 
@@ -472,7 +472,7 @@ label variable cortico_oral "any oral corticosteroid exposure: 0=no exp, 1=exp"
 					estro_hrt bisphos cytotoxic antiprolif otherimmunosuppress antilymph_mab otherimmunomodul immunosuppress_all iron_oral     ///
 					iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral {             
 			generate `y'_i = 0										
-			replace `y'_i = 1 if `y'==1 & rxdate2>=indext0-365 & rxdate2<indext0
+			replace `y'_i = 1 if `y'==1 & rxdate2>=indexdate-365 & rxdate2<indexdate
 			}
 
 			foreach z of varlist h2recep ppi cortico_gi thiazdiur loopdiur potsparediur_aldos potsparediur_other antiarrhythmic betablock            /// 

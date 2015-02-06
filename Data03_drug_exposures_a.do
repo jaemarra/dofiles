@@ -321,9 +321,12 @@ forval i=1/49 {
 save Drug_Exposures_a.dta, replace
 
 //#10 generate "dates" dataset
+use Drug_Exposures_a.dta
 keep patid studyentrydate_cprd2 metformint0 indext0 
+collapse (min) studyentrydate_cprd2 metformint0 indext0, by(patid)
 rename metformint0 cohortentrydate
 rename indext0 indexdate
+drop indext0 metformint0
 save Dates.dta, replace
 clear
 
