@@ -8,7 +8,7 @@ clear all
 capture log close
 set more off
 
-log using Data03test.smcl, replace
+log using Data03b.smcl, replace
 timer on 1
 
 forval i=0/49 {
@@ -203,6 +203,8 @@ use drugexpb0, clear
 forval i=1/49 {		
 	append using drugexpb`i'
 	}
+save Drug_Exposures_b.dta, replace
+drop gemscriptcode
 save Drug_Exposures_b.dta, replace
 
 ////////////////////////////////////////////
