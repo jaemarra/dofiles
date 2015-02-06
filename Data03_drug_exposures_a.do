@@ -307,14 +307,14 @@ drop `var'gapdur
 
 //#9 Determine how many classes of antidiabetic agents each patient was exposed to over the course of the study
 //set local macro for the class list of interest
-local rxlist = "insulins_short insulins_intlong insulin sulfonylurea metformin tzd dpp glp otherantidiab"
+local rxlist = "insulin sulfonylurea metformin tzd dpp glp otherantidiab"
 //generate the variable for total
 egen unqrx= anycount(`rxlist'), values(1)
 label var unqrx "Total number of unique drugs"
 
 save drugexpa_`i'
 }
-use drugexpa_0dm, clear
+use drugexpa_0, clear
 forval i=1/49 {		
 	append using drugexpa_`i'
 	}
@@ -349,8 +349,6 @@ foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab 
 summarize `var'_totexp, detail
 }
 */
-
-compress
 
 timer off 1
 timer list 1
