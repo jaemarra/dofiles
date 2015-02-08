@@ -129,12 +129,13 @@ do Data03_drug_exposures_b
 */
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* #3 Data04_drug_covariates:	use Therapy_0-49
-								- Extract medication covariates of interest using gemscriptcodes
+								- do Data04_drug_covariates_loop to call the actual do file and loop all Therapy files through
+								- extract medication covariates of interest using gemscriptcodes
 								- restrict to one year prior to the dates of interest		
 								- generate variables for number of unique drugs and medication adherence
 */
 
-do Data04_drug_covariates
+do Data04_drug_covariates_loop
 /* 	Files saved: 	drug_covariates_0-49
 					Drug_Covariates
 */

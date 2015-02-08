@@ -3,7 +3,7 @@
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     MA \ May2014 JM \ Feb2015
 
-clear all
+/*clear all
 capture log close
 set more off
 
@@ -11,7 +11,7 @@ log using Data04.txt, replace
 timer on 1
 
 forval i=0/49 {
-	use Therapy_`i', clear
+	use Therapy_`i', clear*/
 	merge m:1 patid using Dates, nogen
 	keep patid gemscriptcode studyentrydate_cprd2 cohortentrydate indexdate rxdate2
 //#1 Extract medication covariates of interest using gemscriptcodes. Code so 0=no exposure and 1=exposure. 
@@ -540,7 +540,7 @@ collapse (max)  h2recep ppi cortico_gi thiazdiur loopdiur potsparediur_aldos pot
 				otherimmunosuppress_s antilymph_mab_s otherimmunomodul_s immunosuppress_all_s iron_oral_s iron_parenteral_s potassium_oral_s multivit_s ///
 				nsaid_s antigout_s antirheum_s benzo_s opioid2_s opioid_s cortico_oral_s, by(patid)
 compress
-
+/*
 save drug_covariates_`i'.dta, replace
 	}
 use drug_covariates_0, clear 
@@ -554,3 +554,4 @@ timer list 1
 
 exit
 log close
+*/
