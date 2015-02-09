@@ -8,9 +8,10 @@ capture log close
 set more off
 
 log using Data04.txt, replace
+timer clear 1
 timer on 1
 
-forval i=2/49 {
+forval i=0/49 {
 	use Therapy_`i', clear
 	do Data04_drug_covariates.do
 	save drug_covariates_`i'.dta, replace
