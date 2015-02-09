@@ -55,7 +55,7 @@ gen pneumo_s = 0
 replace pneumo_s = 1 if inlist(immstype, 13,18,28,82) & eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
 label variable pneumo_s "Pneumo vaccine in year before study entry date: 0=no exp, 1=exp"
 
-collapse (max) eventdate2 indexdate cohortentrydate studyentrydate studyentrydate_cprd2 flu_c flu_i flu_s pneumo_c pneumo_i pneumo_s othervaccine_c othervaccine_i othervaccine_s , by(patid)
+collapse (max) eventdate2 indexdate cohortentrydate studyentrydate flu_c flu_i flu_s pneumo_c pneumo_i pneumo_s othervaccine_c othervaccine_i othervaccine_s , by(patid)
 compress
 save Immunisation2, replace 
 

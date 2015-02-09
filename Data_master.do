@@ -122,8 +122,13 @@ do Data03_drug_exposures_a
 								- generate variables indicating drug exposures to subclasses of antidiabetic drugs				
 								- generate variables for number of unique drugs and medication adherence
 */
-
-do Data03_drug_exposures_b
+parallel setclusters 6
+parallel clean, all force
+parallel append, do(data03_drug_exposures_b_p) e("Therapy_%01.0f.dta, 0/9")
+parallel append, do(data03_drug_exposures_b_p) e("Therapy_%02.0f.dta, 10/19")
+parallel append, do(data03_drug_exposures_b_p) e("Therapy_%02.0f.dta, 20/29")
+parallel append, do(data03_drug_exposures_b_p) e("Therapy_%02.0f.dta, 30/39")
+parallel append, do(data03_drug_exposures_b_p) e("Therapy_%02.0f.dta, 40/49")
 /*	Files saved:	drugexpb_0-49
 					Drug_Exposures_b.dta
 */
