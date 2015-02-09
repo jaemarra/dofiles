@@ -7,10 +7,9 @@
 //capture log close
 //set more off
 
-//log using Data04.txt, replace
 timer clear 2
 timer on 2
-
+	parallel setclusters 6
 	merge m:1 patid using Dates, nogen
 	keep patid gemscriptcode studyentrydate_cprd2 cohortentrydate indexdate rxdate2
 //#1 Extract medication covariates of interest using gemscriptcodes. Code so 0=no exposure and 1=exposure. 
