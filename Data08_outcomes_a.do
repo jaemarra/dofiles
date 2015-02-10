@@ -119,7 +119,7 @@ local outcome myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g 
 
 collapse (min) cohortentrydate indexdate studyentrydate deathdate2 studyentrydate_cprd2 myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i ///
 				heartfail_g_date_i arrhythmia_g_date_i angina_g_date_i revasc_g_date_i myoinfarct_g_date_s stroke_g_date_s ///
-				cvdeath_g_date_s heartfail_g_date_s arrhythmia_g_date_s angina_g_date_s revasc_g_date_s (max) maincohort metcohort ///
+				cvdeath_g_date_s heartfail_g_date_s arrhythmia_g_date_s angina_g_date_s revasc_g_date_s (max) ///
 				death_g myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g revasc_g, by(patid)
 compress
 save Outcomes_gold_`file'.dta, replace
