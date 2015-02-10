@@ -80,10 +80,10 @@ local outcome myoinfarct_h stroke_h cvdeath_h heartfail_h arrhythmia_h angina_h
 		by patid: egen `y'_date_s = min(`y'_date_temp_s)
 		format `y'_date_s %td
 		drop `y'_date_temp_s
-		label var `x'_date_i "Earliest date of episode recorded for events after study entry date"
+		label var `y'_date_i "Earliest date of episode recorded for events after study entry date"
 		}
 
-collapse (max) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 maincohort metcohort myoinfarct_h stroke_h cvdeath_h ///
+collapse (max) cohortentrydate indexdate studyentrydate myoinfarct_h stroke_h cvdeath_h ///
 				heartfail_h arrhythmia_h angina_h myoinfarct_h_date_i stroke_h_date_i cvdeath_h_date_i heartfail_h_date_i ///
 				arrhythmia_h_date_i angina_h_date_i myoinfarct_h_date_s stroke_h_date_s cvdeath_h_date_s heartfail_h_date_s ///
 				arrhythmia_h_date_s angina_h_date_s, by(patid)
