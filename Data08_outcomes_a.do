@@ -117,32 +117,25 @@ local outcome myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g 
 		label var `y'_date_i "Earliest date of episode recorded for events after study entry date"
 		}
 
-collapse (min) cohortentrydate indexdate studyentrydate deathdate2 myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i ///
-				heartfail_g_date_i arrhythmia_g_date_i angina_g_date_i revasc_g_date_i myoinfarct_g_date_s stroke_g_date_s ///
-				cvdeath_g_date_s heartfail_g_date_s arrhythmia_g_date_s angina_g_date_s revasc_g_date_s (max) ///
-				death_g myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g revasc_g, by(patid)
+collapse (min) cohortentrydate indexdate studyentrydate deathdate2 myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i heartfail_g_date_i arrhythmia_g_date_i angina_g_date_i revasc_g_date_i myoinfarct_g_date_s stroke_g_date_s cvdeath_g_date_s heartfail_g_date_s arrhythmia_g_date_s angina_g_date_s revasc_g_date_s (max) death_g myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g revasc_g, by(patid)
 compress
 save Outcomes_gold_`file'.dta, replace
 }
 
 use Outcomes_gold_Clinical001_2a, clear 
-append using Outcomes_gold_Clinical002_2a
-append using Outcomes_gold_Clinical003_2a
-append using Outcomes_gold_Clinical004_2a
-append using Outcomes_gold_Clinical005_2a
-append using Outcomes_gold_Clinical006_2a
-append using Outcomes_gold_Clinical007_2a
-append using Outcomes_gold_Clinical008_2a
-append using Outcomes_gold_Clinical009_2a
-append using Outcomes_gold_Clinical010_2a
-append using Outcomes_gold_Clinical011_2a
-append using Outcomes_gold_Clinical012_2a
-append using Outcomes_gold_Clinical013_2a
-
 save Outcomes_gold.dta, replace
+forval i=2/9	{
+use Outcomes_gold.dta, clear
+append using Outcomes_gold_Clinical00`i'_2a
+save Outcomes_gold.dta, replace
+}
+forval i=10/13	{
+use Outcomes_gold.dta, clear
+append using Outcomes_gold_Clinical0`i'_2a
+save Outcomes_gold.dta, replace
+}
 
 ////////////////////////////////////////////
-
 timer off 1 
 timer list 1
 

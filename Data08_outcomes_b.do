@@ -83,10 +83,7 @@ local outcome myoinfarct_h stroke_h cvdeath_h heartfail_h arrhythmia_h angina_h
 		label var `y'_date_i "Earliest date of episode recorded for events after study entry date"
 		}
 
-collapse (max) cohortentrydate indexdate studyentrydate myoinfarct_h stroke_h cvdeath_h ///
-				heartfail_h arrhythmia_h angina_h myoinfarct_h_date_i stroke_h_date_i cvdeath_h_date_i heartfail_h_date_i ///
-				arrhythmia_h_date_i angina_h_date_i myoinfarct_h_date_s stroke_h_date_s cvdeath_h_date_s heartfail_h_date_s ///
-				arrhythmia_h_date_s angina_h_date_s, by(patid)
+collapse (max) cohortentrydate indexdate studyentrydate myoinfarct_h stroke_h cvdeath_h heartfail_h arrhythmia_h angina_h myoinfarct_h_date_i stroke_h_date_i cvdeath_h_date_i heartfail_h_date_i arrhythmia_h_date_i angina_h_date_i myoinfarct_h_date_s stroke_h_date_s cvdeath_h_date_s heartfail_h_date_s arrhythmia_h_date_s angina_h_date_s, by(patid)
 compress
 save Outcomes_hes.dta, replace
 
@@ -98,7 +95,8 @@ sort patid
 compress
 
 gen revasc_opcs = 0
-replace revasc_opcs = 1 if regexm(opcs, "K40|K401|K402|K403|K404|K408|K409|K41|K411|K412|K413|K414|K418|K419|K42|K421|K422|K423|K424|K428|K429|K43|K431|K432|K433|K434|K438|K439|K44|K441|K442|K448|K449|K45|K451|K452|K453|K454|K455|K456|K458|K459|K46|K461|K462|K463|K464|K465|K468|K469|K47|K471|K472|K473|K474|K475|K478|K479|K48|K481|K482|K483|K484|K488|K489|K49|K491|K492|K493|K494|K498|K499|K50|K501|K502|K503|K504|K508|K509")
+local revascodes = "(K40|K401|K402|K403|K404|K408|K409|K41|K411|K412|K413|K414|K418|K419|K42|K421|K422|K423|K424|K428|K429|K43|K431|K432|K433|K434|K438|K439|K44|K441|K442|K448|K449|K45|K451|K452|K453|K454|K455|K456|K458|K459|K46|K461|K462|K463|K464|K465|K468|K469|K47|K471|K472|K473|K474|K475|K478|K479|K48|K481|K482|K483|K484|K488|K489|K49|K491|K492|K493|K494|K498|K499|K50|K501|K502|K503|K504|K508|K509)"
+replace revasc_opcs = 1 if regexm(opcs, "`revascodes'")
 label variable revasc_opcs "Revascularization (OPCS codes) 1=event 0=no event"
 
 sort patid eventdate2
@@ -114,9 +112,7 @@ by patid: egen proc_date_s = min(proc_date_temp_s)
 format proc_date_s %td
 drop proc_date_temp_s
 
-
-collapse (max) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 maincohort metcohort revasc_opcs proc_date_i proc_date_s, ///
-	           by(patid)
+collapse (max) cohortentrydate indexdate studyentrydate revasc_opcs proc_date_i proc_date_s, by(patid)
 compress
 save Outcomes_procedures.dta, replace
 
