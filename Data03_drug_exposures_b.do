@@ -209,9 +209,10 @@ use drugexpb0, clear
 forval i=1/49 {		
 	append using drugexpb`i'
 	}
-save Drug_Exposures_b.dta, replace
+save Drug_Exposures_B.dta, replace
 drop gemscriptcode
-save Drug_Exposures_b.dta, replace*/
+collapse (max) exenatide liraglutide lixisenatide glp_combo alogliptin linagliptin sitagliptin saxagliptin vildagliptin dpp_combo ins_sub aspart glulisine lispro degludec detemir glargine ins_zinc isophane_ins protamine_zinc_ins aspart_biphasic lispro_biphasic isophane_biphasic insulin_rapid insulin_regular insulin_int_long insulin_ultralong insulin_premixed insulin_combo unqrx , by(patid)
+save Drug_Exposures_B.dta, replace
 
 ////////////////////////////////////////////
 

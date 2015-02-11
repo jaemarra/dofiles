@@ -113,7 +113,7 @@ replace covtype=14 if pervascdis_h ==1
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //HES ICD10
-charlsonreadadd icd icd_primary, icd(10)
+charlsonreadadd icd icd_primary, icd(10) idvar(patid) assign0
 gen cci_h = 0
 replace cci_h = 1 if charlindex
 replace cci_h = 2 if charlindex
