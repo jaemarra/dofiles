@@ -248,7 +248,7 @@ replace covtype=14 if pervascdis_g ==1
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
-charlsonreadadd readcode, icd(00)
+charlsonreadadd readcode, icd(00) idvar(patid) assign0
 gen cci_g = 0
 replace cci_g = 1 if charlindex == 1
 replace cci_g = 2 if charlindex == 2
@@ -273,7 +273,8 @@ format eltestdate2 %td
 bysort patid covtype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
-save `file'_cov, replace
+tempfile `file'_cov
+save ``file'_cov'
 }
 clear
 
@@ -487,6 +488,7 @@ else {
 append using Clinical_cci_i
 save Clinical_cci_i, replace
 }
+erase Clinical_cci_i.ta
 }
 clear
 
@@ -510,6 +512,7 @@ else {
 append using Clinical_cci_c
 save Clinical_cci_c, replace
 }
+erase Clinical_cci_c.ta
 }
 clear
 
@@ -533,6 +536,7 @@ else {
 append using Clinical_cci_s
 save Clinical_cci_s, replace
 }
+erase Clinical_cci_s.ta
 }
 clear
 ////////////////////////////////////CREATE CLINICAL COVARIATE WEIGH FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////

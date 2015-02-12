@@ -7,7 +7,8 @@ clear all
 capture log close
 set more off
 set trace on
-log using Data11c.log, replace
+log using Data11c.txt, replace
+timer clear 1
 timer on 1
 
 //INDEXDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 

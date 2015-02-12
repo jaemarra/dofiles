@@ -7,21 +7,18 @@ clear all
 capture log close
 set more off
 set trace on
-log using Data10.smcl, replace
+log using Data10.txt, replace
 timer on 1
 
 ////// #1 Append all Test Files, Merge Test with Dates, drop un-needed variables
 
 clear all
-timer on 2
 use Test001
 append using Test002 Test003 Test004 Test005 Test006 Test007 Test008 Test009 Test010 Test011 Test012 Test013 Test014, gen(filenum) nolabel
 sort patid
 merge m:1 patid using Dates, keep(match using) nogen
 merge m:1 patid using Demographic, keep(match using) nogen
 merge m:1 patid using ClinicalCovariates_wt, keep(match using) nogen			
-timer off 2
-timer list 2
 
 ////// #2 Code for variables of physiological values from lab tests. 
 // Within a year prior to studyentrydate, cohortentrydate, indexdate. If more than one within year, value closest to date of interest.

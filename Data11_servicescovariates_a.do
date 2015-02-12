@@ -7,7 +7,7 @@ clear all
 capture log close
 set more off
 set trace on
-log using Data11a.log, replace
+log using Data11a.txt, replace
 timer on 1
 
 // #1 Use data files generated in Data02 (Support)
@@ -22,7 +22,11 @@ keep patid eventdate2 constype studyentrydate_cprd2 cohortentrydate indexdate pr
 
 //servtype key: 1=physican visit, 2 = hospital visit, 3 = days in hospital
 gen servtype = .
+label variable servtype "Type of health services utilized"
+label define servicetypes 1 "Physician visit" 2 "Hospital visit" 3 "Duration of hospital stay (days)" 4 "Number of services in hospital stay"
+label values servtype servicetypes
 gen nr_data = .
+label var nr_data "Non-redundant data for services"
 
 // Based on CPRD codes
 //Physician Visits 
@@ -42,28 +46,20 @@ replace elgdate2 = eventdate2 if eventdate2 <. & nr_data <.
 format elgdate2 %td
 
 //Drop all duplicates for patients of the same constype on the same day
-quietly bysort patid servtype elgdate2: gen dupa = cond(_N==1,0,_n)
-drop if dupa>1
-drop dupa
-save serv_`file', replace
+tempvar dupa
+quietly bysort patid servtype elgdate2: gen `dupa' = cond(_N==1,0,_n)
+drop if `dupa'>1
+
+if "`file'"=="Clinical001_2b"	{
+save Clin_serv, replace
+}
+else	{
+append using Clin_serv
+save Clin_serv, replace
+}
 }
 clear
 
-use serv_Clinical001_2b
-append using serv_Clinical002_2b
-append using serv_Clinical003_2b
-append using serv_Clinical004_2b
-append using serv_Clinical005_2b
-append using serv_Clinical006_2b
-append using serv_Clinical007_2b
-append using serv_Clinical008_2b
-append using serv_Clinical009_2b
-append using serv_Clinical010_2b
-append using serv_Clinical011_2b
-append using serv_Clinical012_2b
-append using serv_Clinical013_2b
-save Clin_serv, replace
-clear
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
 //STUDYENTRY DATE
 use Clin_serv

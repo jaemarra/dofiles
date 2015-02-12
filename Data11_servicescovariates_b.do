@@ -6,7 +6,7 @@
 clear all
 capture log close
 set more off
-log using Data11b.log, replace
+log using Data11b.txt, replace
 timer on 1
 
 // #1 Use data files generated in Data02 (Support)
