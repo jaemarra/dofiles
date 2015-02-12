@@ -10,7 +10,7 @@ log using Data03b.txt, replace
 timer clear 1
 timer on 1
 
-/forval i=0/49 {
+forval i=0/49 {
 	timer clear 2
 	timer on 2
 	use Therapy_`i', clear	 
