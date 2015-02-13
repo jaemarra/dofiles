@@ -17,7 +17,7 @@ timer on 1
 // Use this file to merge with other CPRD data files and drop observations that are >365 days before this date.
 
 /*************************LINKAGE*************************/
-//Linkage Eligibility + Coverage: patid, pracid, linked_patient, hes_e, death_e, cprd_e, lsoa_e, start, end
+//Linkage Eligibility + Coverage: patid, pracid, linked_practice, hes_e, death_e, cprd_e, lsoa_e, start, end
 import delimited "13_100_linkage_eligibility.txt"
 drop if patid==.
 gen cprd_e = .
@@ -33,6 +33,9 @@ replace enddate = "31mar2012" if hes_e==1
 replace enddate = "10jan2012" if death_e==1
 gen end = date(enddate, "DMY")
 format end %td
+gen linked_b = .
+replace linked_b=1 if linked_practice==1
+label var linked_b "Binary indicator of whether patient is linked with HES or not 1=linked"
 //drop irrelevant variables
 drop startdate enddate patientinbuild acceptable_patient
 save linkage_eligibility.dta, replace
@@ -169,6 +172,11 @@ compress
 //restrict to patients registered at an up to standard practice at least 1 year prior to entry date
 drop if uts >= studyentrydate_cprd2-365 // THIS IS WHERE WE DROP 16 PATIENTS
 save BaseCohort.dta, replace
+// create an abbreviated dataset to merge with ONS death_patient then into final Analytic Cohort
+preserve
+keep patid linked_b lcd2 tod2 deathdate2
+save Analytic_variables.dta, replace
+restore
 //create an abbreviated dataset of the dates needed to censor each patient (end of reliable data)
 preserve
 keep patid tod2 deathdate2 lcd2
@@ -474,6 +482,9 @@ duplicates drop patid, force
 drop cause_neonatal1-cause_neonatal8
 compress
 save death_patient_2, replace
+merge 1:1 patid using Analytic_variables.dta, keep (match using) nogen
+keep patid linked_b lcd2 tod2 dod2 deathdate2
+save Analytic_variables.dta, replace
 clear 
 
 /*************************HES*************************/

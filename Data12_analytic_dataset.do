@@ -8,7 +8,7 @@ clear all
 capture log close
 set more off
 set trace on
-log using Data12.smcl, replace
+log using Data12.txt, replace
 timer on 1
 
 // #1 Merge all files.
@@ -60,9 +60,15 @@ clear
 use Analytic_Dataset_s, clear
 merge 1:1 patid using Analytic_Dataset_c, nogen
 merge 1:1 patid using Analytic_Dataset_i, nogen
-drop if age_cohortdate<30
 drop if cohort_b==0
+//35049 patids dropped
+drop if age_cohortdate<30
+//5572 observations dropped
 drop if pcos==1|preg==1|gest_diab==1
+//6840 observations dropped
+datasignature set, reset
+save Analytic_Dataset_Master, replace
+clear
 
 timer off 1 
 timer list 1

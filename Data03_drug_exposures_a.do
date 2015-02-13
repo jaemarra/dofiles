@@ -199,13 +199,18 @@ label var `var'gapnum "Gaps ordered in time and enumerated per patid and rxtype"
 //pull out every t0 (start switch or add drug class of interest) and associated t1 (stop, discontonuous prescription filling history, end of study)
 gen exposure_b=.
 label var exposure_b "Exposure binary for antiDM:continuous==1, discontinuous==0, rxtype NOT of interest==."
-//Generate every start and stop date covering an exposure
+//Generate every start and stop date covering an exposed period or unexposed period
 gen t0=.
 gen t1=.
 gen duration=.
 replace t0=rxdate2
 format t0 t1 %td
-foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab {
+label var t0 "Start date of each prescription filled and each unexposure period (t0 for each exposure duration and t0 for each gap duration)"
+notes t0 "t0 contains every rxdate2 as the start date of each exposure duration as well as every expanded date for the start date of each gap duration"
+label var t1 "Stop date for each prescription filled and the end of each gap date"
+notes t1 "t1 contains the stop dates associated with each t0 as either the end of a prescription (rxdate+predfactor OR next prescription filled date), the end of a gap duration (next prescription filled), or the censor date. Whichever comes first."
+
+"foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab {
 //For the very last prescription of each type, project the exposure stop (t1) to include the predfactor
 replace t1=(t0+predfactor) if t0==`var't2
 replace exposure_b=1 if t1!=.
@@ -216,6 +221,9 @@ replace exposure_b=1 if `var'_gap<=0
 replace t1=`var'_pred if `var'_gap>0 & `var'_gap<.
 }
 
+gen indextype = rxtype if exporder==2
+label var indextype "rxtype of index prescription"
+
 //#6b Generate duration for UNEXPOSED intervals
 //expand the observations to build in unexposed durations
 gen isgap=.
@@ -225,7 +233,9 @@ replace isgap=2 if `var'_gap>=1 & `var'_gap<.
 }
 //expand and enumerate in the count gap (ctgap) variable
 expand isgap
+label var isgap "Identifies gaps and is used to expand so the gap can have a start and stop date (t0 an t1)"
 bysort patid rxtype rxdate2: gen ctgap= _n if isgap==2
+label var ctgap "Enumerates the gaps identified by isgap"
 replace exposure_b=0 if ctgap==2
 drop if ctgap==3
 //Populate t0 and t1 accourding to the gaps and associated predicted and next rx dates
@@ -265,6 +275,7 @@ replace t1=tx if t1>tx
 //first generate last date of exposure (time between cohort entry and censor date in days)
 bysort patid: egen last= max(t1)
 label var last "Last date of exposure (max t1)"
+format last %td
 gen tcc=.
 replace tcc=last-first if last!=. &first!=.
 label var tcc "Time between cohort entry date and censor date in days"
@@ -319,10 +330,12 @@ use drugexpa_0, clear
 forval i=1/49 {		
 	append using drugexpa_`i'
 	}
+	drop gemscriptcode
 save Drug_Exposures_a.dta, replace
 
 //#10 generate "dates" dataset
 use Drug_Exposures_a.dta
+merge
 keep patid studyentrydate_cprd2 metformint0 indext0 
 collapse (min) studyentrydate_cprd2 metformint0 indext0, by(patid)
 rename metformint0 cohortentrydate

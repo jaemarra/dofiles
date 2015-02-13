@@ -578,6 +578,14 @@ keep patid h2recep_i ppi_i cortico_gi_i thiazdiur_i loopdiur_i potsparediur_aldo
 				anthelmintic_i thyroidhorm_i cortico_endocr_i estro_hrt_i bisphos_i cytotoxic_i antiprolif_i otherimmunosuppress_i antilymph_mab_i ///
 				otherimmunomodul_i immunosuppress_all_i iron_oral_i iron_parenteral_i potassium_oral_i multivit_i nsaid_i antigout_i antirheum_i benzo_i ///
 				opioid2_i opioid_i cortico_oral_i unqrxi
+collapse (max) h2recep_i ppi_i cortico_gi_i thiazdiur_i loopdiur_i potsparediur_aldos_i potsparediur_other_i antiarrhythmic_i ///
+				betablock_i acei_i angiotensin2recepant_i renini_i ras_i nitrates_i calchan_i anticoag_oral_i antiplat_i statin_i fibrates_i ezetimibe_i ///
+				bileacidseq_i lipidreg_i bronchodil_i cortico_inh_i leukotri_i antihist_i hyp_anx_i psychoses_i antidepress_i antiobes_i opioid1_i ///
+				antiepilep_i antipark_dop_i penicillin_i ceph_carb_betalac_i tetracyc_i aminoglyc_i macrolide_i clinda_i otherantibiot_i sulfo_trimeth_i ///
+				antituberc_i antileprotic_i metro_tinidazole_i quinolone_i uti_drugs_i antibacterial_i antifungal_i antiviral_i antiprotoz_i ///
+				anthelmintic_i thyroidhorm_i cortico_endocr_i estro_hrt_i bisphos_i cytotoxic_i antiprolif_i otherimmunosuppress_i antilymph_mab_i ///
+				otherimmunomodul_i immunosuppress_all_i iron_oral_i iron_parenteral_i potassium_oral_i multivit_i nsaid_i antigout_i antirheum_i benzo_i ///
+				opioid2_i opioid_i cortico_oral_i unqrxi, by(patid)	
 save Drug_Covariates_i.dta, replace
 clear
 //Generate studyentrydate window
