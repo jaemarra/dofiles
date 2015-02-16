@@ -245,20 +245,6 @@ label variable pervascdis_g "Peripheral Vascular Disease (gold) 1=event 0=no eve
 //gen covtype
 replace covtype=14 if pervascdis_g ==1
 
-// Charlson Comorbidity Index
-// Source: Khan et al 2010
-//CPRD GOLD
-charlsonreadadd readcode, icd(00) idvar(patid) assign0
-gen cci_g = 0
-replace cci_g = 1 if charlindex == 1
-replace cci_g = 2 if charlindex == 2
-replace cci_g = 3 if charlindex == 3
-replace cci_g = 4 if charlindex >= 4 & charlindex <.
-label variable cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-drop ynch* weightch* wcharlsum charlindex smchindx
-generate cci_g_b = 1 if cci_g >=1
-label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-
 //populate nr_data with co-morbidity binaries
 foreach num of numlist 6/14{
 replace nr_data=1 if covtype==`num'
@@ -469,16 +455,24 @@ clear
 
 ////////////////////////////////////CHARLSON ONLY WINDOWS- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
 //INDEXDATE
+
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
-keep patid cci_g cci_g_b eventdate2 indexdate
 drop if eventdate2>=indexdate-365 & eventdate2<indexdate
-bysort patid: egen cci = max(cci_g)
-bysort patid: gen dupa = cond(_N==1,0,_n)
-drop if dupa>1
-drop dupa
-drop cci_g
-rename cci cci_g
+// Charlson Comorbidity Index
+// Source: Khan et al 2010
+//CPRD GOLD
+charlsonreadadd readcode, icd(00) idvar(patid) assign0
+gen cci_g = 0
+replace cci_g = 1 if charlindex == 1
+replace cci_g = 2 if charlindex == 2
+replace cci_g = 3 if charlindex == 3
+replace cci_g = 4 if charlindex >= 4 & charlindex <.
+label variable cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+drop ynch* weightch* wcharlsum charlindex smchindx
+generate cci_g_b = 1 if cci_g >=1
+label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid cci_g cci_g_b
 label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 keep patid cci_g cci_g_b
 if "`file'"=="Clinical001_2b_cov" {
@@ -488,7 +482,7 @@ else {
 append using Clinical_cci_i
 save Clinical_cci_i, replace
 }
-erase Clinical_cci_i.ta
+erase Clinical_cci_i.dta
 }
 clear
 
@@ -497,12 +491,22 @@ foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinica
 use `file', clear
 keep patid cci_g cci_g_b cohortentrydate eventdate2
 drop if eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
-bysort patid: egen cci = max(cci_g)
-bysort patid: gen dupa = cond(_N==1,0,_n)
-drop if dupa>1
-drop dupa
-drop cci_g
-rename cci cci_g
+// Charlson Comorbidity Index
+// Source: Khan et al 2010
+//CPRD GOLD
+charlsonreadadd readcode, icd(00) idvar(patid) assign0
+gen cci_g = 0
+replace cci_g = 1 if charlindex == 1
+replace cci_g = 2 if charlindex == 2
+replace cci_g = 3 if charlindex == 3
+replace cci_g = 4 if charlindex >= 4 & charlindex <.
+label variable cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+drop ynch* weightch* wcharlsum charlindex smchindx
+generate cci_g_b = 1 if cci_g >=1
+label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid cci_g cci_g_b
+label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+keep patid cci_g cci_g_b
 label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 keep patid cci_g cci_g_b
 if "`file'"=="Clinical001_2b_cov" {
@@ -512,7 +516,7 @@ else {
 append using Clinical_cci_c
 save Clinical_cci_c, replace
 }
-erase Clinical_cci_c.ta
+erase Clinical_cci_c.dta
 }
 clear
 
@@ -521,12 +525,20 @@ foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinica
 use `file', clear
 keep patid cci_g cci_g_b studyentrydate_cprd2 eventdate2
 drop if eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
-bysort patid: egen cci = max(cci_g)
-tempvar dupa
-bysort patid: gen `dupa' = cond(_N==1,0,_n)
-drop if `dupa'>1
-drop cci_g
-rename cci cci_g
+// Charlson Comorbidity Index
+// Source: Khan et al 2010
+//CPRD GOLD
+charlsonreadadd readcode, icd(00) idvar(patid) assign0
+gen cci_g = 0
+replace cci_g = 1 if charlindex == 1
+replace cci_g = 2 if charlindex == 2
+replace cci_g = 3 if charlindex == 3
+replace cci_g = 4 if charlindex >= 4 & charlindex <.
+label variable cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+drop ynch* weightch* wcharlsum charlindex smchindx
+generate cci_g_b = 1 if cci_g >=1
+label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid cci_g cci_g_b
 label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 keep patid cci_g cci_g_b
 if "`file'"=="Clinical001_2b_cov" {
