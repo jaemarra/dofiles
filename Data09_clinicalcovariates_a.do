@@ -274,13 +274,6 @@ format prx_covdate_i %td
 gen prx_cov_i_b = 1 if !missing(prx_covdate_i)
 //pull out covariate value of interest
 bysort patid covtype : gen prx_covvalue_i = nr_data if prx_covdate_i==eltestdate2
-//pull out cci date and value of interest
-bysort patid: egen prx_ccidate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
-format prx_ccidate_i %td
-bysort patid: gen prx_ccivalue_i = cci_g if prx_ccidate_i==eltestdate2
-bysort patid prx_ccivalue_i: gen dupa = cond(_N==1,0,_n)
-replace prx_ccivalue_i=. if dupa > 1
-drop dupa
 
 //create counts
 tempvar cov_num_un_i_temp
@@ -336,13 +329,6 @@ format prx_covdate_c %td
 gen prx_cov_c_b = 1 if !missing(prx_covdate_c)
 //pull out covariate value of interest
 bysort patid covtype: gen prx_covvalue_c = nr_data if prx_covdate_c==eltestdate2
-//pull out cci date and value of interest
-bysort patid: egen prx_ccidate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
-format prx_ccidate_c %td
-bysort patid: gen prx_ccivalue_c = cci_g if prx_ccidate_c==eltestdate2
-bysort patid prx_ccivalue_c: gen dupa = cond(_N==1,0,_n)
-replace prx_ccivalue_c=. if dupa>1
-drop dupa
 
 //create counts
 tempvar cov_num_un_c_temp
@@ -400,14 +386,6 @@ gen prx_cov_s_b = 1 if !missing(prx_covdate_s)
 //pull out covariate value of interest
 bysort patid covtype : gen prx_covvalue_s = nr_data if prx_covdate_s==eltestdate2
 
-//pull out cci date and value of interest
-bysort patid: egen prx_ccidate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-format prx_ccidate_s %td
-bysort patid: gen prx_ccivalue_s = cci_g if prx_ccidate_s==eltestdate2
-bysort patid prx_ccivalue_s: gen dupa = cond(_N==1,0,_n)
-replace prx_ccivalue_s=. if dupa>1
-drop dupa
-
 //create counts
 tempvar cov_num_un_s_temp
 sort patid covtype eltestdate2
@@ -458,10 +436,13 @@ clear
 
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
+keep patid readcode eltestdate2 indexdate eventdate2
 drop if eventdate2>=indexdate-365 & eventdate2<indexdate
+
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
+
 charlsonreadadd readcode, icd(00) idvar(patid) assign0
 gen cci_g = 0
 replace cci_g = 1 if charlindex == 1
@@ -473,8 +454,22 @@ drop ynch* weightch* wcharlsum charlindex smchindx
 generate cci_g_b = 1 if cci_g >=1
 label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 keep patid cci_g cci_g_b
-label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-keep patid cci_g cci_g_b
+
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
+format prx_ccidate_i %td
+bysort patid: gen prx_ccivalue_i = cci_g if prx_ccidate_i==eltestdate2
+bysort patid prx_ccivalue_i: gen dupa = cond(_N==1,0,_n)
+replace prx_ccivalue_i=. if dupa > 1
+drop dupa
+gen prx_cci_i_b=0
+replace prx_cci_i_b=1 if cci_g_b==1
+keep patid prx_ccivalue_i prx_cci_i_b
+
+//One observation per patid
+collapse (max) prx_ccivalue_i prx_cci_i_b, by(patid)
+
+//Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
 save Clinical_cci_i, replace
 }
@@ -488,8 +483,9 @@ clear
 //COHORTENTRYDATE
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
-keep patid cci_g cci_g_b cohortentrydate eventdate2
+keep patid readcode eltestdate2 cohortentrydate eventdate2
 drop if eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
+
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
@@ -506,8 +502,22 @@ label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 keep patid cci_g cci_g_b
 label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 keep patid cci_g cci_g_b
-label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-keep patid cci_g cci_g_b
+
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
+format prx_ccidate_c %td
+bysort patid: gen prx_ccivalue_c = cci_g if prx_ccidate_c==eltestdate2
+bysort patid prx_ccivalue_c: gen dupa = cond(_N==1,0,_n)
+replace prx_ccivalue_c=. if dupa>1
+drop dupa
+gen prx_cci_c_b=0
+replace prx_cci_c_b=1 if cci_c_b==1
+keep patid prx_ccivalue_c prx_cci_c_b
+
+//One observation per patid
+collapse (max) prx_ccivalue_c prx_cci_c_b, by(patid)
+
+//Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
 save Clinical_cci_c, replace
 }
@@ -521,7 +531,7 @@ clear
 //STUDENTRYDATE_CPRD2
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
-keep patid cci_g cci_g_b studyentrydate_cprd2 eventdate2
+keep patid readcode eltestdate2 studyentrydate_cprd2 eventdate2
 drop if eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
@@ -539,16 +549,32 @@ label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 keep patid cci_g cci_g_b
 label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 keep patid cci_g cci_g_b
+
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+format prx_ccidate_s %td
+bysort patid: gen prx_ccivalue_s = cci_g if prx_ccidate_s==eltestdate2
+bysort patid prx_ccivalue_s: gen dupa = cond(_N==1,0,_n)
+replace prx_ccivalue_s=. if dupa>1
+drop dupa
+gen prx_cci_s_b=0
+replace prx_cci_s_b=1 if cci_s_b==1
+keep patid prx_ccivalue_c prx_cci_c_b
+
+//One observation per patid
+collapse (max) prx_ccivalue_c prx_cci_c_b, by(patid)
+
+//Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
 save Clinical_cci_s, replace
 }
 else {
-append using Clinical_cci_s
-save Clinical_cci_s, replace
+append using Clinical_cci_c
+save Clinical_cci_c, replace
 }
 clear
 }
-////////////////////////////////////CREATE CLINICAL COVARIATE WEIGH FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////
+////////////////////////////////////CREATE CLINICAL COVARIATE WEIGHT FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////
 
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
