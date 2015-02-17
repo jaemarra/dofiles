@@ -110,20 +110,6 @@ label variable pervascdis_h "Peripheral Vascular Disease (hes) 1=event 0=no even
 //gen covtype
 replace covtype=14 if pervascdis_h ==1
 
-// Charlson Comorbidity Index
-// Source: Khan et al 2010
-//HES ICD10
-charlsonreadadd icd icd_primary, icd(10) idvar(patid) assign0
-gen cci_h = 0
-replace cci_h = 1 if charlindex
-replace cci_h = 2 if charlindex
-replace cci_h = 3 if charlindex
-replace cci_h = 4 if charlindex >= 4 & charlindex <.
-label variable cci_h "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
-drop ynch* weightch* wcharlsum charlindex smchindx
-gen cci_h_b = 1 if cci_h >=1 & cci_h <.
-label var cci_h_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
-
 foreach num of numlist 6/14 {
 replace nr_data=1 if covtype==`num'
 }
@@ -250,13 +236,6 @@ format prx_covdate_s %td
 gen prx_cov_s_b = 1 if !missing(prx_covdate_s)
 //pull out covariate value of interest
 bysort patid covtype : gen prx_covvalue_s = nr_data if prx_covdate_s==eltestdate2
-//pull out cci date and value of interest
-bysort patid: egen prx_ccidate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-format prx_ccidate_s %td
-bysort patid: gen prx_ccivalue_s = cci_h if prx_ccidate_s==eltestdate2
-tempvar dupck dupck2
-quietly bysort patid prx_ccivalue_s: gen `dupck' = cond(_N==1,0,_n)
-replace prx_ccivalue_s=. if `dupck'>1
 
 //create counts
 sort patid covtype eltestdate2
@@ -295,14 +274,44 @@ clear
 ////////////////////////////////////CREATE CHARLSON WINDOWS/////////////////////////////
 //INDEXDATE
 use hes_cov, clear
-keep patid cci_h cci_h_b eventdate2 indexdate
+keep patid icd icd_primary eventdate2 indexdate
 drop if eventdate2>=indexdate-365 & eventdate2<indexdate
+// Charlson Comorbidity Index
+// Source: Khan et al 2010
+//HES ICD10
+charlsonreadadd icd icd_primary, icd(10) idvar(patid) assign0
+gen cci_h = 0
+replace cci_h = 1 if charlindex
+replace cci_h = 2 if charlindex
+replace cci_h = 3 if charlindex
+replace cci_h = 4 if charlindex >= 4 & charlindex <.
+label variable cci_h "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
+drop ynch* weightch* wcharlsum charlindex smchindx
+gen cci_h_b = 1 if cci_h >=1 & cci_h <.
+label var cci_h_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
+
+//Generate the maximum and check for duplicates
 bysort patid: egen cci = max(cci_h)
 drop cci_h eventdate2 indexdate
 rename cci cci_h
 bysort patid: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
-keep patid cci_h cci_h_b
+
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_h_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
+format prx_ccidate_h_i %td
+bysort patid: gen prx_ccivalue_h_i = cci_h if prx_ccidate_h_i==eltestdate2
+tempvar dupck dupck2
+quietly bysort patid prx_ccivalue_h_i: gen `dupck' = cond(_N==1,0,_n)
+replace prx_ccivalue_h_i=. if `dupck'>1
+
+//generate binary indicator
+gen prx_cci_h_i_b=0
+replace prx_cci_h_i_b=1 if cci_h_b==1
+keep patid prx_ccivalue_h_i prx_cci_h_i_b
+
+//One observation per patid
+collapse (max) prx_ccivalue_h_i prx_cci_h_i_b, by(patid)
 save hes_cci_i, replace
 clear
 
@@ -310,12 +319,43 @@ clear
 use hes_cov, clear
 keep patid cci_h cci_h_b eventdate2 cohortentrydate
 drop if eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
+
+// Charlson Comorbidity Index
+// Source: Khan et al 2010
+//HES ICD10
+charlsonreadadd icd icd_primary, icd(10) idvar(patid) assign0
+gen cci_h = 0
+replace cci_h = 1 if charlindex
+replace cci_h = 2 if charlindex
+replace cci_h = 3 if charlindex
+replace cci_h = 4 if charlindex >= 4 & charlindex <.
+label variable cci_h "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
+drop ynch* weightch* wcharlsum charlindex smchindx
+gen cci_h_b = 1 if cci_h >=1 & cci_h <.
+label var cci_h_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
+
+//Generate the maximum and check for duplicates
 bysort patid: egen cci = max(cci_h)
 drop cci_h eventdate2 cohortentrydate
 rename cci cci_h
 bysort patid: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
-keep patid cci_h cci_h_b
+
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_h_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & cohortentrydate<indexdate
+format prx_ccidate_h_c %td
+bysort patid: gen prx_ccivalue_h_c = cci_h if prx_ccidate_h_c==eltestdate2
+tempvar dupck dupck2
+quietly bysort patid prx_ccivalue_h_c: gen `dupck' = cond(_N==1,0,_n)
+replace prx_ccivalue_h_c=. if `dupck'>1
+
+//generate binary indicator
+gen prx_cci_h_c_b=0
+replace prx_cci_h_c_b=1 if cci_h_b==1
+keep patid prx_ccivalue_h_c prx_cci_h_c_b
+
+//One observation per patid
+collapse (max) prx_ccivalue_h_c prx_cci_h_c_b, by(patid)
 save hes_cci_c, replace
 clear
 
@@ -323,12 +363,43 @@ clear
 use hes_cov, clear
 keep patid cci_h cci_h_b eventdate2 studyentrydate_cprd2
 drop if eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
+
+// Charlson Comorbidity Index
+// Source: Khan et al 2010
+//HES ICD10
+charlsonreadadd icd icd_primary, icd(10) idvar(patid) assign0
+gen cci_h = 0
+replace cci_h = 1 if charlindex
+replace cci_h = 2 if charlindex
+replace cci_h = 3 if charlindex
+replace cci_h = 4 if charlindex >= 4 & charlindex <.
+label variable cci_h "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
+drop ynch* weightch* wcharlsum charlindex smchindx
+gen cci_h_b = 1 if cci_h >=1 & cci_h <.
+label var cci_h_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
+
+//Generate the maximum and check for duplicates
 bysort patid: egen cci = max(cci_h)
 drop cci_h eventdate2 studyentrydate_cprd2
 rename cci cci_h
 bysort patid: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
-keep patid cci_h cci_h_b
+
+//pull out cci date and value of interest
+bysort patid: egen prx_ccidate_h_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & studyentrydate_cprd2<indexdate
+format prx_ccidate_h_s %td
+bysort patid: gen prx_ccivalue_h_s = cci_h if prx_ccidate_h_s==eltestdate2
+tempvar dupck dupck2
+quietly bysort patid prx_ccivalue_h_s: gen `dupck' = cond(_N==1,0,_n)
+replace prx_ccivalue_h_s=. if `dupck'>1
+
+//generate binary indicator
+gen prx_cci_h_s_b=0
+replace prx_cci_s_c_b=1 if cci_h_b==1
+keep patid prx_ccivalue_h_s prx_cci_h_s_b
+
+//One observation per patid
+collapse (max) prx_ccivalue_h_s prx_cci_h_s_b, by(patid)
 save hes_cci_s, replace
 clear
 
