@@ -482,9 +482,8 @@ else {
 append using Clinical_cci_i
 save Clinical_cci_i, replace
 }
-erase Clinical_cci_i.dta
-}
 clear
+}
 
 //COHORTENTRYDATE
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
@@ -516,9 +515,8 @@ else {
 append using Clinical_cci_c
 save Clinical_cci_c, replace
 }
-erase Clinical_cci_c.dta
-}
 clear
+}
 
 //STUDENTRYDATE_CPRD2
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
@@ -548,9 +546,8 @@ else {
 append using Clinical_cci_s
 save Clinical_cci_s, replace
 }
-erase Clinical_cci_s.ta
-}
 clear
+}
 ////////////////////////////////////CREATE CLINICAL COVARIATE WEIGH FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////
 
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
