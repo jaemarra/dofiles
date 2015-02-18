@@ -86,7 +86,7 @@ replace weight_b = 1 if `nr_weight'<.
 label variable weight_b "Weight (binary)"
 //assign covtype
 replace covtype = 2 if `nr_weight' <.
-replace nr_data = `nr_mean_weight' if covtype==2
+replace nr_data = `nr_weight' if covtype==2
 
 //SYSTOLIC BLOOD PRESSURE
 //gen continuous, restrict to reasonable values, eliminiate redundancy
@@ -111,7 +111,7 @@ replace sys_bp_b = 1 if nr_sys_bp <.
 label variable sys_bp_b "Systolic BP (binary)"
 //assign covtype
 replace covtype = 3 if nr_sys_bp <.
-replace nr_data = nr_mean_sys_bp if covtype==3
+replace nr_data = nr_sys_bp if covtype==3
 
 //SMOKING STATUS [Never, Former, Current, Unknown--data not entered or missing]
 //gen categorical, restrict to reasonable values, eliminiate redundancy
@@ -260,7 +260,7 @@ bysort patid covtype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
 tempfile `file'_cov
-save ``file'_cov'
+save ``file'_cov', replace
 }
 clear
 
@@ -284,31 +284,29 @@ by patid: egen cov_num_un = count(covtype) if cov_num==1
 by patid: egen `cov_num_un_i_temp' = count(covtype) if cov_num==1 & eltestdate2>=indexdate-365 & eltestdate2<indexdate
 by patid: egen cov_num_un_i = min(`cov_num_un_i_temp')
 label var cov_num_un_i "Identifies most recent entry for each covtype in the index window"
-//Create a new variable that numbers covtypes 1-15
-tostring covtype, generate(covariatetype)
-encode covariatetype, generate(clincov)
-label drop clincov
 
 //only keep the observations relevant to the current window
 drop if prx_covvalue_i >=.
 
 //Check for duplicates again- no duplicates found then continue
-bysort patid clincov: gen dupa = cond(_N==1,0,_n)
+bysort patid covtype: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
 
 //Rectangularize data
-fillin patid clincov
+fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
 bysort patid: egen totcovs = total(cov_num_un_i)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs clincov prx_covvalue_i prx_cov_i_b
+keep patid totcovs covtype prx_covvalue_i prx_cov_i_b
 
 //Reshape
-reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(clincov)
-
+reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(covtype)
+foreach i of 4/14	{
+replace prx_covvalue_`i' = 0 if prx_covvalue`i'==.
+}
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
 save Clinical_Covariates_i, replace
@@ -340,11 +338,6 @@ by patid: egen `cov_num_un_c_temp' = count(covtype) if cov_num==1 & eltestdate2>
 by patid: egen cov_num_un_c = min(`cov_num_un_c_temp')
 label var cov_num_un_c "Identifies most recent entry for each covtype in the cohort entry window"
 
-//Create a new variable that numbers covtypes 1-15
-tostring covtype, generate(covariatetype)
-encode covariatetype, generate(clincov)
-label drop clincov
-
 //only keep the observations relevant to the current window
 drop if prx_covvalue_c >=.
 
@@ -354,16 +347,19 @@ drop if dupa>1
 drop dupa
 
 //Rectangularize data
-fillin patid clincov
+fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
 capture bysort patid: egen totcovs = total(cov_num_un_c)
 
 //Drop all fields that aren't wanted in the final dta file
-capture keep patid totcovs clincov prx_covvalue_c prx_cov_c_b
+capture keep patid totcovs covtype prx_covvalue_c prx_cov_c_b
 
 //Reshape
-reshape wide prx_covvalue_c prx_cov_c_b totcovs, i(patid) j(clincov)
+reshape wide prx_covvalue_c prx_cov_c_b totcovs, i(patid) j(covtype)
+foreach i of 4/14	{
+replace prx_covvalue_`i' = 0 if prx_covvalue`i'==.
+}
 
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
@@ -395,30 +391,29 @@ by patid: egen cov_num_un = count(covtype) if cov_num==1
 by patid: egen `cov_num_un_s_temp' = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
 by patid: egen cov_num_un_s = min(`cov_num_un_s_temp')
 label var cov_num_un_s "Identifies most recent entry for each covtype in the study entry window"
-//Create a new variable that numbers covtypes 1-15
-tostring covtype, generate(covariatetype)
-encode covariatetype, generate(clincov)
-label drop clincov
 
 //only keep the observations relevant to the current window
 drop if prx_covvalue_s >=.
 
 //Check for duplicates again- no duplicates found then continue
-bysort patid clincov: gen dupa = cond(_N==1,0,_n)
+bysort patid covtype: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
 
 //Rectangularize data
-fillin patid clincov
+fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
 bysort patid: egen totcovs = total(cov_num_un_s)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs clincov prx_covvalue_s prx_cov_s_b
+keep patid totcovs covtype prx_covvalue_s prx_cov_s_b
 
 //Reshape
-reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(clincov)
+reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(covtype)
+foreach i of 4/14	{
+replace prx_covvalue_`i' = 0 if prx_covvalue`i'==.
+}
 
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
@@ -436,7 +431,7 @@ clear
 
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
-keep patid readcode eltestdate2 indexdate eventdate2
+keep patid readcode indexdate eventdate2
 drop if eventdate2>=indexdate-365 & eventdate2<indexdate
 
 // Charlson Comorbidity Index
@@ -445,29 +440,18 @@ drop if eventdate2>=indexdate-365 & eventdate2<indexdate
 
 charlsonreadadd readcode, icd(00) idvar(patid) assign0
 gen cci_g = 0
-replace cci_g = 1 if charlindex == 1
-replace cci_g = 2 if charlindex == 2
-replace cci_g = 3 if charlindex == 3
-replace cci_g = 4 if charlindex >= 4 & charlindex <.
-label variable cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-drop ynch* weightch* wcharlsum charlindex smchindx
-generate cci_g_b = 1 if cci_g >=1
-label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-keep patid cci_g cci_g_b
-
-//pull out cci date and value of interest
-bysort patid: egen prx_ccidate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
-format prx_ccidate_i %td
-bysort patid: gen prx_ccivalue_i = cci_g if prx_ccidate_i==eltestdate2
-bysort patid prx_ccivalue_i: gen dupa = cond(_N==1,0,_n)
-replace prx_ccivalue_i=. if dupa > 1
-drop dupa
-gen prx_cci_i_b=0
-replace prx_cci_i_b=1 if cci_g_b==1
-keep patid prx_ccivalue_i prx_cci_i_b
-
-//One observation per patid
-collapse (max) prx_ccivalue_i prx_cci_i_b, by(patid)
+replace cci_g = 1 if wcharlsum == 1
+replace cci_g = 2 if wcharlsum == 2
+replace cci_g = 3 if wcharlsum == 3
+replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
+capture drop ynch* weightch* charlindex smchindx
+generate cci_g_b = 0
+replace cci_g_b=1 if cci_g >=1
+rename cci_g_b prx_cci_i_b
+rename cci_g prx_ccivalue_i
+label variable prx_ccivalue_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid prx_ccivalue_i prx_cci_i_b wcharlsum
 
 //Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
@@ -483,39 +467,27 @@ clear
 //COHORTENTRYDATE
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
-keep patid readcode eltestdate2 cohortentrydate eventdate2
+keep patid readcode cohortentrydate eventdate2
 drop if eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
 
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
+
 charlsonreadadd readcode, icd(00) idvar(patid) assign0
 gen cci_g = 0
-replace cci_g = 1 if charlindex == 1
-replace cci_g = 2 if charlindex == 2
-replace cci_g = 3 if charlindex == 3
-replace cci_g = 4 if charlindex >= 4 & charlindex <.
-label variable cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-drop ynch* weightch* wcharlsum charlindex smchindx
-generate cci_g_b = 1 if cci_g >=1
-label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-keep patid cci_g cci_g_b
-label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-keep patid cci_g cci_g_b
-
-//pull out cci date and value of interest
-bysort patid: egen prx_ccidate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
-format prx_ccidate_c %td
-bysort patid: gen prx_ccivalue_c = cci_g if prx_ccidate_c==eltestdate2
-bysort patid prx_ccivalue_c: gen dupa = cond(_N==1,0,_n)
-replace prx_ccivalue_c=. if dupa>1
-drop dupa
-gen prx_cci_c_b=0
-replace prx_cci_c_b=1 if cci_c_b==1
-keep patid prx_ccivalue_c prx_cci_c_b
-
-//One observation per patid
-collapse (max) prx_ccivalue_c prx_cci_c_b, by(patid)
+replace cci_g = 1 if wcharlsum == 1
+replace cci_g = 2 if wcharlsum == 2
+replace cci_g = 3 if wcharlsum == 3
+replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
+capture drop ynch* weightch* charlindex smchindx
+generate cci_g_b = 0
+replace cci_g_b=1 if cci_g >=1
+rename cci_g_b prx_cci_i_b
+rename cci_g prx_ccivalue_i
+label variable prx_ccivalue_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid prx_ccivalue_i prx_cci_i_b wcharlsum
 
 //Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
@@ -533,36 +505,25 @@ foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinica
 use `file', clear
 keep patid readcode eltestdate2 studyentrydate_cprd2 eventdate2
 drop if eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
+
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
+
 charlsonreadadd readcode, icd(00) idvar(patid) assign0
 gen cci_g = 0
-replace cci_g = 1 if charlindex == 1
-replace cci_g = 2 if charlindex == 2
-replace cci_g = 3 if charlindex == 3
-replace cci_g = 4 if charlindex >= 4 & charlindex <.
-label variable cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-drop ynch* weightch* wcharlsum charlindex smchindx
-generate cci_g_b = 1 if cci_g >=1
-label var cci_g_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-keep patid cci_g cci_g_b
-label var cci_g "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-keep patid cci_g cci_g_b
-
-//pull out cci date and value of interest
-bysort patid: egen prx_ccidate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-format prx_ccidate_s %td
-bysort patid: gen prx_ccivalue_s = cci_g if prx_ccidate_s==eltestdate2
-bysort patid prx_ccivalue_s: gen dupa = cond(_N==1,0,_n)
-replace prx_ccivalue_s=. if dupa>1
-drop dupa
-gen prx_cci_s_b=0
-replace prx_cci_s_b=1 if cci_s_b==1
-keep patid prx_ccivalue_c prx_cci_c_b
-
-//One observation per patid
-collapse (max) prx_ccivalue_c prx_cci_c_b, by(patid)
+replace cci_g = 1 if wcharlsum == 1
+replace cci_g = 2 if wcharlsum == 2
+replace cci_g = 3 if wcharlsum == 3
+replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
+capture drop ynch* weightch* charlindex smchindx
+generate cci_g_b = 0
+replace cci_g_b=1 if cci_g >=1
+rename cci_g_b prx_cci_i_b
+rename cci_g prx_ccivalue_i
+label variable prx_ccivalue_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid prx_ccivalue_i prx_cci_i_b wcharlsum
 
 //Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
