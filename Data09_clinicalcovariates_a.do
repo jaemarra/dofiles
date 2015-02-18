@@ -447,11 +447,11 @@ replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 capture drop ynch* weightch* charlindex smchindx
 generate cci_g_b = 0
 replace cci_g_b=1 if cci_g >=1
-rename cci_g_b prx_cci_i_b
-rename cci_g prx_ccivalue_i
-label variable prx_ccivalue_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-label var prx_cci_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-keep patid prx_ccivalue_i prx_cci_i_b wcharlsum
+rename cci_g_b prx_cci_g_i_b
+rename cci_g prx_ccivalue_g_i
+label variable prx_ccivalue_g_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_g_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid prx_ccivalue_g_i prx_cci_g_i_b wcharlsum
 
 //Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
@@ -483,11 +483,11 @@ replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 capture drop ynch* weightch* charlindex smchindx
 generate cci_g_b = 0
 replace cci_g_b=1 if cci_g >=1
-rename cci_g_b prx_cci_i_b
-rename cci_g prx_ccivalue_i
-label variable prx_ccivalue_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-label var prx_cci_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-keep patid prx_ccivalue_i prx_cci_i_b wcharlsum
+rename cci_g_b prx_cci_g_c_b
+rename cci_g prx_ccivalue_g_c
+label variable prx_ccivalue_g_c "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_g_c_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid prx_ccivalue_g_c prx_cci_g_c_b wcharlsum
 
 //Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
@@ -519,11 +519,11 @@ replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 capture drop ynch* weightch* charlindex smchindx
 generate cci_g_b = 0
 replace cci_g_b=1 if cci_g >=1
-rename cci_g_b prx_cci_i_b
-rename cci_g prx_ccivalue_i
-label variable prx_ccivalue_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-label var prx_cci_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-keep patid prx_ccivalue_i prx_cci_i_b wcharlsum
+rename cci_g_b prx_cci_g_s_b
+rename cci_g prx_ccivalue_g_s
+label variable prx_ccivalue_g_s "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_g_s_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
+keep patid prx_ccivalue_g_s prx_cci_g_s_b wcharlsum
 
 //Save as one appended file to merge back in with other clinical covariates in Data09_c
 if "`file'"=="Clinical001_2b_cov" {
