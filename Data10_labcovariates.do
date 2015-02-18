@@ -473,20 +473,12 @@ by patid: egen lab_num_un_i_temp = count(enttype) if lab_num==1 & eltestdate2>=i
 by patid: egen lab_num_un_i = min(lab_num_un_i_temp)
 drop lab_num_un_i_temp
 
-//Create a new variable that numbers enttypes 1-12
-tostring enttype, generate(labtype)
-encode labtype, generate(labtest)
-label drop labtest
-
-//only keep the observations relevant to the current window
-drop if prx_testvalue_i >=.
-
 //Check for duplicates again- no duplicates found then continue
-bysort patid labtest: gen dupck = cond(_N==1,0,_n)
+bysort patid enttype: gen dupck = cond(_N==1,0,_n)
 drop if dupck>1
 
 //Rectangularize data
-fillin patid labtest
+fillin patid enttype
 
 //Fillin the total number of labs in the window of interest
 bysort patid: egen totlabs = total(lab_num)
@@ -495,7 +487,7 @@ bysort patid: egen totlabs = total(lab_num)
 keep patid totlabs labtest prx_testvalue_i prx_test_i_b
 
 //Reshape
-reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(labtest)
+reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(enttype)
 label var prx_testvalue_i "Value of most proximal, eligible lab test"
 label var prx_test_i_b "Lab test binary; 1=test, 0=no test"
 
@@ -521,29 +513,24 @@ by patid: egen lab_num_un_c_temp = count(enttype) if lab_num==1 & eltestdate2>=c
 by patid: egen lab_num_un_c = min(lab_num_un_c_temp)
 drop lab_num_un_c_temp
 
-//Create a new variable that numbers enttypes 1-12
-tostring enttype, generate(labtype)
-encode labtype, generate(labtest)
-label drop labtest
-
 //only keep the observations relevant to the current window
 drop if prx_testvalue_c >=.
 
 //Check for duplicates again- no duplicates found then continue
-bysort patid labtest: gen dupck = cond(_N==1,0,_n)
+bysort patid enttype: gen dupck = cond(_N==1,0,_n)
 drop if dupck>1
 
 //Rectangularize data
-fillin patid labtest
+fillin patid enttype
 
 //Fillin the total number of labs in the window of interest
 bysort patid: egen totlabs = total(lab_num)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totlabs labtest prx_testvalue_c prx_test_c_b
+keep patid totlabs enttype prx_testvalue_c prx_test_c_b
 
 //Reshape
-reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(labtest)
+reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(enttype)
 label var prx_testvalue_c "Value of most proximal, eligible lab test"
 label var prx_test_c_b "Lab test binary; 1=test, 0=no test"
 
@@ -569,29 +556,24 @@ by patid: egen lab_num_un_s_temp = count(enttype) if lab_num==1 & eltestdate2>=s
 by patid: egen lab_num_un_s = min(lab_num_un_s_temp)
 drop lab_num_un_s_temp
 
-//Create a new variable that numbers enttypes 1-12
-tostring enttype, generate(labtype)
-encode labtype, generate(labtest)
-label drop labtest
-
 //only keep the observations relevant to the current window
 drop if prx_testvalue_s >=.
 
 //Check for duplicates again- no duplicates found then continue
-bysort patid labtest: gen dupck = cond(_N==1,0,_n)
+bysort patid enttype: gen dupck = cond(_N==1,0,_n)
 drop if dupck>1
 
 //Rectangularize data
-fillin patid labtest
+fillin patid enttype
 
 //Fillin the total number of labs in the window of interest
 bysort patid: egen totlabs = total(lab_num)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totlabs labtest prx_testvalue_s prx_test_s_b
+keep patid totlabs enttype prx_testvalue_s prx_test_s_b
 
 //Reshape
-reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(labtest)
+reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(enttype)
 label var prx_testvalue_s "Value of most proximal, eligible lab test"
 label var prx_test_s_b "Lab test binary; 1= eligible test, 0=no eligible test"
 
