@@ -494,8 +494,8 @@ keep patid enttype totlabs prx_testvalue_i prx_test_i_b
 
 //Reshape
 reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(enttype)
-label var prx_testvalue_i "Value of most proximal, eligible lab test"
-label var prx_test_i_b "Lab test binary; 1=test, 0=no test"
+//label var prx_testvalue_i "Value of most proximal, eligible lab test"
+//label var prx_test_i_b "Lab test binary; 1=test, 0=no test"
 
 //Save
 save LabCovariates_i.dta, replace
@@ -537,8 +537,8 @@ keep patid totlabs enttype prx_testvalue_c prx_test_c_b
 
 //Reshape
 reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(enttype)
-label var prx_testvalue_c "Value of most proximal, eligible lab test"
-label var prx_test_c_b "Lab test binary; 1=test, 0=no test"
+//label var prx_testvalue_c "Value of most proximal, eligible lab test"
+//label var prx_test_c_b "Lab test binary; 1=test, 0=no test"
 
 //Save
 save LabCovariates_c, replace
@@ -580,8 +580,8 @@ keep patid totlabs enttype prx_testvalue_s prx_test_s_b
 
 //Reshape
 reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(enttype)
-label var prx_testvalue_s "Value of most proximal, eligible lab test"
-label var prx_test_s_b "Lab test binary; 1= eligible test, 0=no eligible test"
+//label var prx_testvalue_s "Value of most proximal, eligible lab test"
+//label var prx_test_s_b "Lab test binary; 1= eligible test, 0=no eligible test"
 
 save LabCovariates_s, replace
 clear
