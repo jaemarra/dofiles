@@ -25,14 +25,18 @@ merge m:1 patid using ClinicalCovariates_wt, keep(match using) nogen
 
 keep if inlist(enttype, 275,163,175,177,202,165,166,152,155,156,158,173)   // need to add other enttype's if adding other labs
 save Test, replace
-***//CHECK DATA2 FOR REASONABLE VALUE RANGE, DISTRIBUTION, AND UNITS//***
+
+/****CHECK DATA2 FOR REASONABLE VALUE RANGE, DISTRIBUTION, AND UNITS***
 //check for units used in each labtest & distribution
+
 foreach i of num 275,163,175,177,202,165,166,152,155,156,158,173 {
 tabulate data3 if enttype==`i'
 summarize data2 if enttype==`i'
 histogram data2 if enttype==`i', saving(gr`i', replace)
 }
-***//CREATE CONTINUOUS VARS FOR EACH TEST'S DATA2 WITH ONE UNIT OF MEASUREMENT//***
+*/
+
+***CREATE CONTINUOUS VARS FOR EACH TEST'S DATA2 WITH ONE UNIT OF MEASUREMENT***
 //HbA1c
 gen hba1c = .
 //populate with observations reported in percent glycated
@@ -203,7 +207,7 @@ replace hemoglobin = (data2/0.6206) if enttype==173 & data3==96 //(N=981)
 //normal range is 12-15.5 g/dL (women) 13.5-18.5 g/dL (men); 
 label variable hemoglobin "Hemoglobin (g/dL)"
 
-***//RESTRICT CONTINUOUS VARS TO ACCEPTABLE RANGE OF VALS & GEN NONREDUNDANT CONTINUOUS VARS//***
+***RESTRICT CONTINUOUS VARS TO ACCEPTABLE RANGE OF VALS & GEN NONREDUNDANT CONTINUOUS VARS***
 //.a "too low" and .b "too high" and .c "missing units" and recombine all non-redundant labs into one variable nr_data2
 gen testdate2= .
 label var testdate2 "Eventdate2"
@@ -297,7 +301,7 @@ replace hemoglobin =.c if enttype==173 & data3==0 //(N=21184)
 by patid enttype testdate2: egen nr_hemoglobin=mean(hemoglobin) if hemoglobin<.
 replace nr_data2 = nr_hemoglobin if enttype==173
 
-***//ESTIMATE GLOMERULAR FILTRATION RATE//***
+***ESTIMATE GLOMERULAR FILTRATION RATE***
 //ref for CG and MDRD formulas: http://cjhp-online.ca/index.php/cjhp/article/viewFile/31/30
 //Cockcroft-Galt continuous variable in SI units (umol/L, years, kg)
 gen testyr = year(testdate2)
@@ -336,7 +340,7 @@ replace egfr_ce = (144*((nr_scr/88.4/0.7)^-0.329)*(0.993^testage)) if nr_scr<=62
 replace egfr_ce = (144*((nr_scr/88.4/0.7)^-1.209)*(0.993^testage)) if nr_scr>62 & sex==1
 label var egfr_ce "Estimated glomerular filtration rate- CKD-EPI method"
 
-***//CREATE CATEGORICAL VARIABLES//***
+***CREATE CATEGORICAL VARIABLES***
 //CKD (GFR ³90; 89.9-60; 59.9-30; 29.9-15; <15 or dialysis)
 // generate the categorical variable for the Cockcroft-Galt eGFR
 gen ckd_cg= .
@@ -384,13 +388,13 @@ replace ckd_ce=5 if egfr_ce < 15 //do we have a marker for dialysis???
 label define ckd_ce_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
 label values ckd_ce ckd_ce_labels
 
-***//CHECK NEW CONTINUOUS AND CATEGORICAL VARS FOR DISTRIBUTION
+***CHECK NEW CONTINUOUS AND CATEGORICAL VARS FOR DISTRIBUTION
 /*foreach var of varlist egfr_cg egfr_ mcg egfr_amdrd egfr_ce ckd_cg ckd_mcg ckd_amdrd ckd_ce nr*{
 summ `var', detail
 histogram `var', saving(gr`var', replace)
 }*/
 
-***//GENERATE BINARIES//***
+***GENERATE BINARIES***
 //hba1c
 gen hba1c_b = 0
 replace hba1c_b = 1 if nr_hba1c < .
@@ -444,7 +448,7 @@ label variable hemoglobin_b "Hemoglobin (binary)"
 gen eltestdate2 = . 
 replace eltestdate2 = testdate2 if nr_data2<. & testdate2 <.
 format eltestdate2 %td
-label var eltstdate2 "Eventdate2 restricted to dates with eligible, non-redundant data"
+label var eltestdate2 "Eventdate2 restricted to dates with eligible, non-redundant data"
 
 //Drop all duplicates in nr_data2
 quietly bysort patid enttype eltestdate2: gen dupa = cond(_N==1,0,_n)

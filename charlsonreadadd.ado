@@ -232,10 +232,7 @@ else if "`icd'"=="9enh" {
      quietly replace ch10=1 if inlist(substr(`cmb',1,4),"2500", "2501", "2502", "2503", "2508", "2509")
 	}
 else if "`icd'"=="10" {
-quietly replace ch10=1 if inlist(substr(`cmb',1,4),"E100", "E101", "E106", "E108", "E109") | /*
-*/ inlist(substr(`cmb',1,4),"E110", "E111", "E116", "E118", "E119", "E120", "E121", "E126", "E128") | /*
-*/ inlist(substr(`cmb',1,4),"E129","E130", "E131", "E136", "E138", "E139", "E140", "E141") | /*
-*/ inlist(substr(`cmb',1,4),"E146", "E148", "E149")
+quietly replace ch10=1 
 	}
 else if "`icd'"=="00" {
 	quietly replace ch10=1 

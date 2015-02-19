@@ -146,9 +146,8 @@ by patid: egen cov_num_un_i = min(`cov_num_un_i_temp')
 //only keep the observations relevant to the current window
 drop if prx_covvalue_i >=.
 
-//Check for duplicates again- no duplicates found then continue
-quietly bysort patid covtype: gen 'dupck2' = cond(_N==1,0,_n)
-drop if `dupck2'>1
+//duplicates report
+duplicates report patid covtype
 
 //Rectangularize data
 fillin patid covtype
@@ -184,9 +183,8 @@ by patid: egen cov_num_un_c = min(`cov_num_un_c_temp')
 //only keep the observations relevant to the current window
 drop if prx_covvalue_c >=.
 
-//Check for duplicates again- no duplicates found then continue
-quietly bysort patid covtype: gen `dupck2' = cond(_N==1,0,_n)
-drop if `dupck2'>1
+//duplicates report
+duplicates report patid covtype
 
 //Rectangularize data
 fillin patid covtype
@@ -216,15 +214,14 @@ bysort patid covtype : gen prx_covvalue_s = nr_data if prx_covdate_s==eltestdate
 sort patid covtype eltestdate2
 by patid covtype: generate cov_num = _n
 by patid: egen cov_num_un = count(covtype) if cov_num==1
-by patid: egen `cov_num_un_s_temp' = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-by patid: egen cov_num_un_s = min(`cov_num_un_s_temp')
+by patid: egen cov_num_un_s_temp = count(covtype) if cov_num==1 & eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+by patid: egen cov_num_un_s = min(cov_num_un_s_temp)
 
 //only keep the observations relevant to the current window
 drop if prx_covvalue_s >=.
 
-//Check for duplicates again- no duplicates found then continue
-quietly bysort patid covtype: gen `dupck2' = cond(_N==1,0,_n)
-drop if `dupck2'>1
+//duplicates report
+duplicates report patid covtype
 
 //Rectangularize data
 fillin patid covtype
@@ -262,7 +259,7 @@ rename cci_h_b prx_cci_h_i_b
 rename cci_h prx_ccivalue_h_i 
 label variable prx_ccivalue_h_i "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
 label var prx_cci_h_i_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
-bysort patid: egen cci = max(cci_h)
+bysort patid: egen cci = max(prx_ccivalue_h_i)
 keep patid prx_ccivalue_h_i prx_cci_h_i_b wcharlsum
 save hes_cci_i, replace
 clear
@@ -287,7 +284,7 @@ rename cci_h_b prx_cci_h_c_b
 rename cci_h prx_ccivalue_h_c 
 label variable prx_ccivalue_h_c "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
 label var prx_cci_h_c_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
-bysort patid: egen cci = max(cci_h)
+bysort patid: egen cci = max(prx_ccivalue_h_c)
 keep patid prx_ccivalue_h_c prx_cci_h_c_b wcharlsum
 save hes_cci_c, replace
 clear
@@ -312,7 +309,7 @@ rename cci_h_b prx_cci_h_s_b
 rename cci_h prx_ccivalue_h_s 
 label variable prx_ccivalue_h_s "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
 label var prx_cci_h_s_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
-bysort patid: egen cci = max(cci_h)
+bysort patid: egen cci = max(prx_ccivalue_h_s)
 keep patid prx_ccivalue_h_s prx_cci_h_s_b wcharlsum
 save hes_cci_s, replace
 clear

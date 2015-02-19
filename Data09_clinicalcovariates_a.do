@@ -304,8 +304,8 @@ keep patid totcovs covtype prx_covvalue_i prx_cov_i_b
 
 //Reshape
 reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(covtype)
-foreach i of 4/14	{
-replace prx_covvalue_`i' = 0 if prx_covvalue`i'==.
+forval i = 4/14	{
+replace prx_covvalue_i`i' = 0 if prx_covvalue_i`i'==.
 }
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
@@ -342,7 +342,7 @@ label var cov_num_un_c "Identifies most recent entry for each covtype in the coh
 drop if prx_covvalue_c >=.
 
 //Check for duplicates again- no duplicates found then continue
-bysort patid clincov: gen dupa = cond(_N==1,0,_n)
+bysort patid covtype: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
 
@@ -357,8 +357,8 @@ capture keep patid totcovs covtype prx_covvalue_c prx_cov_c_b
 
 //Reshape
 reshape wide prx_covvalue_c prx_cov_c_b totcovs, i(patid) j(covtype)
-foreach i of 4/14	{
-replace prx_covvalue_`i' = 0 if prx_covvalue`i'==.
+forval i = 4/14	{
+replace prx_covvalue_c`i' = 0 if prx_covvalue_c`i'==.
 }
 
 //Save and append
@@ -411,8 +411,8 @@ keep patid totcovs covtype prx_covvalue_s prx_cov_s_b
 
 //Reshape
 reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(covtype)
-foreach i of 4/14	{
-replace prx_covvalue_`i' = 0 if prx_covvalue`i'==.
+forval i = 4/14	{
+replace prx_covvalue_s`i' = 0 if prx_covvalue_s`i'==.
 }
 
 //Save and append
