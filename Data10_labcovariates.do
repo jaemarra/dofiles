@@ -488,7 +488,7 @@ fillin patid enttype
 bysort patid: egen totlabs = total(lab_num)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totlabs labtest prx_testvalue_i prx_test_i_b
+keep patid totlabs prx_testvalue_i prx_test_i_b
 
 //Reshape
 reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(enttype)
