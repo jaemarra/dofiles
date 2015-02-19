@@ -103,17 +103,23 @@ Merged files saved:		Therapy_0-99.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 pr
 								- prepare Therapy files and product.txt
 								- generate variables indicating drug exposures to antidiabetic drugs				
 								- encode categorical variable (rxtype)
-								- generate count and date variables including metformint0 and indext0
-								- generate switch/add, duration, gap dates, and stop dates										
-								- apply censor dates
+								- Collapse exact duplicate prescriptions
+								- generate OVERALL first antidiabetic prescription date
+								- pull out first ever antidiabetic exposure type(s)
+								- pull out second antidiabetic exposure type(s) and associated date
+								- generate and apply censor dates
+								- Pull out first, predicted, next, and last prescription dates WITHIN EACH CLASS
+								- Generate gap variables between predicted and observed prescription dates WITHIN EACH CLASS										
+								- Generate duration for EXPOSED intervals FOR EACH PRESCRIPTION
+								- Generate duration for UNEXPOSED intervals
 								- generate total exposure duration to each class of interest
 								- generate variables for number of unique drugs and medication adherence
-								- generate Dates.dta dataset with patid, studyentrydate_cprd2, cohortentrydate, and indexdate
+								- save Dates.dta dataset with patid, studyentrydate_cprd2, cohortentrydate, and indexdate
 */
 
 do Data03_drug_exposures_a
-/*	Files saved:	Therapy_0-49dm
-					drugexpa_0-49
+/*	Files saved:	Therapy_0-49dm.dta
+					adm_drug_exposures.dta
 					Drug_Exposures_a.dta
 					Dates.dta
 */
@@ -122,13 +128,7 @@ do Data03_drug_exposures_a
 								- generate variables indicating drug exposures to subclasses of antidiabetic drugs				
 								- generate variables for number of unique drugs and medication adherence
 */
-parallel setclusters 6
-parallel clean, all force
-parallel append, do(data03_drug_exposures_b_p) e("Therapy_%01.0f.dta, 0/9")
-parallel append, do(data03_drug_exposures_b_p) e("Therapy_%02.0f.dta, 10/19")
-parallel append, do(data03_drug_exposures_b_p) e("Therapy_%02.0f.dta, 20/29")
-parallel append, do(data03_drug_exposures_b_p) e("Therapy_%02.0f.dta, 30/39")
-parallel append, do(data03_drug_exposures_b_p) e("Therapy_%02.0f.dta, 40/49")
+do Data03_drug_exposures_b
 /*	Files saved:	drugexpb_0-49
 					Drug_Exposures_b.dta
 */

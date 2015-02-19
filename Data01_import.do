@@ -35,9 +35,14 @@ gen end = date(enddate, "DMY")
 format end %td
 gen linked_b = .
 replace linked_b=1 if linked_practice==1
-label var linked_b "Binary indicator of whether patient is linked with HES or not 1=linked"
+label var linked_b "Binary indicator: 1=patient is linked with HES, 0=not linked "
 //drop irrelevant variables
 drop startdate enddate patientinbuild acceptable_patient
+label var hes_e "Binary: 1=eligible for HES linkage, 0=not eligible"
+label var linked_practice "Binary: 1=patient's practice eligible for HES linkage, 0=not eligible"
+label var death_e "Binary: 1=eligible for linkage to ONS death data, 0=not eligible"
+label var lsoa_e "Binary: 1=eligible for IMD/Townsend linkage based on English lower super output area"
+label var cprd_e "Binary: 1=patient found in named build, 0=not found"
 save linkage_eligibility.dta, replace
 clear
 

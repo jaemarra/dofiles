@@ -35,8 +35,8 @@ replace physician_visit = 1 if constype== 1 | constype== 3 | constype== 6 | cons
 label var physician_visit "Physician visits"
 //generate binary variable
 gen physician_visit_b = 0
-replace physician_visit_b = 1 if physician_visit>0 & physician_visit <.
-label variable physician_visit_b "Physician visits (binary) 0= no visit, 1= at least 1 visit"
+replace physician_visit_b = 1 if physician_visit==1
+label var physician_visit_b "Physician visits (binary) 0= no visit, 1= at least 1 visit"
 replace servtype=1 if physician_visit == 1
 replace nr_data = constype if servtype==1
 
@@ -44,6 +44,7 @@ replace nr_data = constype if servtype==1
 gen elgdate2 = . 
 replace elgdate2 = eventdate2 if eventdate2 <. & nr_data <.
 format elgdate2 %td
+label var elgdate2 "Eligible date with non-redundant data"
 
 //Drop all duplicates for patients of the same constype on the same day
 tempvar dupa
