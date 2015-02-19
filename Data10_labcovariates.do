@@ -457,9 +457,11 @@ drop dupa
 
 save LabCovariates, replace
 clear
+
 ////////////////////////////////////SPLIT FOR EACH WINDOW- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
 //INDEXDATE
 //pull out testdate of interest
+
 use LabCovariates
 bysort patid enttype: egen prx_testdate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
 format prx_testdate_i %td
@@ -488,7 +490,7 @@ fillin patid enttype
 bysort patid: egen totlabs = total(lab_num)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totlabs prx_testvalue_i prx_test_i_b
+keep patid enttype totlabs prx_testvalue_i prx_test_i_b
 
 //Reshape
 reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(enttype)
