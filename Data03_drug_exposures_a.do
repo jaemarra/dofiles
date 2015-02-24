@@ -268,8 +268,9 @@ format tx %td
 //Generate a prediction factor to account for the expected length of exposure for each prescription
 gen predfactor=.
 replace predfactor = (qty/ndd)*1.5 if rxtype!=.
-replace predfactor=90 if predfactor==. & rxtype!=.
+replace predfactor=90 if predfactor==.
 replace predfactor=90 if predfactor==0
+replace predfactor=90 if (qty>500|ndd<0.5|(ndd>.5&ndd<1))
 recast int predfactor, force
 label var predfactor "Factor used to predict next prescription date"
 notes predfactor: (qty/numeric daily dose)*1.5 OR 90 days if missing qty or ndd
