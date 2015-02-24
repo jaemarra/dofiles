@@ -462,6 +462,8 @@ append using Clinical_cci_i
 save Clinical_cci_i, replace
 }
 clear
+use Clinical_cci_i
+collapse (max) prx_ccivalue_g_i prx_cci_g_i_b wcharlsum, by(patid)
 }
 
 //COHORTENTRYDATE
@@ -498,6 +500,8 @@ append using Clinical_cci_c
 save Clinical_cci_c, replace
 }
 clear
+use Clinical_cci_c
+collapse (max) prx_ccivalue_g_c prx_cci_g_c_b wcharlsum, by(patid)
 }
 
 //STUDENTRYDATE_CPRD2
@@ -530,9 +534,11 @@ if "`file'"=="Clinical001_2b_cov" {
 save Clinical_cci_s, replace
 }
 else {
-append using Clinical_cci_c
-save Clinical_cci_c, replace
+append using Clinical_cci_s
+save Clinical_cci_s, replace
 }
+use Clinical_cci_s
+collapse (max) prx_ccivalue_g_s prx_cci_g_s_b wcharlsum, by(patid)
 clear
 }
 ////////////////////////////////////CREATE CLINICAL COVARIATE WEIGHT FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////
