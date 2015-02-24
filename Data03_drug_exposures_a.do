@@ -271,9 +271,10 @@ replace predfactor = (qty/ndd)*1.5 if rxtype!=.
 replace predfactor=90 if predfactor==.
 replace predfactor=90 if predfactor==0
 replace predfactor=90 if (qty>500|ndd<0.5|(ndd>.5&ndd<1))
+replace predfactor=365 if predfactor>=365
 recast int predfactor, force
 label var predfactor "Factor used to predict next prescription date"
-notes predfactor: (qty/numeric daily dose)*1.5 OR 90 days if missing qty or ndd
+notes predfactor: (qty/numeric daily dose)*1.5 OR 90 days if missing qty or ndd OR 365 if predfactor>=365
 
 //Pull out first, predicted, next, and last prescription dates WITHIN EACH CLASS
 //Generate exposure start time variables for each class of antidiabetic (rxtype)
@@ -306,7 +307,7 @@ bysort patid: egen `var't2= max(rxdate2) if `var'==1
 format `var't2 %td	
 label var `var't2 "Last `var' prescription date ever"
 bysort patid: gen `var'tx=`var't2+predfactor
-bysort patid: replace `var'tx=tx if `var'tx>tx
+bysort patid: replace `var'tx=tx if `var'tx>tx &`var'tx!=.
 format `var'tx %td
 label var `var'tx "Last ever exposure date to `var' (including predfactor and censor date)"
 }
@@ -383,6 +384,7 @@ bysort patid rxtype rxdate2: gen ctgap= _n if isgap==2
 label var ctgap "Enumerates the gaps identified by isgap"
 replace exposure_b=0 if ctgap==2
 drop if ctgap==3
+
 //Populate t0 and t1 accourding to the gaps and associated predicted and next rx dates
 //SU
 replace t0=sulfonylurea_pred if ctgap==2 & rxtype==0
@@ -422,47 +424,41 @@ label var tcc "Time between cohort entry date and censor date in days"
 
 //then generate the time between the first exposure to each class and the censor date
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
-gen `var'temp=`var't2+predfactor
-egen `var'temp2=rowmax(`vartemp'tx) 
-gen `var'tic = (`var'temp)-`var't0
+bysort patid: egen `var'end=max(t1) if `var'==1
+bysort patid: egen `var'begin=min(t0) if `var'==1
+gen `var'tic = `var'end-`var'begin
 label var `var'tic "Time between index date and censor date in days for `var'"
-drop `var'temp*
 }
 
 //then generate the duration of each t0/t1 interval 
 replace duration=t1-t0 if t1!=. & t0!=.
 //then generate total gap durations for each class of antidiabetic
-bysort patid : egen metformingdur=sum(duration) if rxtype==6 & exposure_b==0
+bysort patid : egen metformingdur=sum(metformingaptot) if metformin==1 & exposure_b==0
 label var metformingdur "Total number of UNexposed days in patient's metformin treatment history"
-bysort patid : egen sulfonylureagdur=sum(duration) if rxtype==0 & exposure_b==0
+bysort patid : egen sulfonylureagdur=sum(sulfonylureagaptot) if sulfonylurea==1 & exposure_b==0
 label var sulfonylureagdur "Total number of UNexposed days in patient's sulfonylurea treatment history"
-bysort patid : egen dppgdur=sum(duration) if rxtype==1 & exposure_b==0
+bysort patid : egen dppgdur=sum(dppgaptot) if dpp==1 & exposure_b==0
 label var dppgdur "Total number of UNexposed days in patient's dpp treatment history"
-bysort patid : egen glpgdur=sum(duration) if rxtype==2 & exposure_b==0
+bysort patid : egen glpgdur=sum(glpgaptot) if glp==1 & exposure_b==0
 label var glpgdur "Total number of UNexposed days in patient's glp treatment history"
-bysort patid : egen insulingdur=sum(duration) if rxtype==3 & exposure_b==0
+bysort patid : egen insulingdur=sum(insulingaptot) if insulin==1 & exposure_b==0
 label var insulingdur "Total number of UNexposed days in patient's insulin treatment history"
-bysort patid : egen tzdgdur=sum(duration) if rxtype==4 & exposure_b==0
+bysort patid : egen tzdgdur=sum(tzdgaptot) if tzd==1 & exposure_b==0
 label var tzdgdur "Total number of UNexposed days in patient's tzd treatment history"
-bysort patid : egen otherantidiabgdur=sum(duration) if rxtype==5 & exposure_b==0
+bysort patid : egen otherantidiabgdur=sum(otherantidiabgaptot) if otherantidiab==1 & exposure_b==0
 label var otherantidiabgdur "Total number of UNexposed days in patient's otherantidiab treatment history"
 
 //FINALLY, generate a variable for the total exposed days (duration)
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
 bysort patid: egen `var'gapdur=max(`var'gdur) if `var'gdur!=.
 gen `var'totexp = .
-bysort patid: replace `var'totexp=`var'tic-`var'gapdur
+bysort patid: replace `var'totexp=`var'tic -`var'gapdur
 label var `var'totexp "Total days exposed to `var'"
 notes `var'totexp: Calculation is time from index date to censor date minus gaps
 drop `var'gapdur
 }
 
 //#12 Determine how many classes of antidiabetic agents each patient was exposed to over the course of the study
-//set local macro for the class list of interest
-local rxlist = "insulin sulfonylurea metformin tzd dpp glp otherantidiab"
-//generate the variable for total
-
-
 decode rxtype, gen(rxtype_u)
 label var rxtype_u "String var of all prescriptions"
 //return one of each rxtype if present anywhere in the patid's firsttype, then fill for the patid.
