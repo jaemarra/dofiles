@@ -294,8 +294,9 @@ egen index=rowmin(sulfonylureat0 dppt0 glpt0 insulint0 tzdt0 otherantidiabt0) if
 format index %td
 bysort patid: egen indext0=min(index)
 format indext0 %td
-label var indext0 "Index date (earliest date of exposure to a second antidiabetic)"
-assert indext0==indexdate if &indexdate!=.
+drop index
+rename indext0 index
+label var index "Index date (earliest date of exposure to a second antidiabetic)"
 rename indexdate indext0
 label var indext0 "Index date (earliest date of exposure to a second antidiabetic)"
 
@@ -484,7 +485,6 @@ bysort patid: gen flag=cond(sumu==1,0,_n)
 bysort patid: gen singletag=cond(flag!=0, 0,_n)
 egen unqrx=rowtotal(urx0 urx1 urx2 urx3 urx4 urx5 urx6) if (flag==1|singletag==1)
 drop urx* flag sumu singletag rxtype_u
-save drugexpa_`i', replace
 
 save Drug_Exposures_a.dta, replace
 
