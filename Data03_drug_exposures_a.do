@@ -485,11 +485,7 @@ bysort patid: gen singletag=cond(flag!=0, 0,_n)
 egen unqrx=rowtotal(urx0 urx1 urx2 urx3 urx4 urx5 urx6) if (flag==1|singletag==1)
 drop urx* flag sumu singletag rxtype_u
 save drugexpa_`i', replace
-}
-use drugexpa_0, clear
-forval i=1/49 {		
-	append using drugexpa_`i'
-	}
+
 save Drug_Exposures_a.dta, replace
 
 //################### generate "dates" dataset for future use########################
