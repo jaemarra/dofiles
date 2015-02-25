@@ -490,16 +490,15 @@ keep patid studyentrydate_cprd2 metformint0 indext0
 collapse (min) studyentrydate_cprd2 metformint0 indext0, by(patid)
 rename metformint0 cohortentrydate
 rename indext0 indexdate
-drop indext0 metformint0
 save Dates.dta, replace
 clear
 
 //################### generate "analytic variables" dataset for future use########################
 use Drug_Exposures_a.dta
-save firstadmrx secondadmrx tx
+keep patid firstadmrx secondadmrx tx
 collapse (first) firstadmrx secondadmrx tx, by(patid)
 //merge with analytic variables.dta file generated in Data01_import.do: patid linked_b lcd2 tod2 deathdate2 dod2
-merge 1:1 using Analytic_variables, keep (match, master) nogen
+merge 1:1 patid using Analytic_variables, keep (match master) nogen
 save Analytic_variables.dta, replace
 /////////////////////////////////////////FOR INITIAL DATA EXTRACTION, YOU CAN USE THE CODE BELOW TO GET SOME DESCRIPTIVE STATS////////////////////////////////////////
 /*
