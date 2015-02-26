@@ -123,6 +123,16 @@ do Data03_drug_exposures_a
 					Drug_Exposures_a.dta
 					Dates.dta
 */
+/* #3 Data03_drug_exposures_a_wide:	use Therapy_0-49
+								- use adm_drug_exposures
+								- generate variable for t0, t1, tx, and duration for each rxtype				
+							
+*/
+
+do Data03_drug_exposures_a_wide
+/*	Files saved:	Drug_Exposures_a_wide.dta
+
+*/
 /* #3 Data03_drug_exposures_b:	use Therapy_0-49
 								- prepare Therapy files and product.txt
 								- generate variables indicating drug exposures to subclasses of antidiabetic drugs				

@@ -170,6 +170,7 @@ label var firstadmrxs "Class (rxtype) of first antidiabetic prescription ever"
 //generate a string var of first rxtypes
 decode firstadmrxs if firstadmrxs!=., gen(rxtype_f)
 label var rxtype_f "String var of all prescriptions on earliest date (includes duplicates and combos)"
+drop firstadmrxs
 //return one of each rxtype if present anywhere in the patid's firsttype, then fill for the patid.
 bysort patid: gen frx8=regexs(0) if regexm(rxtype_f, "mtcombo")
 xfill frx8, i(patid)
@@ -192,7 +193,7 @@ xfill frx0, i(patid)
 //return one copy of the concatenated "first" prescription for each patid.
 egen firstadmrx=concat(frx6 frx0 frx1 frx2 frx3 frx4 frx5 frx7 frx8) if classexp==1
 label var firstadmrx "Exact first aDM prescription for each patid"
-drop frx*
+drop frx* rxtype_f 
 //create a flag for patid's with ineligible first prescriptions, combo first prescriptions (met+any), and simple met
 gen firstcat=3
 replace firstcat=1 if firstadmrx=="metformin"
@@ -203,27 +204,42 @@ replace firstcat=firstcats
 label var firstcat "Category of first aDM rx: 1=met 1st cohort, 2=metcombo 1st cohort, 3=inelgible"
 drop firstcats
 //flag if first antidiabetic is something other than metformin
-bysort patid: gen byte cohort_bin=1 if firstcat==1
-bysort patid: egen cohort_b=max(cohort_bin)
+bysort patid: gen byte cohort_b=1 if firstcat==1
 replace cohort_b=0 if cohort_b!=1
-drop cohort_bin
 label var cohort_b "Binary indicator for metformin cohort: 1=metformin FIRST +/- another agent;  0=other antidiabetic first"
 //drop if metformin NOT the first antidiabetic agent or combination agent
 drop if cohort_b==0
+//replace the rxtype with individual components for combopills
+gen combomarker=.
+replace combomarker=1 if (rxtype==7|rxtype==8)
+replace rxtype=6 if rxtype==8& metformin==1
+replace rxtype=4 if rxtype==8& tzd==1
+replace rxtype=6 if rxtype==7& metformin==1
+replace rxtype=1 if rxtype==7& dpp==1
+//recast counts
+drop wirxtypeorder classexp exporder
+sort patid rxtype rxdate2
+bysort patid rxtype: gen wirxtypeorder=_n
+label var wirxtypeorder "Overall prescription order within each antidiabetic class"
+//enumerate exposure to classes
+bysort patid wirxtypeorder: gen classexp=_n if wirxtypeorder==1
+label var classexp "Prescription order within each class (rxtype) ties not boken"
+//enumerate exposure order to each class of antidiabetic
+bysort patid: egen exporder=rank(rxdate2) if classexp!=., track
+label var exporder "Order of exposure to antidiabetic classes, ties not broken"
 //generate a binary indicator for patients experiencing metformin monotherapy
-bysort patid: egen mono=min(rxtype)
-gen monomet_b=1
-bysort patid: replace monomet_b=0 if mono==6
-drop mono
-label var monomet_b "Indicator for metformin monotherapy or not(0=mono, 1=at least one other aDM exposure)"
+bysort patid: egen maxexp=max(exporder)
+gen monomet_b=0
+bysort patid: replace monomet_b=1 if maxexp==1
+label var monomet_b "Indicator for metformin monotherapy or not(0= NOT mono, 1= metformin monotherapy)"
 
 //#5c Pull out types of antidiabetic combination exposures for OVERALL second exposure date (INDEXDATE)
 
 //generate an indicator for patients with a second antidiabetic exposure
-bysort patid: egen indexdate=min(rxdate2) if (monomet_b==1 &rxtype!=6)
+bysort patid: egen indexdate=min(rxdate2) if (monomet_b==0&exporder>=2&exporder<.)
 format indexdate %td
 label var indexdate "Date of first exposure to a second antidiabetic"
-gen second=1 if rxdate2==indexdate &rxtype!=6
+gen second=1 if rxdate2==indexdate
 replace second=0 if second>1
 label var second "Indicator for 1st exposure to 2nd antidiabetic: 1=index exposure, 0=not index exposure"
 //generate a variable for rxtype if index
@@ -251,9 +267,9 @@ xfill crx1, i(patid)
 bysort patid: gen crx0=regexs(0) if regexm(rxtype_i, "SU")
 xfill crx0, i(patid)
 //return one copy per patid of the antidiabetic or combination at indexdate
-bysort patid: gen flag=_n if second==1
+bysort patid second: gen flag=_n if second==1
 egen secondadmrx=concat(crx0 crx1 crx2 crx3 crx4 crx5) if flag==1
-drop crx* flag
+drop crx* flag rxtype_i
 
 //#6 Generate and apply censor date
 
@@ -267,7 +283,7 @@ format tx %td
 gen predfactor=.
 replace predfactor = (qty/ndd)*1.5 if rxtype!=.
 replace predfactor=90 if predfactor==.
-replace predfactor=90 if predfactor==0
+replace predfactor=90 if predfactor<=0
 replace predfactor=90 if (qty>500|ndd<0.5|(ndd>.5&ndd<1))
 replace predfactor=365 if predfactor>=365
 recast int predfactor, force
@@ -276,12 +292,6 @@ notes predfactor: (qty/numeric daily dose)*1.5 OR 90 days if missing qty or ndd 
 
 //Pull out first, predicted, next, and last prescription dates WITHIN EACH CLASS
 //Generate exposure start time variables for each class of antidiabetic (rxtype)
-gen combomarker=.
-replace combomarker=1 if (rxtype==7|rxtype==8)
-replace rxtype=6 if rxtype==8& metformin==1
-replace rxtype=4 if rxtype==8& tzd==1
-replace rxtype=6 if rxtype==7& metformin==1
-replace rxtype=1 if rxtype==7& dpp==1
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab  {
 bysort patid: egen `var't0= min(rxdate2) if `var'==1
 format `var't0 %td
@@ -329,15 +339,6 @@ label var `var'_next "Next OBSERVED presciption date for `var'"
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab {
 bysort patid: gen `var'_gap = `var'_next-`var'_pred if `var'==1
 label var `var'_gap "Number of days past predicted refill date for `var' "
-//Pull out date for last continuous prescription date
-bysort patid: gen `var't1 = `var'_pred-90 if `var'_gap > 0 & `var'==1
-format `var't1 %td
-label var `var't1 "Last continuous `var' prescription"
-//Generate gap counts
-bysort patid rxtype: egen `var'gaptot = count(`var't1) if `var'_gap>=1 & `var'_gap<.
-label var `var'gaptot "Total number of gaps in `var' exposure per patid"
-bysort patid rxtype: gen `var'gapnum = _n if `var'gaptot>=1 & `var'gaptot<.
-label var `var'gapnum "Gaps ordered in time and enumerated per patid and rxtype"
 }
 
 //#9 Generate duration for EXPOSED intervals FOR EACH PRESCRIPTION
@@ -410,6 +411,13 @@ replace exposure_b=0 if isgap==2& ctgap==2
 replace exposure_b=1 if isgap==2& ctgap==1
 replace t1=tx if t1>tx
 
+//Generate gap counts
+foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
+bysort patid rxtype: egen `var'gaptot = count(`var'_gap) if (`var'_gap>=1 & `var'_gap<. &exposure_b==0)
+label var `var'gaptot "Total days of gaps in `var' exposure per patid"
+bysort patid `var'gaptot: gen `var'gapnum = _n if `var'gaptot>=1 & `var'gaptot<.
+label var `var'gapnum "Gaps ordered in time and enumerated per patid and rxtype"
+}
 //#11 Generate OVERALL FOLLOW-UP duration: total follow-up time available minus gaptime (TCC)
 
 //first generate last date of exposure (time between cohort entry and censor date in days)
@@ -431,19 +439,19 @@ label var `var'tic "Time between index date and censor date in days for `var'"
 //then generate the duration of each t0/t1 interval 
 replace duration=t1-t0 if t1!=. & t0!=.
 //then generate total gap durations for each class of antidiabetic
-bysort patid : egen metformingdur=sum(metformingaptot) if metformin==1 & exposure_b==0
+bysort patid : egen metformingdur=sum(metformingaptot)
 label var metformingdur "Total number of UNexposed days in patient's metformin treatment history"
-bysort patid : egen sulfonylureagdur=sum(sulfonylureagaptot) if sulfonylurea==1 & exposure_b==0
+bysort patid : egen sulfonylureagdur=sum(sulfonylureagaptot)
 label var sulfonylureagdur "Total number of UNexposed days in patient's sulfonylurea treatment history"
-bysort patid : egen dppgdur=sum(dppgaptot) if dpp==1 & exposure_b==0
+bysort patid : egen dppgdur=sum(dppgaptot)
 label var dppgdur "Total number of UNexposed days in patient's dpp treatment history"
-bysort patid : egen glpgdur=sum(glpgaptot) if glp==1 & exposure_b==0
+bysort patid : egen glpgdur=sum(glpgaptot)
 label var glpgdur "Total number of UNexposed days in patient's glp treatment history"
-bysort patid : egen insulingdur=sum(insulingaptot) if insulin==1 & exposure_b==0
+bysort patid : egen insulingdur=sum(insulingaptot)
 label var insulingdur "Total number of UNexposed days in patient's insulin treatment history"
-bysort patid : egen tzdgdur=sum(tzdgaptot) if tzd==1 & exposure_b==0
+bysort patid : egen tzdgdur=sum(tzdgaptot)
 label var tzdgdur "Total number of UNexposed days in patient's tzd treatment history"
-bysort patid : egen otherantidiabgdur=sum(otherantidiabgaptot) if otherantidiab==1 & exposure_b==0
+bysort patid : egen otherantidiabgdur=sum(otherantidiabgaptot)
 label var otherantidiabgdur "Total number of UNexposed days in patient's otherantidiab treatment history"
 
 //FINALLY, generate a variable for the total exposed days (duration)
@@ -453,32 +461,10 @@ gen `var'totexp = .
 bysort patid: replace `var'totexp=`var'tic -`var'gapdur
 label var `var'totexp "Total days exposed to `var'"
 notes `var'totexp: Calculation is time from index date to censor date minus gaps
-drop `var'gapdur
 }
 
 //#12 Determine how many classes of antidiabetic agents each patient was exposed to over the course of the study
-decode rxtype, gen(rxtype_u)
-label var rxtype_u "String var of all prescriptions"
-//return one of each rxtype if present anywhere in the patid's firsttype, then fill for the patid.
-bysort patid: gen urx6=1 if regexm(rxtype_u, "metformin")
-xfill urx6, i(patid)
-bysort patid: gen urx5=1 if regexm(rxtype_u, "other")
-xfill urx5, i(patid)
-bysort patid: gen urx4=1 if regexm(rxtype_u, "TZD")
-xfill urx4, i(patid)
-bysort patid: gen urx3=1 if regexm(rxtype_u, "insulin")
-xfill urx3, i(patid)
-bysort patid: gen urx2=1 if regexm(rxtype_u, "GLP")
-xfill urx2, i(patid)
-bysort patid: gen urx1=1 if regexm(rxtype_u, "DPP")
-xfill urx1, i(patid)
-bysort patid: gen urx0=1 if regexm(rxtype_u, "SU")
-xfill urx0, i(patid)
-bysort patid: egen sumu=sum(first)
-bysort patid: gen flag=cond(sumu==1,0,_n)
-bysort patid: gen singletag=cond(flag!=0, 0,_n)
-egen unqrx=rowtotal(urx0 urx1 urx2 urx3 urx4 urx5 urx6) if (flag==1|singletag==1)
-drop urx* flag sumu singletag rxtype_u
+bysort patid: gen unqrx=max(exporder)
 
 save Drug_Exposures_a.dta, replace
 
@@ -488,22 +474,16 @@ keep patid studyentrydate_cprd2 metformint0 indext0
 collapse (min) studyentrydate_cprd2 metformint0 indext0, by(patid)
 rename metformint0 cohortentrydate
 rename indext0 indexdate
+drop indext0 metformint0
 save Dates.dta, replace
 clear
 
 //################### generate "analytic variables" dataset for future use########################
 use Drug_Exposures_a.dta
-<<<<<<< HEAD
 keep firstadmrx secondadmrx tx
 collapse (first) firstadmrx secondadmrx tx, by(patid)
 //merge with analytic variables.dta file generated in Data01_import.do: patid linked_b lcd2 tod2 deathdate2 dod2
 merge 1:1 patid using Analytic_variables, keep (match, master) nogen
-=======
-keep patid firstadmrx secondadmrx tx
-collapse (first) firstadmrx secondadmrx tx, by(patid)
-//merge with analytic variables.dta file generated in Data01_import.do: patid linked_b lcd2 tod2 deathdate2 dod2
-merge 1:1 patid using Analytic_variables, keep (match master) nogen
->>>>>>> 6575cb95929c658fee72b90973ffd48ff2806784
 save Analytic_variables.dta, replace
 /////////////////////////////////////////FOR INITIAL DATA EXTRACTION, YOU CAN USE THE CODE BELOW TO GET SOME DESCRIPTIVE STATS////////////////////////////////////////
 /*
