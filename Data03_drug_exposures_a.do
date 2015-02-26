@@ -126,25 +126,26 @@ use adm_drug_exposures, clear
 //identify combo pills and account for each class exposure (metformin, tzd, and dpp)
 egen codesum=rowtotal(metformin tzd dpp glp insulin otherantidiab sulfonylurea)
 expand codesum, generate(integratedrx)
+replace rxtype= 7 if codesum==2&metformin==1&dpp==1
+replace rxtype= 8 if codesum==2&metformin==1&tzd==1
 replace metformin=0 if integratedrx==1
 replace tzd=0 if codesum==2& integratedrx==0
 replace dpp=0 if codesum==2& integratedrx==0
-replace rxtype= 7 if codesum==2&metformin==1&dpp==1
-replace rxtype= 8 if codesum==2&metformin==1&tzd==1
 label drop rxtypelabels
 label define rxtypelabels 0 "SU" 1 "DPP" 2 "GLP" 3 "insulin" 4 "TZD" 5 "other" 6 "metformin" 7 "mdcombo" 8 "mtcombo" 99 "combination"
 label values rxtype rxtypelabels
 
 //#5 Generate count variables.
 
-//enumerate overall prescription order WITHIN EACH CLASS CLASSES NOT ORDERED
-bysort patid rxtype: egen chronorder= rank(rxtype), unique
-label var chronorder "Overall prescription order across all antidiabetic classes"
-//enumerate prescription order BY CLASS AND WITHIN CLASS 
-bysort patid rxtype: egen classorder=rank(rxdate2), track
-label var classorder "Prescription order within each class (rxtype) ties not boken"
+//enumerate overall prescription order WITHIN EACH CLASS; CLASSES NOT ORDERED
+sort patid rxtype rxdate2
+bysort patid rxtype: gen wirxtypeorder=_n
+label var wirxtypeorder "Overall prescription order within each antidiabetic class"
+//enumerate exposure to classes
+bysort patid wirxtypeorder: gen classexp=_n if wirxtypeorder==1
+label var classexp "Prescription order within each class (rxtype) ties not boken"
 //enumerate exposure order to each class of antidiabetic
-bysort patid classorder: egen exporder=rank(rxdate2), track
+bysort patid: egen exporder=rank(rxdate2) if classexp!=., track
 label var exporder "Order of exposure to antidiabetic classes, ties not broken"
 
 //#5a Generate OVERALL date variables: firstdate(should=studyentrydate), metformint0 (should=cohortentrydate), and indext0 (should=indexdate).
@@ -154,15 +155,15 @@ bysort patid:egen firstdate = min(rxdate2) if rxtype<.
 format first %td
 label var firstdate "Earliest date for any antidiabetic prescription (should=studyentrydate)"
 //generate an indicator for each prescription denoting whether it matches the earliest date or not
-gen first=0
-replace first=1 if firstdate==rxdate2
-label var first "Indicator for whether rxdate2 for each prescription was the earliest date. 1=first, 0=after"
+gen firstexp=0
+replace firstexp=1 if firstdate==rxdate2
+label var firstexp "Indicator for whether rxdate2 for each prescription was the earliest date. 1=first, 0=after"
 
 //#5b Pull out types of antidiabetic combination exposures for OVERALL primary exposure date
 
 //pull out first prescription type- THIS IS NOT UNIQUE. There may be multiple first prescriptions per patid (combos or duplicates of rxtype)
 gen firstadmrxs=.
-replace firstadmrxs=rxtype if first==1
+replace firstadmrxs=rxtype if firstexp==1
 label values firstadmrxs rxtypelabels
 label var firstadmrxs "Class (rxtype) of first antidiabetic prescription ever"
 //pull out one (of duplicates) and identify all first prescriptions whether metoformin, metformin combos, or other combos
@@ -189,12 +190,9 @@ xfill frx1, i(patid)
 bysort patid: gen frx0=regexs(0) if regexm(rxtype_f, "SU")
 xfill frx0, i(patid)
 //return one copy of the concatenated "first" prescription for each patid.
-bysort patid: egen sumf=sum(first)
-bysort patid: gen flag=cond(sumf==1,0,_n)
-bysort patid: gen singletag=cond(flag!=0, 0,_n)
-egen firstadmrx=concat(frx6 frx0 frx1 frx2 frx3 frx4 frx5 frx7 frx8) if (flag==1 | singletag==1)
+egen firstadmrx=concat(frx6 frx0 frx1 frx2 frx3 frx4 frx5 frx7 frx8) if classexp==1
 label var firstadmrx "Exact first aDM prescription for each patid"
-drop frx* sumf flag singletag
+drop frx*
 //create a flag for patid's with ineligible first prescriptions, combo first prescriptions (met+any), and simple met
 gen firstcat=3
 replace firstcat=1 if firstadmrx=="metformin"
@@ -496,10 +494,10 @@ clear
 
 //################### generate "analytic variables" dataset for future use########################
 use Drug_Exposures_a.dta
-save firstadmrx secondadmrx tx
+keep firstadmrx secondadmrx tx
 collapse (first) firstadmrx secondadmrx tx, by(patid)
 //merge with analytic variables.dta file generated in Data01_import.do: patid linked_b lcd2 tod2 deathdate2 dod2
-merge 1:1 using Analytic_variables, keep (match, master) nogen
+merge 1:1 patid using Analytic_variables, keep (match, master) nogen
 save Analytic_variables.dta, replace
 /////////////////////////////////////////FOR INITIAL DATA EXTRACTION, YOU CAN USE THE CODE BELOW TO GET SOME DESCRIPTIVE STATS////////////////////////////////////////
 /*
