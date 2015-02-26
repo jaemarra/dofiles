@@ -49,7 +49,7 @@ format exposuret0 exposuretx exposure %td
 keep patid rxtype exposuret0 exposuretx exposure cohort_b 
 collapse (first) exposuret0 exposuretx exposure cohort_b ,by(patid rxtype)
 reshape wide exposuret0 exposuretx exposure cohort_b, i(patid) j(rxtype)
-merge 1:1 patid using Analytic_variables, keep(match, master) nogen
+merge 1:1 patid using Analytic_variables, keep(match master) nogen
 save Drug_Exposures_A_W.dta, replace
 
 restore
