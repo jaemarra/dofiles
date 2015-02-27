@@ -433,6 +433,17 @@ foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinica
 use `file', clear
 keep patid readcode indexdate eventdate2
 drop if eventdate2>=indexdate-365 & eventdate2<indexdate
+//Save as one appended file to merge back in with other clinical covariates in Data09_c
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_cci_i, replace
+}
+else {
+append using Clinical_cci_i
+save Clinical_cci_i, replace
+}
+}
+
+use Clinical_cci_i, clear
 
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
@@ -452,25 +463,23 @@ rename cci_g prx_ccivalue_g_i
 label variable prx_ccivalue_g_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 label var prx_cci_g_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 keep patid prx_ccivalue_g_i prx_cci_g_i_b wcharlsum
-
-//Save as one appended file to merge back in with other clinical covariates in Data09_c
-if "`file'"=="Clinical001_2b_cov" {
 save Clinical_cci_i, replace
-}
-else {
-append using Clinical_cci_i
-save Clinical_cci_i, replace
-}
-clear
-use Clinical_cci_i
-collapse (max) prx_ccivalue_g_i prx_cci_g_i_b wcharlsum, by(patid)
-}
 
 //COHORTENTRYDATE
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
 keep patid readcode cohortentrydate eventdate2
 drop if eventdate2>=cohortentrydate-365 & eventdate2<cohortentrydate
+//Save as one appended file to merge back in with other clinical covariates in Data09_c
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_cci_c, replace
+}
+else {
+append using Clinical_cci_c
+save Clinical_cci_c, replace
+}
+}
+use Clinical_cci_c, clear
 
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
@@ -491,25 +500,24 @@ label variable prx_ccivalue_g_c "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3,
 label var prx_cci_g_c_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 keep patid prx_ccivalue_g_c prx_cci_g_c_b wcharlsum
 
-//Save as one appended file to merge back in with other clinical covariates in Data09_c
-if "`file'"=="Clinical001_2b_cov" {
 save Clinical_cci_c, replace
-}
-else {
-append using Clinical_cci_c
-save Clinical_cci_c, replace
-}
-clear
-use Clinical_cci_c
-collapse (max) prx_ccivalue_g_c prx_cci_g_c_b wcharlsum, by(patid)
-}
+
 
 //STUDENTRYDATE_CPRD2
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
 keep patid readcode eltestdate2 studyentrydate_cprd2 eventdate2
 drop if eventdate2>=studyentrydate_cprd2-365 & eventdate2<studyentrydate_cprd2
-
+//Save as one appended file to merge back in with other clinical covariates in Data09_c
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_cci_s, replace
+}
+else {
+append using Clinical_cci_s
+save Clinical_cci_s, replace
+}
+}
+use Clinical_cci_s
 // Charlson Comorbidity Index
 // Source: Khan et al 2010
 //CPRD GOLD
@@ -528,19 +536,8 @@ rename cci_g prx_ccivalue_g_s
 label variable prx_ccivalue_g_s "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
 label var prx_cci_g_s_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
 keep patid prx_ccivalue_g_s prx_cci_g_s_b wcharlsum
+save Clinical_cci_s, replace
 
-//Save as one appended file to merge back in with other clinical covariates in Data09_c
-if "`file'"=="Clinical001_2b_cov" {
-save Clinical_cci_s, replace
-}
-else {
-append using Clinical_cci_s
-save Clinical_cci_s, replace
-}
-use Clinical_cci_s
-collapse (max) prx_ccivalue_g_s prx_cci_g_s_b wcharlsum, by(patid)
-clear
-}
 ////////////////////////////////////CREATE CLINICAL COVARIATE WEIGHT FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////
 
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
