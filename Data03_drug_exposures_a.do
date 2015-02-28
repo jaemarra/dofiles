@@ -437,6 +437,7 @@ bysort patid seventh: gen flag=_n if seventh==1
 egen seventhadmrx=concat(erx6 erx0 erx1 erx2 erx3 erx4 erx5) if flag==1
 drop erx* flag rxtype_7 seventh seventhtype  
 
+save Drug_exposures_a_int
 //#6 Generate and apply censor date
 
 egen tx= rowmin(tod2 deathdate2 lcd2 studyenddate)
@@ -485,7 +486,6 @@ bysort patid: replace `var'tx=tx if `var'tx>tx &`var'tx!=.
 format `var'tx %td
 label var `var'tx "Last ever exposure date to `var' (including predfactor and censor date)"
 }
-
 
 //Generate the predicted next prescription date WITHIN EACH CLASS
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab {
@@ -576,7 +576,7 @@ replace t1=metformin_next if ctgap==2 & rxtype==6
 replace exposure_b=0 if isgap==2& ctgap==2
 replace exposure_b=1 if isgap==2& ctgap==1
 replace t1=tx if t1>=tx
-replace t0=tx if t1>=tx
+replace t0=tx if t0>=tx
 
 //Generate gap counts
 bysort patid rxtype: gen sulfonylureagaprun = sum(sulfonylurea_gap) if (sulfonylurea_gap>=1 & sulfonylurea_gap<. &exposure_b==0& rxtype==0)
@@ -604,8 +604,8 @@ label var tcc "Time between cohort entry date and censor date in days"
 
 //then generate the time between the first exposure to each class and the censor date
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
-bysort patid: egen `var'end=max(t1) if `var'==1
-bysort patid: egen `var'begin=min(t0) if `var'==1
+bysort patid: egen `var'end=max(t1) if rxtype==`var'
+bysort patid: egen `var'begin=min(t0) if rxtype==`var'
 gen `var'tic = `var'end-`var'begin
 label var `var'tic "Time between index date and censor date in days for `var'"
 drop `var'end `var'begin
@@ -629,7 +629,6 @@ replace ts=t1[_n-1] if exposure_b==0
 bysort patid: egen t1s=min(ts)
 drop ts
 format t1s %td
-
 //Create a variable for ever used `var'
 gen eversu=1 if exporder!=.& rxtype==0
 bysort patid: egen ever0= max(eversu)
@@ -651,7 +650,9 @@ label var ever`i' " Ever exposed to rxtype=`i'"
 notes: ever`i': rxtype key: 0=Sulfonylurea; 1=DPP-4i; 2=GLP-1RA; 3=Insulin; 4=TZD; 5=Other Antidiabetic
 }
 //#12 Determine how many classes of antidiabetic agents each patient was exposed to over the course of the study
+
 bysort patid: egen unqrx=max(exporder)
+//save a copy of the file at this point
 save Drug_Exposures_a.dta, replace
 
 //################### generate "dates" dataset for future use########################
@@ -665,12 +666,12 @@ clear
 
 //################### generate "analytic variables" dataset for  use########################
 use Drug_Exposures_a.dta
-keep patid firstadmrx firstadmrxdate secondadmrx indexdate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx
-xfill firstadmrx firstadmrxdate secondadmrx indexdate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate, i(patid)
-collapse (first) firstadmrx firstadmrxdate secondadmrx indexdate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate tx cohort_b unqrx, by(patid)
+keep patid firstadmrx firstadmrxdate secondadmrx indext0 thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx
+xfill firstadmrx firstadmrxdate secondadmrx indext0 thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate, i(patid)
+collapse (first) firstadmrx firstadmrxdate secondadmrx indext0 thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate tx cohort_b unqrx, by(patid)
 //merge with analytic variables.dta file generated in Data01_import.do: patid linked_b lcd2 tod2 deathdate2 dod2
 merge 1:1 patid using Analytic_variables, keep(match master) nogen
-save Analytic_variables.dta, replace
+save Analytic_variables_a.dta, replace
 
 //############################## generate wide dataset for ###################################
 use Drug_Exposures_a.dta
@@ -689,6 +690,7 @@ save adm_drug_exposures_tidy.dta
 keep patid rxtype exposuret0 exposuret1 exposuretf
 reshape wide exposuret0 exposuret1 exposuretf, i(patid) j(rxtype)
 save Drug_Exposures_a_wide.dta
+merge m:1 patid using Analytic_variables_a, keep(match master) nogen
 /////////////////////////////////////////FOR INITIAL DATA EXTRACTION, YOU CAN USE THE CODE BELOW TO GET SOME DESCRIPTIVE STATS////////////////////////////////////////
 /*
 //Duration between cohort entry date and initial exposure to a second antidiabetic agent
