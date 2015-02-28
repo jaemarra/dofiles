@@ -115,24 +115,18 @@ Merged files saved:		Therapy_0-99.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 pr
 								- generate total exposure duration to each class of interest
 								- generate variables for number of unique drugs and medication adherence
 								- save Dates.dta dataset with patid, studyentrydate_cprd2, cohortentrydate, and indexdate
+								- save analytic variables with concat first-seventhadmrx, first-seventdates, cohort_b, tx and from Data01_Import: linked_b lcd2 tod2 deathdate2 dod2
 */
 
 do Data03_drug_exposures_a
-/*	Files saved:	Therapy_0-49dm.dta
-					adm_drug_exposures.dta
+/*	Files saved:	Therapy_0-49dm.dta (tempfiles only)
+					adm_drug_exposures.dta (intermediate file primarily for data checking stage)
 					Drug_Exposures_a.dta
 					Dates.dta
-*/
-/* #3 Data03_drug_exposures_a_wide:	use Therapy_0-49
-								- use adm_drug_exposures
-								- generate variable for t0, t1, tx, and duration for each rxtype				
-							
+					Analytic_variables.dta
+					Drug_Exposures_a_wide.dta
 */
 
-do Data03_drug_exposures_a_wide
-/*	Files saved:	Drug_Exposures_a_wide.dta
-
-*/
 /* #3 Data03_drug_exposures_b:	use Therapy_0-49
 								- prepare Therapy files and product.txt
 								- generate variables indicating drug exposures to subclasses of antidiabetic drugs				

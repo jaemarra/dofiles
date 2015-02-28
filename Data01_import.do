@@ -173,7 +173,6 @@ drop _merge linked_practice
 sort pracid
 merge m:1 pracid using Practice
 drop _merge
-compress
 //restrict to patients registered at an up to standard practice at least 1 year prior to entry date
 drop if uts >= studyentrydate_cprd2-365 // THIS IS WHERE WE DROP 16 PATIENTS
 save BaseCohort.dta, replace
