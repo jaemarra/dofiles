@@ -581,7 +581,7 @@ replace t0=tx if t0>=tx
 //Generate gap counts
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab {
 replace `var'_gap=t1-t0 if exposure_b==0
-replace `var'_gap=. if exposure_b==1
+replace `var'_gap=0 if exposure_b==1
 }
 bysort patid rxtype: gen sulfonylureagaprun = sum(sulfonylurea_gap) if (sulfonylurea_gap>=1 & sulfonylurea_gap<. &exposure_b==0& rxtype==0)
 bysort patid rxtype: gen dppgaprun = sum(dpp_gap) if (dpp_gap>=1 & dpp_gap<. &exposure_b==0& rxtype==1)
