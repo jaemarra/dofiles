@@ -594,6 +594,7 @@ bysort patid rxtype: gen metformingaprun = sum(metformin_gap) if (metformin_gap>
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
 bysort patid: egen `var'gaptot = max(`var'gaprun) if `var'gaprun!=.
 drop `var'gaprun
+replace `var'gaptot=0 if `var'gaptot==.& exposure_b==1
 label var `var'gaptot "Total days of gaps in `var' exposure per patid"
 }
 //#11 Generate OVERALL FOLLOW-UP duration: total follow-up time available minus gaptime (TCC)
@@ -606,25 +607,25 @@ gen tcc=.
 replace tcc=lastdate-firstdate if lastdate!=. &firstdate!=.
 label var tcc "Time between cohort entry date and censor date in days"
 //then generate the time between the first exposure to each class and the censor date
-bysort patid: egen suend=max(t1) if rxtype==0
+bysort patid: egen suend=max(t1) if rxtype==0 & t1!=.
 bysort patid: egen subegin=min(t0) if rxtype==0
 gen sulfonylureatic = suend-subegin
-bysort patid: egen dppend=max(t1) if rxtype==1
+bysort patid: egen dppend=max(t1) if rxtype==1 & t1!=.
 bysort patid: egen dppbegin=min(t0) if rxtype==1
 gen dpptic = dppend-dppbegin
-bysort patid: egen glpend=max(t1) if rxtype==2
+bysort patid: egen glpend=max(t1) if rxtype==2 & t1!=.
 bysort patid: egen glpbegin=min(t0) if rxtype==2
 gen glptic = glpend-glpbegin
-bysort patid: egen insend=max(t1) if rxtype==3
+bysort patid: egen insend=max(t1) if rxtype==3 & t1!=.
 bysort patid: egen insbegin=min(t0) if rxtype==3
 gen insulintic =insend-insbegin
-bysort patid: egen tzdend=max(t1) if rxtype==4
+bysort patid: egen tzdend=max(t1) if rxtype==4 & t1!=.
 bysort patid: egen tzdbegin=min(t0) if rxtype==4
 gen tzdtic = tzdend-tzdbegin
-bysort patid: egen othend=max(t1) if rxtype==5
+bysort patid: egen othend=max(t1) if rxtype==5 & t1!=.
 bysort patid: egen othbegin=min(t0) if rxtype==5
 gen otherantidiabtic = othend-othbegin
-bysort patid: egen metend=max(t1) if rxtype==6
+bysort patid: egen metend=max(t1) if rxtype==6 & t1!=.
 bysort patid: egen metbegin=min(t0) if rxtype==6
 gen metformintic = metend-metbegin
 drop *end *begin
