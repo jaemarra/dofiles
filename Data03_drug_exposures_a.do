@@ -439,7 +439,7 @@ drop erx* flag rxtype_7 seventh seventhtype
 
 save Drug_exposures_a_int
 //#6 Generate and apply censor date
-
+use Drug_exposures_a_int, replace
 egen tx= rowmin(tod2 deathdate2 lcd2 studyenddate)
 label var tx "Censor date: earliest of tod, deathdate, lcd, studyenddate"
 format tx %td
@@ -603,13 +603,29 @@ replace tcc=lastdate-firstdate if lastdate!=. &firstdate!=.
 label var tcc "Time between cohort entry date and censor date in days"
 
 //then generate the time between the first exposure to each class and the censor date
-foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
-bysort patid: egen `var'end=max(t1) if rxtype==`var'
-bysort patid: egen `var'begin=min(t0) if rxtype==`var'
-gen `var'tic = `var'end-`var'begin
-label var `var'tic "Time between index date and censor date in days for `var'"
-drop `var'end `var'begin
-}
+
+bysort patid: egen suend=max(t1) if rxtype==0
+bysort patid: egen subegin=min(t0) if rxtype==0
+gen sulfonylureatic = suend-subegin
+bysort patid: egen dppend=max(t1) if rxtype==1
+bysort patid: egen dppbegin=min(t0) if rxtype==1
+gen dpptic = dppend-dppbegin
+bysort patid: egen glpend=max(t1) if rxtype==2
+bysort patid: egen glpbegin=min(t0) if rxtype==2
+gen glptic = glpend-glpbegin
+bysort patid: egen insend=max(t1) if rxtype==3
+bysort patid: egen insbegin=min(t0) if rxtype==3
+gen insulintic =insend-insbegin
+bysort patid: egen tzdend=max(t1) if rxtype==4
+bysort patid: egen tzdbegin=min(t0) if rxtype==4
+gen tzdtic = tzdend-tzdbegin
+bysort patid: egen othend=max(t1) if rxtype==5
+bysort patid: egen othbegin=min(t0) if rxtype==5
+gen otherantidiabtic = othend-othbegin
+bysort patid: egen metend=max(t1) if rxtype==6
+bysort patid: egen metbegin=min(t0) if rxtype==6
+gen metformintic = metend-metbegin
+drop *end *begin
 
 //then generate the duration of each t0/t1 interval 
 replace duration=t1-t0 if t1!=. & t0!=.
@@ -617,7 +633,7 @@ replace duration=t1-t0 if t1!=. & t0!=.
 //FINALLY, generate a variable for the total exposed days (duration)
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
 gen `var'totexp = .
-bysort patid: replace `var'totexp=`var'tic -`var'gaptot
+bysort patid rxtype: replace `var'totexp=`var'tic -`var'gaptot if `var'tic!=.&`var'gaptot!=.
 label var `var'totexp "Total days exposed to `var'"
 notes `var'totexp: Calculation is time from index date to censor date minus gaps
 }
@@ -680,16 +696,16 @@ gen exposuret0=.
 replace exposuret0=t0 if exporder!=.
 gen exposuret1=.
 replace exposuret1=t1s if exposuret0!=.
-bysort patid rxtype:egen exposuretf=max(t1)
+bysort patid rxtype:egen exposuretf=max(t1) if t1!=.
 drop if exposuret0==.
 fillin patid rxtype
 bysort patid rxtype exporder: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
-save adm_drug_exposures_tidy.dta
+save adm_drug_exposures_tidy.dta, replace
 keep patid rxtype exposuret0 exposuret1 exposuretf
 reshape wide exposuret0 exposuret1 exposuretf, i(patid) j(rxtype)
-save Drug_Exposures_a_wide.dta
+save Drug_Exposures_a_wide.dta, replace
 merge m:1 patid using Analytic_variables_a, keep(match master) nogen
 /////////////////////////////////////////FOR INITIAL DATA EXTRACTION, YOU CAN USE THE CODE BELOW TO GET SOME DESCRIPTIVE STATS////////////////////////////////////////
 /*
