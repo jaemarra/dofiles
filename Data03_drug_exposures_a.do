@@ -579,6 +579,10 @@ replace t1=tx if t1>=tx
 replace t0=tx if t0>=tx
 
 //Generate gap counts
+foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab {
+replace `var'_gap=t1-t0 if exposure_b==0
+replace `var'_gap=. if exposure_b==1
+}
 bysort patid rxtype: gen sulfonylureagaprun = sum(sulfonylurea_gap) if (sulfonylurea_gap>=1 & sulfonylurea_gap<. &exposure_b==0& rxtype==0)
 bysort patid rxtype: gen dppgaprun = sum(dpp_gap) if (dpp_gap>=1 & dpp_gap<. &exposure_b==0& rxtype==1)
 bysort patid rxtype: gen glpgaprun = sum(glp_gap) if (glp_gap>=1 & glp_gap<. &exposure_b==0& rxtype==2)
@@ -588,7 +592,7 @@ bysort patid rxtype: gen otherantidiabgaprun = sum(otherantidiab_gap) if (othera
 bysort patid rxtype: gen metformingaprun = sum(metformin_gap) if (metformin_gap>=1 & metformin_gap<. &exposure_b==0& rxtype==6)
 
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
-bysort patid rxtype: egen `var'gaptot = max(`var'gaprun) if `var'gaprun!=.
+bysort patid: egen `var'gaptot = max(`var'gaprun) if `var'gaprun!=.
 drop `var'gaprun
 label var `var'gaptot "Total days of gaps in `var' exposure per patid"
 }
@@ -601,9 +605,7 @@ format lastdate %td
 gen tcc=.
 replace tcc=lastdate-firstdate if lastdate!=. &firstdate!=.
 label var tcc "Time between cohort entry date and censor date in days"
-
 //then generate the time between the first exposure to each class and the censor date
-
 bysort patid: egen suend=max(t1) if rxtype==0
 bysort patid: egen subegin=min(t0) if rxtype==0
 gen sulfonylureatic = suend-subegin
