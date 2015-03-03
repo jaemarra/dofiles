@@ -270,6 +270,7 @@ xfill crx0, i(patid)
 sort patid second
 bysort patid second: gen flag=_n if second==1
 egen secondadmrx=concat(crx6 crx0 crx1 crx2 crx3 crx4 crx5) if flag==1
+gen seconddate=indexdate
 drop crx* flag rxtype_i
 
 //generate an indicator for WHOLE BASE COHORT (165292) patients with a third antidiabetic exposure
@@ -709,42 +710,37 @@ save adm_drug_exposures_tidy.dta, replace
 keep patid rxtype exposuret0 exposuret1 exposuretf
 reshape wide exposuret0 exposuret1 exposuretf, i(patid) j(rxtype)
 save Drug_Exposures_a_wide.dta, replace
-forval i=0 {
-label var Exposuret0`i' "First ever exposure to Sulfonylurea"
-lavel var Exposuret1`i' "Last CONTINUOUS exposure to Sulfonylurea"
-label var Exposuretf`i' "Last ever exposure to Sulfonylurea"
-}
-forval i=1 {
-label var Exposuret0`i' "First ever exposure to glucagon-like pepide-1 receptor agonist"
-lavel var Exposuret1`i' "Last CONTINUOUS exposure to glucagon-like pepide-1 receptor agonist"
-label var Exposuretf`i' "Last ever exposure to glucagon-like pepide-1 receptor agonist"
-}
-forval i=2 {
-label var Exposuret0`i' "First ever exposure to dipeptidyl peptidase-4 inhibitor"
-lavel var Exposuret1`i' "Last CONTINUOUS exposure to dipeptidyl peptidase-4 inhibitor"
-label var Exposuretf`i' "Last ever exposure to dipeptidyl peptidase-4 inhibitor"
-}
-forval i=3 {
-label var Exposuret0`i' "First ever exposure to insulin"
-lavel var Exposuret1`i' "Last CONTINUOUS exposure to insulin"
-label var Exposuretf`i' "Last ever exposure to insulin"
-}
-forval i=4 {
-label var Exposuret0`i' "First ever exposure to thiazolidinedione"
-lavel var Exposuret1`i' "Last CONTINUOUS exposure to thiazolidinedione"
-label var Exposuretf`i' "Last ever exposure to thiazolidinedione"
-}
-forval i=5 {
-label var Exposuret0`i' "First ever exposure to any other antidiabetic"
-lavel var Exposuret1`i' "Last CONTINUOUS exposure to any other antidiabetic"
-label var Exposuretf`i' "Last ever exposure to any other antidiabetic"
-}
-forval i=6 {
-label var Exposuret0`i' "First ever exposure to metformin"
-lavel var Exposuret1`i' "Last CONTINUOUS exposure to metformin"
-label var Exposuretf`i' "Last ever exposure to metformin"
+label var exposuret00 "First ever exposure to Sulfonylurea"
+label var exposuret10 "Last CONTINUOUS exposure to Sulfonylurea"
+label var exposuretf0 "Last ever exposure to Sulfonylurea"
+label var exposuret01 "First ever exposure to glucagon-like pepide-1 receptor agonist"
+label var exposuret11 "Last CONTINUOUS exposure to glucagon-like pepide-1 receptor agonist"
+label var exposuretf1 "Last ever exposure to glucagon-like pepide-1 receptor agonist"
+label var exposuret02 "First ever exposure to dipeptidyl peptidase-4 inhibitor"
+label var exposuret12 "Last CONTINUOUS exposure to dipeptidyl peptidase-4 inhibitor"
+label var exposuretf2 "Last ever exposure to dipeptidyl peptidase-4 inhibitor"
+label var exposuret03 "First ever exposure to insulin"
+label var exposuret13 "Last CONTINUOUS exposure to insulin"
+label var exposuretf3 "Last ever exposure to insulin"
+label var exposuret04 "First ever exposure to thiazolidinedione"
+label var exposuret14 "Last CONTINUOUS exposure to thiazolidinedione"
+label var exposuretf4 "Last ever exposure to thiazolidinedione"
+label var exposuret05 "First ever exposure to any other antidiabetic"
+label var exposuret15 "Last CONTINUOUS exposure to any other antidiabetic"
+label var exposuretf5 "Last ever exposure to any other antidiabetic"
+label var exposuret06 "First ever exposure to metformin"
+label var exposuret16 "Last CONTINUOUS exposure to metformin"
+label var exposuretf6 "Last ever exposure to metformin"
+format exposure* %td
+
+foreach numb in first second third fourth fifth sixth seventh {
+label var `numb'admrx "The `numb' antidiabetic regimen"
+labe var `numb'date "The date associated with the `numb' antidiabetic regimen"
 }
 merge m:1 patid using Analytic_variables_a, keep(match master) nogen
+label var tx "Censor date calculated as first of lcd, dod, tod, deathdate"
+label var cohort_b "Binary indicator; 1=metformin first only cohort; 0=not in cohort"
+label var unqrx "Number of unique antidiabetic medications"
 save Drug_Exposures_a_wide.dta, replace
 /////////////////////////////////////////FOR INITIAL DATA EXTRACTION, YOU CAN USE THE CODE BELOW TO GET SOME DESCRIPTIVE STATS////////////////////////////////////////
 /*
