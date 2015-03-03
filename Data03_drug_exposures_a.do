@@ -125,7 +125,9 @@ use adm_drug_exposures, clear
 
 //identify combo pills and account for each class exposure (metformin, tzd, and dpp)
 egen codesum=rowtotal(metformin tzd dpp glp insulin otherantidiab sulfonylurea)
+label var codesum "Indicator for combo pills: 1=not combo; >1=combo pill"
 expand codesum, generate(integratedrx)
+label var integratedrx "Indicator for part of a combo pill: 1=orginially combo"
 replace rxtype= 7 if codesum==2&metformin==1&dpp==1
 replace rxtype= 8 if codesum==2&metformin==1&tzd==1
 replace metformin=0 if integratedrx==1
@@ -220,6 +222,7 @@ replace rxtype=6 if rxtype==8& metformin==1
 replace rxtype=4 if rxtype==8& tzd==1
 replace rxtype=6 if rxtype==7& metformin==1
 replace rxtype=1 if rxtype==7& dpp==1
+drop integratedrx
 //recast counts
 drop wirxtypeorder classexp exporder
 sort patid rxtype rxdate2
@@ -611,29 +614,36 @@ label var tcc "Time between cohort entry date and censor date in days"
 bysort patid: egen suend=max(t1) if rxtype==0 & t1!=.
 bysort patid: egen subegin=min(t0) if rxtype==0
 gen sulfonylureatic = suend-subegin
+label var sulfonylureatic "The total days between 1st and censor or last date of exposure to su"
 bysort patid: egen dppend=max(t1) if rxtype==1 & t1!=.
 bysort patid: egen dppbegin=min(t0) if rxtype==1
 gen dpptic = dppend-dppbegin
+label var dpptic "The total days between 1st and censor or last date of exposure to dpp"
 bysort patid: egen glpend=max(t1) if rxtype==2 & t1!=.
 bysort patid: egen glpbegin=min(t0) if rxtype==2
 gen glptic = glpend-glpbegin
+label var glptic "The total days between 1st and censor or last date of exposure to glp"
 bysort patid: egen insend=max(t1) if rxtype==3 & t1!=.
 bysort patid: egen insbegin=min(t0) if rxtype==3
 gen insulintic =insend-insbegin
+label var insulintic "The total days between 1st and censor or last date of exposure to ins"
 bysort patid: egen tzdend=max(t1) if rxtype==4 & t1!=.
 bysort patid: egen tzdbegin=min(t0) if rxtype==4
 gen tzdtic = tzdend-tzdbegin
+label var tzdtic "The total days between 1st and censor or last date of exposure to tzd"
 bysort patid: egen othend=max(t1) if rxtype==5 & t1!=.
 bysort patid: egen othbegin=min(t0) if rxtype==5
 gen otherantidiabtic = othend-othbegin
+label var otherantidiabtic "The total days between 1st and censor or last date of exposure to oth"
 bysort patid: egen metend=max(t1) if rxtype==6 & t1!=.
 bysort patid: egen metbegin=min(t0) if rxtype==6
 gen metformintic = metend-metbegin
+label var metformintic "The total days between 1st and censor or last date of exposure to met"
 drop *end *begin
 
 //then generate the duration of each t0/t1 interval 
 replace duration=t1-t0 if t1!=. & t0!=.
-
+label var duration "Duration of exposure for each prescription or prescription gap interval" 
 //FINALLY, generate a variable for the total exposed days (duration)
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab	{
 gen `var'totexp = .
@@ -647,6 +657,7 @@ sort patid rxdate2 rxtype
 gen ts=.
 replace ts=t1[_n-1] if exposure_b==0
 bysort patid: egen t1s=min(ts)
+label var t1s "Last continuous exposure to class; stands for t1'short'"
 drop ts
 format t1s %td
 //Create a variable for ever used `var'
@@ -673,6 +684,15 @@ notes: ever`i': rxtype key: 0=Sulfonylurea; 1=DPP-4i; 2=GLP-1RA; 3=Insulin; 4=TZ
 
 bysort patid: egen unqrx=max(exporder)
 //save a copy of the file at this point
+
+//Tidy up the labels
+label var firstadmrx "The first antidiabetic regimen"
+label var firstadmrxdate "The date associated with the first antidiabetic regimen"
+foreach numb in second third fourth fifth sixth seventh {
+label var `numb'admrx "The `numb' antidiabetic regimen"
+labe var `numb'date "The date associated with the `numb' antidiabetic regimen"
+}
+label var unqrx "Number of unique antidiabetic medications"
 save Drug_Exposures_a.dta, replace
 
 //################### generate "dates" dataset for future use########################
@@ -686,15 +706,38 @@ clear
 
 //################### generate "analytic variables" dataset for  use########################
 use Drug_Exposures_a.dta
-keep patid firstadmrx firstadmrxdate secondadmrx indext0 thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx
-xfill firstadmrx firstadmrxdate secondadmrx indext0 thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate, i(patid)
-collapse (first) firstadmrx firstadmrxdate secondadmrx indext0 thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate tx cohort_b unqrx, by(patid)
-//merge with analytic variables.dta file generated in Data01_import.do: patid linked_b lcd2 tod2 deathdate2 dod2
+keep patid firstadmrx firstadmrxdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx
+xfill firstadmrx firstadmrxdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate, i(patid)
+collapse (first) firstadmrx firstdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx, by(patid)
+//tidy labels
+label var firstadmrx "The first antidiabetic regimen"
+label var firstadmrxdate "The date associated with the first antidiabetic regimen"
+foreach numb in second third fourth fifth sixth seventh {
+label var `numb'admrx "The `numb' antidiabetic regimen"
+labe var `numb'date "The date associated with the `numb' antidiabetic regimen"
+}
+local x=0
+local names "sulfonylurea GLP-1RA DPP-4I insulin thiazolidinedione other-antidiabetic metformin"
+forval i=0/6	{
+local x= `x'+1
+local next:word `x' of `names'
+label var ever`i' "Indicator for ever exposed: 1=exposed to `next' otherwise missing "
+}
+label var tx "Censor date: calculated as earliest of lcd, tod, dod, deathdate, and end"
+label var cohort_b "Metformin only first cohort: 1=met first; 0=other or met combo first"
+label var unqrx "Total number of unique antidiabetic classes exposed to"
+//merge with analytic variables.dta file generated in Data01_import.do: patid linked_practices hes_e death_e lsoa_e cprd_e start end lcd2 tod2 deathdate2 dod2
 merge 1:1 patid using Analytic_variables, keep(match master) nogen
+label var linked_practice "Indicator for linked practices: 1=linked to any secondary source; 0=cprd only source"
+label var hes_e "Indicator for linked to HES: 1=linked; 0=not linked"
+label var death_e "Indicator for linked to ONS: 1=linked; 0=not linked"
+label var lsoa_e "Indicator for linked to LSOA: 1=linked; 0=not linked"
+label var cprd_e "Indicator for CPRD: 1 for all patids"
+label var start "Start date of study data calculated as latest date of ONS, HES, CPRD"
+label var end "End date of study data calculated as earliest date of ONS, HES, CPRD"
 save Analytic_variables_a.dta, replace
-
 //############################## generate wide dataset for ###################################
-use Drug_Exposures_a.dta
+use Drug_Exposures_a.dta, clear
 keep patid rxtype t0 t1 t1s exporder exposure_b
 gen exposuret0=.
 replace exposuret0=t0 if exporder!=.
@@ -702,41 +745,28 @@ gen exposuret1=.
 replace exposuret1=t1s if exposuret0!=.
 bysort patid rxtype:egen exposuretf=max(t1) if t1!=.
 drop if exposuret0==.
+format exposure* %td
+//rectangularize
 fillin patid rxtype
+//drop duplicates
 bysort patid rxtype exporder: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
 save adm_drug_exposures_tidy.dta, replace
+//reshape to wide
 keep patid rxtype exposuret0 exposuret1 exposuretf
 reshape wide exposuret0 exposuret1 exposuretf, i(patid) j(rxtype)
-save Drug_Exposures_a_wide.dta, replace
-label var exposuret00 "First ever exposure to Sulfonylurea"
-label var exposuret10 "Last CONTINUOUS exposure to Sulfonylurea"
-label var exposuretf0 "Last ever exposure to Sulfonylurea"
-label var exposuret01 "First ever exposure to glucagon-like pepide-1 receptor agonist"
-label var exposuret11 "Last CONTINUOUS exposure to glucagon-like pepide-1 receptor agonist"
-label var exposuretf1 "Last ever exposure to glucagon-like pepide-1 receptor agonist"
-label var exposuret02 "First ever exposure to dipeptidyl peptidase-4 inhibitor"
-label var exposuret12 "Last CONTINUOUS exposure to dipeptidyl peptidase-4 inhibitor"
-label var exposuretf2 "Last ever exposure to dipeptidyl peptidase-4 inhibitor"
-label var exposuret03 "First ever exposure to insulin"
-label var exposuret13 "Last CONTINUOUS exposure to insulin"
-label var exposuretf3 "Last ever exposure to insulin"
-label var exposuret04 "First ever exposure to thiazolidinedione"
-label var exposuret14 "Last CONTINUOUS exposure to thiazolidinedione"
-label var exposuretf4 "Last ever exposure to thiazolidinedione"
-label var exposuret05 "First ever exposure to any other antidiabetic"
-label var exposuret15 "Last CONTINUOUS exposure to any other antidiabetic"
-label var exposuretf5 "Last ever exposure to any other antidiabetic"
-label var exposuret06 "First ever exposure to metformin"
-label var exposuret16 "Last CONTINUOUS exposure to metformin"
-label var exposuretf6 "Last ever exposure to metformin"
-format exposure* %td
-
-foreach numb in first second third fourth fifth sixth seventh {
-label var `numb'admrx "The `numb' antidiabetic regimen"
-labe var `numb'date "The date associated with the `numb' antidiabetic regimen"
+local x=0
+local names "sulfonylurea GLP-1RA DPP-4I insulin thiazolidinedione other-antidiabetic metformin"
+forval i=0/6	{
+local x= `x'+1
+local next:word `x' of `names'
+label var exposuret0`i' "First ever exposure to `next'"
+label var exposuret1`i' "Last CONTINUOUS exposure to `next'"
+label var exposuretf`i' "Last ever exposure to `next'"
 }
+save Drug_Exposures_a_wide.dta, replace
+//merge with ALL analytic variables
 merge m:1 patid using Analytic_variables_a, keep(match master) nogen
 label var tx "Censor date calculated as first of lcd, dod, tod, deathdate"
 label var cohort_b "Binary indicator; 1=metformin first only cohort; 0=not in cohort"
