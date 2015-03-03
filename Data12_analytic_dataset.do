@@ -16,7 +16,7 @@ timer on 1
 // 1) Exposure dataset, 2) Immunizations dataset, 3) Demographic dataset, 4) SES dataset, 5) Outcome dataset (already one file containing ///
 // 4 + procedures + all cause hosp), 6) ClinicalCovariate dataset,  7) LabCovariate dataset ) 8) ServicesCovariate dataset 
 
-use Drug_Exposures_A_W.dta
+use Drug_Exposures_a_wide.dta
 merge 1:1 patid using Drug_Exposures_B, nogen
 merge 1:1 patid using Immunisation2, nogen
 merge 1:1 patid using Demographic, nogen
@@ -58,13 +58,13 @@ clear
 
 //TRY MERGING EVERTHING TOGETHER FOR ONE MASTER ANALYIC DATASET!!!!!!!!!!!!
 use Analytic_Dataset_s, clear
-merge 1:1 patid using Analytic_Dataset_c, nogen
-merge 1:1 patid using Analytic_Dataset_i, nogen
-drop if cohort_b==0
+merge 1:1 patid using Analytic_Dataset_c, generate(cohort_ind)
+merge 1:1 patid using Analytic_Dataset_i, generate(index_ind)
+//drop if cohort_b==0
 //35049 patids dropped
-drop if age_cohortdate<30
+//drop if age_cohortdate<30
 //5572 observations dropped
-drop if pcos==1|preg==1|gest_diab==1
+//drop if pcos==1|preg==1|gest_diab==1
 //6840 observations dropped
 datasignature set, reset
 save Analytic_Dataset_Master, replace
