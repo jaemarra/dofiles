@@ -23,6 +23,7 @@ merge 1:1 patid using Demographic, nogen
 merge 1:1 patid using ses, nogen
 merge 1:1 patid using Outcomes, nogen
 merge 1:1 patid using Exclusion_merged, nogen
+merge 1:1 patid using Censor, nognen
 save raw_dataset, replace
 
 //Generate 3 datasets for studyentry, cohortentry and indexdate windows
