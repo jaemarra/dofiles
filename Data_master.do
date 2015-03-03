@@ -362,24 +362,33 @@ do Data11_servicescovariates_c
 				ServicesCovariates_i.dta
 				
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IN PROCESS #11 Data11_analytic_dataset --> Create main analytic cohort by merging 1) Exposure dataset, 2) Immunizations dataset, 		
-//												  3) Demographic dataset, 4) SES dataset, 5) Outcome dataset, 6) Labcovariate dataset, 
-//												  7) Covariate dataset
-//				 							    -apply exclusion criteria (patients age <30 years of age on cohort entry, patients w PCOS, patients who are pregnant) 
-//												-set datasignature at the end of this file
-*/
+#00 Data00_exclusion:	use Clinical001_2-013_2
+						- generate exclusion variables for pcos, pregnancy, and gestational diabetes using cprd clinical files
+						use hes
+						- generate exclusion variables for pcos, pregnancy, and gestational diabetes using hes data
+						use hes_maternity
+						- generate exclusion variable for pregnancy using hes_maternity data
+						- merge all together and keep a maximum value of 1 for each indicator
+*/					
 do Data00_exclusion
 /* Files saved:	Exclusion_cprd.dta
 				Exclusion_hes.dta
 				Exclusion_hes_mat.dta
 				Exclusion_merged.dta
 */
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IN PROCESS #12 Data11_analytic_dataset --> Create main analytic cohort by merging 1) Exposure dataset, 2) Immunizations dataset, 		
+//												  3) Demographic dataset, 4) SES dataset, 5) Outcome dataset, 6) Clinical covariate dataset
+//												  7) Labcovariate dataset, and 8)Services covariate dataset
+//				 							    -merge in exclusion variables (patients age <30 years of age on cohort entry, patients w PCOS, patients who are pregnant) 
+//												-set datasignature at the end of this file
+*/
 do Data12_analytic_dataset
 /* Files saved:	raw_dataset.dta
-				raw_dataset_o.dta
 				Analytic_Dataset_s.dta
 				Analytic_Dataset_c.dta
 				Analytic_Dataset_i.dta
+				Analytic_Dataset_Master.dta
 */
 ////////////////////////////////////////////
 timer off 1
