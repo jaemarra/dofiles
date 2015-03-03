@@ -11,7 +11,7 @@ log using Data09c.log, replace
 timer on 1
 
 //INDEXDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 
-use ClinicalCovariates_i
+use Clinical_Covariates_i
 merge 1:1 patid using hesCovariates_i, keep(match master) nogen
 merge 1:1 patid using Clinical_cci_i, keep(match master) nogen
 merge 1:1 patid using hes_cci_i, keep(match master) nogen
@@ -19,7 +19,7 @@ save ClinicalCovariates_merged_i
 clear
 
 //COHORTENRYDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 										
-use ClinicalCovariates_c
+use Clinical_Covariates_c
 merge 1:1 patid using hesCovariates_c, keep(match master) nogen
 merge 1:1 patid using Clinical_cci_c, keep(match master) nogen
 merge 1:1 patid using hes_cci_c, keep(match master) nogen
@@ -27,7 +27,7 @@ save ClinicalCovariates_merged_c
 clear
 
 //STUDYENTRYDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 
-use ClinicalCovariates_s
+use Clinical_Covariates_s
 merge 1:1 patid using hesCovariates_s, keep(match master) nogen
 merge 1:1 patid using Clinical_cci_s, keep(match master) nogen
 merge 1:1 patid using hes_cci_s, keep(match master) nogen
