@@ -709,7 +709,43 @@ save adm_drug_exposures_tidy.dta, replace
 keep patid rxtype exposuret0 exposuret1 exposuretf
 reshape wide exposuret0 exposuret1 exposuretf, i(patid) j(rxtype)
 save Drug_Exposures_a_wide.dta, replace
+forval i=0 {
+label var Exposuret0`i' "First ever exposure to Sulfonylurea"
+lavel var Exposuret1`i' "Last CONTINUOUS exposure to Sulfonylurea"
+label var Exposuretf`i' "Last ever exposure to Sulfonylurea"
+}
+forval i=1 {
+label var Exposuret0`i' "First ever exposure to glucagon-like pepide-1 receptor agonist"
+lavel var Exposuret1`i' "Last CONTINUOUS exposure to glucagon-like pepide-1 receptor agonist"
+label var Exposuretf`i' "Last ever exposure to glucagon-like pepide-1 receptor agonist"
+}
+forval i=2 {
+label var Exposuret0`i' "First ever exposure to dipeptidyl peptidase-4 inhibitor"
+lavel var Exposuret1`i' "Last CONTINUOUS exposure to dipeptidyl peptidase-4 inhibitor"
+label var Exposuretf`i' "Last ever exposure to dipeptidyl peptidase-4 inhibitor"
+}
+forval i=3 {
+label var Exposuret0`i' "First ever exposure to insulin"
+lavel var Exposuret1`i' "Last CONTINUOUS exposure to insulin"
+label var Exposuretf`i' "Last ever exposure to insulin"
+}
+forval i=4 {
+label var Exposuret0`i' "First ever exposure to thiazolidinedione"
+lavel var Exposuret1`i' "Last CONTINUOUS exposure to thiazolidinedione"
+label var Exposuretf`i' "Last ever exposure to thiazolidinedione"
+}
+forval i=5 {
+label var Exposuret0`i' "First ever exposure to any other antidiabetic"
+lavel var Exposuret1`i' "Last CONTINUOUS exposure to any other antidiabetic"
+label var Exposuretf`i' "Last ever exposure to any other antidiabetic"
+}
+forval i=6 {
+label var Exposuret0`i' "First ever exposure to metformin"
+lavel var Exposuret1`i' "Last CONTINUOUS exposure to metformin"
+label var Exposuretf`i' "Last ever exposure to metformin"
+}
 merge m:1 patid using Analytic_variables_a, keep(match master) nogen
+save Drug_Exposures_a_wide.dta, replace
 /////////////////////////////////////////FOR INITIAL DATA EXTRACTION, YOU CAN USE THE CODE BELOW TO GET SOME DESCRIPTIVE STATS////////////////////////////////////////
 /*
 //Duration between cohort entry date and initial exposure to a second antidiabetic agent
