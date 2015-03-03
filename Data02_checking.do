@@ -77,12 +77,6 @@ codebook, compact
 mdesc
 log close
 
-
-
-
-
-
-
-
+timer off 1
 
 

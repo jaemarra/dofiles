@@ -194,7 +194,7 @@ save Analytic_variables.dta, replace
 restore
 //create an abbreviated dataset of the dates needed to censor each patient (end of reliable data)
 preserve
-keep patid tod2 deathdate2 lcd2 end_h end_o start_g start_h start_o linked_b
+keep patid tod2 deathdate2 crd2 lcd2 end_h end_o start_g start_h start_o linked_b
 save Censor.dta, replace
 restore
 //create abbreviated BaseCohort with ONLY patid, studyentrydate_cprd2, and pracid

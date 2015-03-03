@@ -32,7 +32,7 @@ use patid_date.dta
 compress
 codebook, compact
 hist studyentrydate, frequency
-save graph patid_date_studyentrydate,gph
+save graph patid_date_studyentrydate.gph
 log close
 
 //Patient
