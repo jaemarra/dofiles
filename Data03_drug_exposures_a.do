@@ -441,9 +441,7 @@ bysort patid seventh: gen flag=_n if seventh==1
 egen seventhadmrx=concat(erx6 erx0 erx1 erx2 erx3 erx4 erx5) if flag==1
 drop erx* flag rxtype_7 seventh seventhtype  
 
-save Drug_exposures_a_int
 //#6 Generate and apply censor date
-use Drug_exposures_a_int, replace
 egen tx= rowmin(tod2 deathdate2 lcd2 studyenddate)
 label var tx "Censor date: earliest of tod, deathdate, lcd, studyenddate"
 format tx %td
