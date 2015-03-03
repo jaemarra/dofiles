@@ -442,8 +442,8 @@ egen seventhadmrx=concat(erx6 erx0 erx1 erx2 erx3 erx4 erx5) if flag==1
 drop erx* flag rxtype_7 seventh seventhtype  
 
 //#6 Generate and apply censor date
-egen tx= rowmin(tod2 deathdate2 lcd2 studyenddate)
-label var tx "Censor date: earliest of tod, deathdate, lcd, studyenddate"
+egen tx= rowmin(tod2 deathdate2 lcd2 end_h)
+label var tx "Censor date: earliest of tod, deathdate, lcd, and end of HES coverage"
 format tx %td
 
 //#7 Generate predicted and next prescription date WITHIN EACH CLASS

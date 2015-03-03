@@ -1,5 +1,5 @@
 //  program:    Data03_drug_exposures_b.do
-//  task:		Generate variables indicating drug exposures in CPRD Dataset, using individual Therapy files
+//  task:		Generate variables indicating subclass antidiabetic drug exposures in CPRD Dataset using individual Therapy files
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     MA \ May2014 Modified JM \ Jan2015
 
@@ -211,6 +211,9 @@ label variable insulin_ultralong "Ultra-long Insulin exposure: 0=no exp, 1=exp"
 label variable insulin_premixed "Pre-mixed Insulin exposure: 0=no exp, 1=exp"
 label variable insulin_combo "Insulin exposure combination of ind agents: 0=no exp, 1=exp"
 label var unqrx "Total number of unique antidiabetic subclasses exposed to"
+forval i=0/49 {		
+	erase drugexpb`i'.dta
+	}
 save Drug_Exposures_B.dta, replace
 
 ////////////////////////////////////////////

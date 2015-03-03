@@ -23,28 +23,38 @@ drop if patid==.
 gen cprd_e = .
 replace cprd_e = 1 if patientinbuild==1
 //generate variables start and end from linkage_coverage.txt (latest start date, earliest end date)
-gen startdate =  "01jan1998" if death_e==1
-replace startdate = "01apr1998" if hes_e==1
-replace startdate = "01jan2001" if cprd_e==1 
-gen start = date(startdate, "DMY")
-format start %td
-gen enddate = "31mar2012" if cprd_e ==1
-replace enddate = "31mar2012" if hes_e==1
-replace enddate = "10jan2012" if death_e==1
-gen end = date(enddate, "DMY")
+//*******start gold should be latest of frd crd or 2001***********
+gen startdate_o =  "01jan1998" if death_e==1
+gen startdate_h = "01apr1997" if hes_e==1
+gen startdate_g = "01jan2001" if cprd_e==1 
+gen start_o = date(startdate_o, "DMY")
+gen start_h = date(startdate_h, "DMY")
+gen start_g = date(startdate_g, "DMY")
+format start* %td
+drop startdate*
+
+gen enddate_h = "31mar2012" if hes_e==1
+gen enddate_o = "10jan2012" if death_e==1
+gen end_h = date(enddate_h, "DMY")
+gen end_o = date(enddate_o, "DMY")
 format end %td
+drop enddate*
 gen linked_b = .
-replace linked_b=1 if linked_practice==1
-label var linked_b "Binary indicator: 1=patient is linked with HES, 0=not linked "
+replace linked_b=1 if hes_e==1&death_e==1&cprd_e==1
+label var linked_b "Binary indicator: 1=patient is linked with HES and ONS, 0=not linked with both "
 //drop irrelevant variables
-drop startdate enddate patientinbuild acceptable_patient
+drop patientinbuild acceptable_patient
 label var hes_e "Binary: 1=eligible for HES linkage, 0=not eligible"
 label var linked_practice "Binary: 1=patient's practice eligible for HES linkage, 0=not eligible"
 label var death_e "Binary: 1=eligible for linkage to ONS death data, 0=not eligible"
 label var lsoa_e "Binary: 1=eligible for IMD/Townsend linkage based on English lower super output area"
 label var cprd_e "Binary: 1=patient found in named build, 0=not found"
+label var start_h "Start date for HES data"
+label var start_o "Start date for ONS data"
+label var start_g "Start date for CPRD-GOLD data"
+label var end_h "End date for HES data"
+label var end_o "End date for ONS data"
 save linkage_eligibility.dta, replace
-
 clear
 
 /*************************CPRD*************************/
@@ -169,7 +179,7 @@ sort patid
 merge m:1 patid using linkage_eligibility
 compress
 //drop irrelevant variables
-drop _merge linked_practice 
+capture drop _merge linked_practice 
 //sort, merge with Practice, compress
 sort pracid
 merge m:1 pracid using Practice
@@ -184,12 +194,7 @@ save Analytic_variables.dta, replace
 restore
 //create an abbreviated dataset of the dates needed to censor each patient (end of reliable data)
 preserve
-keep patid tod2 deathdate2 lcd2
-gen end="31oct2013"
-gen studyenddate=date(end, "DMY")
-drop end
-label var studyenddate "End date for CPRD-GOLD data: 31oct2013"
-format studyenddate %td
+keep patid tod2 deathdate2 lcd2 end_h end_o start_g start_h start_o linked_b
 save Censor.dta, replace
 restore
 //create abbreviated BaseCohort with ONLY patid, studyentrydate_cprd2, and pracid
