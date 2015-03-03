@@ -765,7 +765,6 @@ label var exposuret0`i' "First ever exposure to `next'"
 label var exposuret1`i' "Last CONTINUOUS exposure to `next'"
 label var exposuretf`i' "Last ever exposure to `next'"
 }
-save Drug_Exposures_a_wide.dta, replace
 //merge with ALL analytic variables
 merge m:1 patid using Analytic_variables_a, keep(match master) nogen
 label var tx "Censor date calculated as first of lcd, dod, tod, deathdate"

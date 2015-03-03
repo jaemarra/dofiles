@@ -25,7 +25,7 @@ replace cprd_e = 1 if patientinbuild==1
 //generate variables start and end from linkage_coverage.txt (latest start date, earliest end date)
 gen startdate =  "01jan1998" if death_e==1
 replace startdate = "01apr1998" if hes_e==1
-replace startdate = "01jan2001" if cprd_e ==1 
+replace startdate = "01jan2001" if cprd_e==1 
 gen start = date(startdate, "DMY")
 format start %td
 gen enddate = "31mar2012" if cprd_e ==1
@@ -44,6 +44,7 @@ label var death_e "Binary: 1=eligible for linkage to ONS death data, 0=not eligi
 label var lsoa_e "Binary: 1=eligible for IMD/Townsend linkage based on English lower super output area"
 label var cprd_e "Binary: 1=patient found in named build, 0=not found"
 save linkage_eligibility.dta, replace
+
 clear
 
 /*************************CPRD*************************/
@@ -178,7 +179,7 @@ drop if uts >= studyentrydate_cprd2-365 // THIS IS WHERE WE DROP 16 PATIENTS
 save BaseCohort.dta, replace
 // create an abbreviated dataset to merge with ONS death_patient then into final Analytic Cohort
 preserve
-keep patid linked_b lcd2 tod2 deathdate2
+keep patid lcd2 tod2 deathdate2
 save Analytic_variables.dta, replace
 restore
 //create an abbreviated dataset of the dates needed to censor each patient (end of reliable data)
@@ -486,8 +487,9 @@ duplicates drop patid, force
 drop cause_neonatal1-cause_neonatal8
 compress
 save death_patient_2, replace
+merge 1:1 patid using linkage_eligibility, keep (match using) nogen
 merge 1:1 patid using Analytic_variables.dta, keep (match using) nogen
-keep patid linked_b lcd2 tod2 dod2 deathdate2
+keep patid linked_practice hes_e death_e lsoa_e cprd_e dod2 tod2 deathdate2 lcd2 start end
 save Analytic_variables.dta, replace
 clear 
 
