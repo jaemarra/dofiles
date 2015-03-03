@@ -52,19 +52,19 @@ tab sixthadmrx
 tab seventhadmrx
 //Look at the distribution of total exposure
 hist metformintotexp, frequency
-graph save Data_exposures_a_metformintotexp.gph
+graph save Graph Data_exposures_a_metformintotexp.gph
 hist sulfonylureatotexp, frequency
-graph save Data_exposures_a_sulfonylureatotexp.gph
+graph save Graph Data_exposures_a_sulfonylureatotexp.gph
 hist dpptotexp, frequency
-graph save Data_exposures_a_dpptotexp.gph
+graph save Graph Data_exposures_a_dpptotexp.gph
 hist glptotexp, frequency
-graph save Data_exposures_a_glptotexp.gph
+graph save Graph Data_exposures_a_glptotexp.gph
 hist insulintotexp, frequency
-graph save Data_exposures_a_insulintotexp.gph
+graph save Graph Data_exposures_a_insulintotexp.gph
 hist tzdtotexp, frequency
-graph save Data_exposures_a_tzdtotexp.gph
+graph save Graph Data_exposures_a_tzdtotexp.gph
 hist otherantidiabtotexp, frequency
-graph save Data_exposures_a_otherantidiabtotexp.gph
+graph save Graph Data_exposures_a_otherantidiabtotexp.gph
 //Check that dates are ordered appropriately
 assert indext0<=tx if indext0!=.&tx!=.
 //Check that gaps are all positive and non-gaps are all negative
@@ -84,11 +84,11 @@ describe
 codebook, compact
 mdesc
 hist studyentrydate_cprd2, frequency
-graph save Dates_studyentrydate_cprd2.gph
+graph save Graph Dates_studyentrydate_cprd2.gph
 hist cohortentrydate, frequency
-graph save Dates_cohortentrydate.gph
+graph save Graph Dates_cohortentrydate.gph
 hist indexdate, frequency
-graph save Dates_indexdate.gph
+graph save Graph Dates_indexdate.gph
 log close
 
 //Analytic_variables_a
@@ -108,11 +108,11 @@ tab unqrx
 //confirm that ever6 (ever exposed to metformin) catures all patients with ANY exposure to metformin (>140k)
 unique patid if ever6==1
 hist tx
-graph save Analytic_variables_a_tx.gph
+graph save Graph Analytic_variables_a_tx.gph
 hist firstadmrxdate
-graph save Analytic_variables_a_firstadmrxdate.gph
+graph save Graph Analytic_variables_a_firstadmrxdate.gph
 hist seconddate
-graph save Analytic_variables_a_seconddate.gph
+graph save Graph Analytic_variables_a_seconddate.gph
 log close
 
 //Drug_Exposures_a_wide

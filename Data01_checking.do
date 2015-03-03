@@ -32,7 +32,7 @@ use patid_date.dta
 compress
 codebook, compact
 hist studyentrydate, frequency
-save graph patid_date_studyentrydate.gph
+graph save Graph patid_date_studyentrydate.gph
 log close
 
 //Patient
@@ -46,11 +46,11 @@ codebook, compact
 tab marital
 tab regstat
 hist yob2, frequency
-graph save Patient_yob2.gph
+graph save Graph Patient_yob2.gph
 hist tod2, frequency
-graph save Patient_tod2.gph
+graph save Graph Patient_tod2.gph
 hist deathdate2, frequency
-graph save Patient_deathdate2.gph
+graph save Graph Patient_deathdate2.gph
 log close
 
 //Practice
@@ -62,9 +62,9 @@ compress
 describe
 codebook, compact
 hist lcd
-graph save Practice_lcd.gph
+graph save Graph Practice_lcd.gph
 hist uts
-graph save Practice_uts.gph
+graph save Graph Practice_uts.gph
 log close
 
 //BaseCohort / BasePatidDate / Censor (all from same dataset just keeping different variables)
@@ -80,13 +80,13 @@ tab gender
 tab marital
 tab regstat
 hist reggap
-graph save Base_reggap.gph
+graph save Graph Base_reggap.gph
 hist deathdate2
-graph save Base_deathdate2.gph
+graph save Graph Base_deathdate2.gph
 hist tod2
-graph save Base_tod2.gph
+graph save Graph Base_tod2.gph
 hist yob
-graph save Base_yob.gph
+graph save Graph Base_yob.gph
 log close
 
 //Consultation ********LOTS OF MISSING EVENTDATES???********
@@ -110,7 +110,7 @@ describe
 codebook, compact
 mdesc
 hist eventdate2
-graph save Clinical_eventdate2.gph
+graph save Graph Clinical_eventdate2.gph
 grubbs eventdate2
 log close
 
@@ -134,7 +134,7 @@ compress
 describe
 codebook, compact
 hist eventdate2
-graph save Referral_eventdate2.gph
+graph save Graph Referral_eventdate2.gph
 log close
 
 //Immunisation
@@ -149,7 +149,7 @@ mdesc patid
 mdesc immstype
 tab immstype_name
 hist eventdate2
-graph save Immunisation_eventdate2.gph
+graph save Graph Immunisation_eventdate2.gph
 log close
 
 //Test
@@ -163,9 +163,9 @@ codebook, compact
 mdesc patid
 mdesc enttype
 hist eventdate2
-graph save Test_eventdate2.gph
+graph save Graph Test_eventdate2.gph
 hist studyentrydate_cprd2
-graph save Test_studyentrydate_cprd2.gph
+graph save Graph Test_studyentrydate_cprd2.gph
 log close
 
 //Therapy
@@ -179,9 +179,9 @@ codebook, compact
 mdesc patid
 mdesc gemscriptcode
 hist rxdate2
-graph save Therapy_rxdate2.gph
+graph save Graph Therapy_rxdate2.gph
 hist studyentrydate_cprd2
-graph save Therapy_studyentrydate.gph
+graph save Graph Therapy_studyentrydate.gph
 log close
 timer off 1
 
@@ -196,7 +196,7 @@ codebook, compact
 summ dod2, detail
 tab death_matchrank
 hist dod2
-graph save death_patient_2_dod2.gph
+graph save Graph death_patient_2_dod2.gph
 log close
 log close
 timer off 1
