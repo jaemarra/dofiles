@@ -30,14 +30,14 @@ gen startdate_g = "01jan2001" if cprd_e==1
 gen start_o = date(startdate_o, "DMY")
 gen start_h = date(startdate_h, "DMY")
 gen start_g = date(startdate_g, "DMY")
-format start* %td
+format start_o start_h start_g %td
 drop startdate*
 
 gen enddate_h = "31mar2012" if hes_e==1
 gen enddate_o = "10jan2012" if death_e==1
 gen end_h = date(enddate_h, "DMY")
 gen end_o = date(enddate_o, "DMY")
-format end %td
+format end_h end_o %td
 drop enddate*
 gen linked_b = .
 replace linked_b=1 if hes_e==1&death_e==1&cprd_e==1
