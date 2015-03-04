@@ -1,5 +1,5 @@
-//  program:    Data09a_checking.do
-//  task:		Check .dta files generated in Data09_clinicalcovariates_a for data normality
+//  program:    Data10_checking.do
+//  task:		Check .dta files generated in Data10_labcovariates for data normality
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     JM \ Jan2015
 
@@ -11,81 +11,73 @@ set more off
 timer clear 1
 timer on 1
 
-//DATA09_CLINICALCOVARITES_A
-//Clinical_Covariates_i
+//DATA10_LABCOVARIATES
+//LabCovariates
 clear all
 capture log close
-log using Clinical_Covariates_i.smcl
-use Clinical_Covariates_i.dta
+log using LabCovariates.smcl
+use LabCovariates.dta
+compress
+describe
+mdesc
+codebook, compact
+hist nr_hba1c, frequency
+save graph Graph hba1c_labcovariates.gph
+hist nr_totchol, frequency
+save graph Graph totchol_labcovariates.gph
+hist nr_hdl, frequency
+save graph Graph hdl_labcovariates.gph
+hist nr_ldl, frequency
+save graph Graph ldl_labcovariates.gph
+hist nr_tg, frequency
+save graph Graph tg_labcovariates.gph
+hist nr_scr, frequency
+save graph Graph scr_labcovariates.gph
+hist nr_crcl, frequency
+save graph Graph crcl_labcovariates.gph
+hist nr_albumin, frequency
+save graph Graph albumin_labcovariates.gph
+hist nr_alt, frequency
+save graph Graph alt_labcovariates.gph
+hist nr_ast, frequency
+save graph Graph ast_labcovariates.gph
+hist nr_bilirubin, frequency
+save graph Graph bilirubin_labcovariates.gph
+hist nr_hemoglobin, frequency
+save graph Graph hemoglobin_labcovariates.gph
+
+log close
+
+//LabCovariates_i
+clear all
+capture log close
+log using LabCovariates_i.smcl
+use LabCovariates_i.dta
 compress
 describe
 mdesc
 codebook, compact
 log close
 
-//Clinical_Covariates_c
+//LabCovariates_c
 clear all
 capture log close
-log using Clinical_Covariates_c.smcl
-use Clinical_Covariates_c.dta
-compress
-describe
-mdesc
-codebook, compact
-log close
-
-//Clinical_Covariates_s
-clear all
-capture log close
-log using Clinical_Covariates_s.smcl
-use Clinical_Covariates_s.dta, clear
+log using LabCovariates_c.smcl
+use LabCovariates_c.dta, clear
 compress
 describe
 codebook, compact
 mdesc
 log close
 
-//Clinical_cci_i
+//LabCovariates_s
 clear all
 capture log close
-log using Clinical_cci_i.smcl
-use Clinical_cci_i.dta
+log using LabCovariates_s.smcl
+use LabCovariates_s.dta
 compress
 describe
 codebook, compact
-log close
-
-//Clinical_cci_c
-clear all
-capture log close
-log using Clinical_cci_c.smcl
-use Clinical_cci_c.dta, clear
-compress
-describe
-codebook, compact
-mdesc
-log close
-
-//Clinical_cci_s
-clear all
-capture log close
-log using Clinical_cci_s.smcl
-use Clinical_cci_s.dta, clear
-compress
-describe
-codebook, compact
-mdesc
-log close
-
-//ClinicalCovariates_wt
-clear all
-capture log close
-log using ClinicalCovariates_wt.smcl
-use ClinicalCovariates_wt.dta, clear
-compress
-describe
-codebook, compact
-mdesc
 log close
 
 timer off 1
