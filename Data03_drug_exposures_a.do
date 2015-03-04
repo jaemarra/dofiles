@@ -706,7 +706,7 @@ clear
 use Drug_Exposures_a.dta
 keep patid firstadmrx firstadmrxdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx
 xfill firstadmrx firstadmrxdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate, i(patid)
-collapse (first) firstadmrx firstdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx, by(patid)
+collapse (first) firstadmrx firstadmrxdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx, by(patid)
 //tidy labels
 label var firstadmrx "The first antidiabetic regimen"
 label var firstadmrxdate "The date associated with the first antidiabetic regimen"
