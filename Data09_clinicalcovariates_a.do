@@ -260,7 +260,7 @@ bysort patid covtype eltestdate2: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
 
-save `file'_cov
+save `file'_cov, replace
 }
 clear
 
