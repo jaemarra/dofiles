@@ -16,11 +16,11 @@ foreach file in Clinical001_2 Clinical002_2 Clinical003_2 Clinical004_2 Clinical
 				Clinical009_2 Clinical010_2 Clinical011_2 Clinical012_2 Clinical013_2 {
 use `file', clear
 sort patid
-merge m:1 patid using Dates, keep(match) nogen
+merge m:1 patid using Dates, keep(match using) nogen
 keep if eventdate2>studyentrydate_cprd2
 sort patid
 joinby patid adid using Additional, unmatched(master) _merge(Additional_merge)
-merge m:1 patid using Patient, keep(match) nogen
+merge m:1 patid using Patient, keep(match using) nogen
 compress
 save `file'a.dta, replace
 }
