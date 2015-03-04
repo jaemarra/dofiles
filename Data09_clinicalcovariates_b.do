@@ -57,7 +57,7 @@ replace covtype=8 if heartfail_covar_h ==1
 // Cardiac arrhythmia
 // ICD-10 source: CPRD Diagnostic Codes.xlsx
 gen arrhythmia_covar_h = 0
-replace arrhythmia_covar_h = 1 if regexm(icd, "I44.1|I44.2|I44.3|I45.6|I45.9|I46.X|I47.X|I48.X|I49.X|R00.0|R00.1|R00.8|T82.1|Z45.0|Z95.0|")
+replace arrhythmia_covar_h = 1 if regexm(icd, "I44.1|I44.2|I44.3|I45.6|I45.9|I46.X|I47.X|I48.X|I49.X|R00.0|R00.1|R00.8|T82.1|Z45.0|Z95.0")
 label variable arrhythmia_covar_h "Cardiac arrhythmia (covar) (hes) 1=event 0=noevent"
 //populate covtype
 replace covtype=9 if arrhythmia_covar_h ==1
