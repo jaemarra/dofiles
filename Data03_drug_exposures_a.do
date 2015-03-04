@@ -20,7 +20,7 @@ forval i=0/49 {
 	use Therapy_`i', clear
 
 	merge m:1 patid using Censor, nogen
-	keep patid gemscriptcode rxdate2 qty ndd studyentrydate_cprd2 tod2 deathdate2 lcd2 studyenddate issueseq
+	keep patid gemscriptcode rxdate2 qty ndd studyentrydate_cprd2 tod2 deathdate2 lcd2 end_h end_o issueseq
 	save Therapy_`i'dm, replace
 	clear
 }
@@ -442,8 +442,8 @@ egen seventhadmrx=concat(erx6 erx0 erx1 erx2 erx3 erx4 erx5) if flag==1
 drop erx* flag rxtype_7 seventh seventhtype  
 
 //#6 Generate and apply censor date
-egen tx= rowmin(tod2 deathdate2 lcd2 end_h)
-label var tx "Censor date: earliest of tod, deathdate, lcd, and end of HES coverage"
+egen tx= rowmin(tod2 deathdate2 lcd2)
+label var tx "Censor date: earliest of tod, deathdate, or lcd"
 format tx %td
 
 //#7 Generate predicted and next prescription date WITHIN EACH CLASS
