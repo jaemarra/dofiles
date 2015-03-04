@@ -15,6 +15,7 @@ timer on 1
 use death_patient_2, clear
 merge m:1 patid using Dates, keep(match using) nogen
 keep if dod>studyentrydate_cprd2
+merge m:1 patid using Patient, keep(match using) nogen
 sort patid
 compress
 
@@ -25,7 +26,6 @@ compress
 //PRIMARY OUTCOMES
 //All-cause mortality
 gen death_ons = (dod!=.)
-label var death_ons "Indicator for death, ONS"
 
 // Myocardial Infarction
 // ICD-10 source: Quan, Med Care, 2005 (Table 1)
@@ -35,7 +35,6 @@ replace myoinfarct_o = 1 if regexm(cause, "`micodes'")
 forval i=1/15 {
 replace myoinfarct_o = 1 if regexm(cause`i', "`micodes'")
 }
-label variable myoinfarct_o "MI (ons) 1=event 0=no event"
 
 // Stroke
 // ICD-10 codes for cerebrovascular disease: Quan, Med Care, 2005 (Table 1), modified to include only hemmorage or infarction
@@ -45,7 +44,6 @@ replace stroke_o = 1 if regexm(cause, "`strokecodes'")
 forval i=1/15 {
 replace stroke_o = 1 if regexm(cause`i', "`strokecodes'")
 }
-label variable stroke_o "Stroke (ons) 1=event 0=no event"
 
 // CV death
 // ICD-10 source: Lo Re, PDS, 2012 (Supplemental Appendix C)-- 2 removed as they had exclusions with them
@@ -55,7 +53,7 @@ replace cvdeath_o = 1 if regexm(cause, "`cvdeathcodes'")
 forval i=1/15 {
 replace cvdeath_o = 1 if regexm(cause`i', "`cvdeathcodes'")
 }
-label variable cvdeath_o  "CV Death (ons) 1=event 0=no event"
+
 // Heart failure 
 // ICD-10 code source: Gamble 2011 CircHF (Supplemental- Appendix 1)
 gen heartfail_o = 0
@@ -64,7 +62,6 @@ replace heartfail_o = 1 if regexm(cause, "`hfcodes'")
 forval i=1/15 {
 replace heartfail_o = 1 if regexm(cause`i', "`hfcodes'")
 }
-label variable heartfail_o "Hosp or death due to heart failure (ons) 1=event 0=no event"
 
 // cardiac arrhythmia 
 // ICD-10 code source:
@@ -74,7 +71,6 @@ replace arrhythmia_o = 1 if regexm(cause, "`arrcodes'")
 forval i=1/15	{
 replace arrhythmia_o = 1 if regexm(cause`i', "`arrcodes'")
 }
-label variable arrhythmia_o "Hosp or death due to cardiac arrhythmia (ons) 1=event 0=no event"
 
 // unstable angina (first occurance of hospitalization or death)
 // ICD-10 code source:
@@ -84,7 +80,6 @@ replace angina_o = 1 if regexm(cause, "`angcodes'")
 forval i=1/15 	{
 replace angina_o = 1 if regexm(cause`i', "`angcodes'")
  }
-label variable angina_o "Hosp or death due to unstable angina (ons) 1=event 0=no event"
 
 // #4 Generate dates for events after indexdate and studyentrydate
 sort patid dod
@@ -108,6 +103,23 @@ local outcome myoinfarct_o stroke_o cvdeath_o heartfail_o arrhythmia_o angina_o
 		label var `y'_date_i "Earliest date of death recorded for events after study entry date"
 		}
 collapse (min) cohortentrydate indexdate studyentrydate death_ons myoinfarct_o_date_i stroke_o_date_i cvdeath_o_date_i heartfail_o_date_i arrhythmia_o_date_i angina_o_date_i  myoinfarct_o_date_s stroke_o_date_s cvdeath_o_date_s heartfail_o_date_s arrhythmia_o_date_s angina_o_date_s  (min) myoinfarct_o stroke_o cvdeath_o heartfail_o arrhythmia_o angina_o dod, by(patid)
+//tidy labelling
+label var death_ons "Indicator for death, ONS"
+label variable myoinfarct_o "MI (ons) 1=event 0=no event"
+label variable stroke_o "Stroke (ons) 1=event 0=no event"
+label variable cvdeath_o  "CV Death (ons) 1=event 0=no event"
+label variable heartfail_o "Hosp or death due to heart failure (ons) 1=event 0=no event"
+label variable arrhythmia_o "Hosp or death due to cardiac arrhythmia (ons) 1=event 0=no event"
+label variable angina_o "Hosp or death due to unstable angina (ons) 1=event 0=no event"
+
+foreach x of local outcome {
+label var `x'_date_i "Earliest date of death recorded for events after index date"
+		}
+		
+foreach y of local outcome {
+label var `y'_date_i "Earliest date of death recorded for events after study entry date"
+		}
+		
 compress
 save Outcomes_ons.dta, replace
 
