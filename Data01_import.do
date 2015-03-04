@@ -494,7 +494,7 @@ compress
 save death_patient_2, replace
 merge 1:1 patid using linkage_eligibility, keep (match using) nogen
 merge 1:1 patid using Analytic_variables.dta, keep (match using) nogen
-keep patid linked_practice hes_e death_e lsoa_e cprd_e dod2 tod2 deathdate2 lcd2 start end
+keep patid linked_practice hes_e death_e lsoa_e cprd_e dod2 tod2 deathdate2 lcd2 start_o start_h start_g end_o end_h
 save Analytic_variables.dta, replace
 clear 
 
