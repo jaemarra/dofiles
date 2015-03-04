@@ -111,29 +111,6 @@ label variable pervascdis_h "Peripheral Vascular Disease (hes) 1=event 0=no even
 //gen covtype
 replace covtype=14 if pervascdis_h ==1
 
-egen codesum=rowtotal(myoinfarct_covar_h stroke_covar_h heartfail_covar_h arrhythmia_covar_h angina_covar_h revasc_covar_either hypertension_h afib_h pervascdis_h)
-expand codesum, generate(crosstag)
-local x=0
-local names "myoinfarct_covar_h stroke_covar_h heartfail_covar_h"
-forval i=6/8	{
-local x= `x'+1
-local next:word `x' of `names'
-replace covtype=`i' if codesum==2&crosstag==1&`next'==1
-replace `next'=0 if codesum==2&crosstag==0&`next'==1
-replace arrhythmia_covar_h=0 if codesum==2&crosstag==1&`next'==1
-}
-egen codesum=rowtotal(myoinfarct_covar_h stroke_covar_h heartfail_covar_h arrhythmia_covar_h angina_covar_h revasc_covar_either hypertension_h afib_h pervascdis_h)
-expand codesum, generate(crosstag)
-local x=0
-local names "angina_covar_h revasc_covar_either hypertension_h afib_h pervascdis_h"
-forval i=10/14	{
-local x= `x'+1
-local next:word `x' of `names'
-replace covtype=`i' if codesum==2&crosstag==1&`next'==1
-replace `next'=0 if codesum==2&crosstag==0&`next'==1
-replace arrhythmia_covar_h=0 if codesum==2&crosstag==1&`next'==1
-}
-
 forval i=6/14 {
 replace nr_data=1 if covtype==`i'
 }
