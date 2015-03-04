@@ -13,8 +13,9 @@ timer on 1
 // #1 Use merged hes files generated in Data02_Support
 // Keep only if eventdate2 is before indexdate, drop all non-essential variables for efficiency
 use hes.dta
-merge m:1 patid using Dates, keep(match) nogen
+merge m:1 patid using Dates, keep(match using) nogen
 keep if eventdate2<indexdate
+merge m:1 patid using Patient, keep(match using) nogen
 keep patid studyentrydate_cprd2 cohortentrydate indexdate pracid spno duration icd icd_primary opcs eventdate2
 
 //generate covariate type
@@ -110,8 +111,31 @@ label variable pervascdis_h "Peripheral Vascular Disease (hes) 1=event 0=no even
 //gen covtype
 replace covtype=14 if pervascdis_h ==1
 
-foreach num of numlist 6/14 {
-replace nr_data=1 if covtype==`num'
+egen codesum=rowtotal(myoinfarct_covar_h stroke_covar_h heartfail_covar_h arrhythmia_covar_h angina_covar_h revasc_covar_either hypertension_h afib_h pervascdis_h)
+expand codesum, generate(crosstag)
+local x=0
+local names "myoinfarct_covar_h stroke_covar_h heartfail_covar_h"
+forval i=6/8	{
+local x= `x'+1
+local next:word `x' of `names'
+replace covtype=`i' if codesum==2&crosstag==1&`next'==1
+replace `next'=0 if codesum==2&crosstag==0&`next'==1
+replace arrhythmia_covar_h=0 if codesum==2&crosstag==1&`next'==1
+}
+egen codesum=rowtotal(myoinfarct_covar_h stroke_covar_h heartfail_covar_h arrhythmia_covar_h angina_covar_h revasc_covar_either hypertension_h afib_h pervascdis_h)
+expand codesum, generate(crosstag)
+local x=0
+local names "angina_covar_h revasc_covar_either hypertension_h afib_h pervascdis_h"
+forval i=10/14	{
+local x= `x'+1
+local next:word `x' of `names'
+replace covtype=`i' if codesum==2&crosstag==1&`next'==1
+replace `next'=0 if codesum==2&crosstag==0&`next'==1
+replace arrhythmia_covar_h=0 if codesum==2&crosstag==1&`next'==1
+}
+
+forval i=6/14 {
+replace nr_data=1 if covtype==`i'
 }
 
 //Create a varibale for all eligible test dates (i.e. those with real, in-range nr_data)
@@ -161,7 +185,28 @@ keep patid totcovs covtype prx_covvalue_i prx_cov_i_b
 //Reshape
 reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(covtype)
 
+//Label
+label var totcovs "Number of total clinical covariates with information (HES_i)"
+label variable prx_covvalue_i6 "Myocardial infarction (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b6 "Myocardial infarction (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i7 "Stroke (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b7 "Stroke (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i8 "Heart failure (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b8 "Heart failure (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i9 "Cardiac arrhythmia (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b9 "Cardiac arrhythmia (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i10 "Angina (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b10 "Angina (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i11 "Urgent revascularization (procedure) (hes) 1=event 0=no event"
+label variable prx_cov_i_b11 "Urgent revascularization (procedure) (hes) 1=information 0=no information"
+label variable prx_covvalue_i12 "Hypertension (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b12 "Hypertension (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i13 "Atrial Fibrillation (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b13 "Atrial Fibrillation (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i14 "Peripheral Vascular Disease (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b14 "Peripheral Vascular Disease (covar) (hes) 1=information 0=no information"
 save hesCovariates_i, replace
+
 clear
 
 //COHORTENTRY DATE
@@ -198,6 +243,26 @@ keep patid totcovs covtype prx_covvalue_c prx_cov_c_b
 //Reshape
 reshape wide prx_covvalue_c prx_cov_c_b, i(patid) j(covtype)
 
+//Label
+label var totcovs "Number of total clinical covariates with information (HES_c)"
+label variable prx_covvalue_c6 "Myocardial infarction (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b6 "Myocardial infarction (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c7 "Stroke (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b7 "Stroke (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c8 "Heart failure (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b8 "Heart failure (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c9 "Cardiac arrhythmia (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b9 "Cardiac arrhythmia (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c10 "Angina (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b10 "Angina (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c11 "Urgent revascularization (procedure) (hes) 1=event 0=no event"
+label variable prx_cov_c_b11 "Urgent revascularization (procedure) (hes) 1=information 0=no information"
+label variable prx_covvalue_c12 "Hypertension (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b12 "Hypertension (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c13 "Atrial Fibrillation (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b13 "Atrial Fibrillation (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c14 "Peripheral Vascular Disease (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b14 "Peripheral Vascular Disease (covar) (hes) 1=information 0=no information"
 save hesCovariates_c, replace
 clear
 
@@ -235,6 +300,26 @@ keep patid totcovs covtype prx_covvalue_s prx_cov_s_b
 //Reshape
 reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(covtype)
 
+//Label
+label var totcovs "Number of total clinical covariates with information (HES_s)"
+label variable prx_covvalue_s6 "Myocardial infarction (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b6 "Myocardial infarction (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s7 "Stroke (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b7 "Stroke (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s8 "Heart failure (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b8 "Heart failure (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s9 "Cardiac arrhythmia (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b9 "Cardiac arrhythmia (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s10 "Angina (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b10 "Angina (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s11 "Urgent revascularization (procedure) (hes) 1=event 0=no event"
+label variable prx_cov_s_b11 "Urgent revascularization (procedure) (hes) 1=information 0=no information"
+label variable prx_covvalue_s12 "Hypertension (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b12 "Hypertension (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s13 "Atrial Fibrillation (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b13 "Atrial Fibrillation (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s14 "Peripheral Vascular Disease (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b14 "Peripheral Vascular Disease (covar) (hes) 1=information 0=no information"
 save hesCovariates_s, replace
 clear
 
@@ -259,7 +344,7 @@ rename cci_h_b prx_cci_h_i_b
 rename cci_h prx_ccivalue_h_i 
 label variable prx_ccivalue_h_i "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
 label var prx_cci_h_i_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
-bysort patid: egen cci = max(prx_ccivalue_h_i)
+label var wcharlsum "Weighted Charlson score, note diabetes set to==1"
 keep patid prx_ccivalue_h_i prx_cci_h_i_b wcharlsum
 save hes_cci_i, replace
 clear
@@ -284,7 +369,7 @@ rename cci_h_b prx_cci_h_c_b
 rename cci_h prx_ccivalue_h_c 
 label variable prx_ccivalue_h_c "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
 label var prx_cci_h_c_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
-bysort patid: egen cci = max(prx_ccivalue_h_c)
+label var wcharlsum "Weighted Charlson score, note diabetes set to==1"
 keep patid prx_ccivalue_h_c prx_cci_h_c_b wcharlsum
 save hes_cci_c, replace
 clear
@@ -309,7 +394,7 @@ rename cci_h_b prx_cci_h_s_b
 rename cci_h prx_ccivalue_h_s 
 label variable prx_ccivalue_h_s "Charlson Comrbidity Index (hes) 1=1; 2=2, 3=3, 4>=4"
 label var prx_cci_h_s_b "Charlson Comrbidity Index (hes) 1=event 0 =no event"
-bysort patid: egen cci = max(prx_ccivalue_h_s)
+label var wcharlsum "Weighted Charlson score, note diabetes set to==1"
 keep patid prx_ccivalue_h_s prx_cci_h_s_b wcharlsum
 save hes_cci_s, replace
 clear

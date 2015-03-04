@@ -307,6 +307,7 @@ reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(covtype)
 forval i = 4/14	{
 replace prx_covvalue_i`i' = 0 if prx_covvalue_i`i'==.
 }
+label var totcovs "Number of total clinical covariates with information (gold)"
 label var prx_covvalue_i1 "Most recent covariate value for: Height (index window)"
 label var prx_covvalue_i2 "Most recent covariate value for: Weight (index window)"
 label var prx_covvalue_i3 "Most recent covariate value for: Systolic blood pressure (index window)"
@@ -374,6 +375,7 @@ reshape wide prx_covvalue_c prx_cov_c_b totcovs, i(patid) j(covtype)
 forval i = 4/14	{
 replace prx_covvalue_c`i' = 0 if prx_covvalue_c`i'==.
 }
+label var totcovs "Number of total clinical covariates with information (gold)"
 label var prx_covvalue_c1 "Most recent covariate value for: Height (cohortentry window)"
 label var prx_covvalue_c2 "Most recent covariate value for: Weight (cohortentry window)"
 label var prx_covvalue_c3 "Most recent covariate value for: Systolic blood pressure (cohortentry window)"
@@ -441,6 +443,7 @@ reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(covtype)
 forval i = 4/14	{
 replace prx_covvalue_s`i' = 0 if prx_covvalue_s`i'==.
 }
+label var totcovs "Number of total clinical covariates with information (gold)"
 label var prx_covvalue_s1 "Most recent covariate value for: Height (studyentry window)"
 label var prx_covvalue_s2 "Most recent covariate value for: Weight (studyentry window)"
 label var prx_covvalue_s3 "Most recent covariate value for: Systolic blood pressure (studyentry window)"
@@ -498,7 +501,7 @@ replace cci_g = 3 if wcharlsum == 3
 replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 capture drop ynch* weightch* charlindex smchindx
 generate cci_g_b = 0
-replace cci_g_b=1 if cci_g >=1
+replace cci_g_b=1 if cci_g >=1 &cci_g!=.
 rename cci_g_b prx_cci_g_i_b
 rename cci_g prx_ccivalue_g_i
 label variable prx_ccivalue_g_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
@@ -535,7 +538,7 @@ replace cci_g = 3 if wcharlsum == 3
 replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 capture drop ynch* weightch* charlindex smchindx
 generate cci_g_b = 0
-replace cci_g_b=1 if cci_g >=1
+replace cci_g_b=1 if cci_g >=1 &cci_g!=.
 rename cci_g_b prx_cci_g_c_b
 rename cci_g prx_ccivalue_g_c
 label var prx_ccivalue_g_c "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
@@ -573,7 +576,7 @@ replace cci_g = 3 if wcharlsum == 3
 replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
 capture drop ynch* weightch* charlindex smchindx
 generate cci_g_b = 0
-replace cci_g_b=1 if cci_g >=1
+replace cci_g_b=1 if cci_g >=1 & cci_g!=.
 rename cci_g_b prx_cci_g_s_b
 rename cci_g prx_ccivalue_g_s
 label variable prx_ccivalue_g_s "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
