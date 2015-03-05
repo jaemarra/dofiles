@@ -731,8 +731,6 @@ label var hes_e "Indicator for linked to HES: 1=linked; 0=not linked"
 label var death_e "Indicator for linked to ONS: 1=linked; 0=not linked"
 label var lsoa_e "Indicator for linked to LSOA: 1=linked; 0=not linked"
 label var cprd_e "Indicator for CPRD: 1 for all patids"
-label var start "Start date of study data calculated as latest date of ONS, HES, CPRD"
-label var end "End date of study data calculated as earliest date of ONS, HES, CPRD"
 save Analytic_variables_a.dta, replace
 //############################## generate wide dataset for ###################################
 use Drug_Exposures_a.dta, clear
