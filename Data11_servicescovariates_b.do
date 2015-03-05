@@ -218,7 +218,7 @@ gen prx_serv_h_i_b = 1 if !missing(prx_servdate_h_i)
 //identify number of unique visits
 bysort patid spno: gen temp_visit = cond(_N==1,0,_n)
 //generate binary
-gen prx_serv2_i_b = 0
+gen prx_serv2_h_i_b = 0
 replace prx_serv2_h_i_b = 1 if temp_visit==1
 //Apply service type
 replace servtype2=1 if prx_serv2_h_i_b==1
