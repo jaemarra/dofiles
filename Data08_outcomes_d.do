@@ -13,9 +13,9 @@ timer on 1
 // #1 Merge all outcome files: gold, hes, procedures, ons.
 
 use Outcomes_gold, clear
-merge 1:1 patid using Outcomes_hes, keep(match master using) nogen
-merge 1:1 patid using Outcomes_procedures, keep(match master using) nogen 
-merge 1:1 patid using Outcomes_ons, keep(match master using) nogen
+merge 1:1 patid using Outcomes_hes, keep(match master) nogen
+merge 1:1 patid using Outcomes_procedures, keep(match master) nogen 
+merge 1:1 patid using Outcomes_ons, keep(match master) nogen
 
 // #2 Merge all-cause hospitalization in also
 
