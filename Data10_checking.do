@@ -21,6 +21,10 @@ compress
 describe
 mdesc
 codebook, compact
+tab ckd_ce
+tab ckd_amdrd
+tab ckd_mcg
+tab ckd_cg
 hist nr_hba1c, frequency
 save graph Graph hba1c_labcovariates.gph
 hist nr_totchol, frequency
@@ -45,7 +49,10 @@ hist nr_bilirubin, frequency
 save graph Graph bilirubin_labcovariates.gph
 hist nr_hemoglobin, frequency
 save graph Graph hemoglobin_labcovariates.gph
-
+hist egfr_amdrd, frequency
+save graph Graph egfr_amdrd_labcovariates.gph
+hist egfr_mcg, frequency
+save graph Graph egfr_mcg_labcovariates.gph
 log close
 
 //LabCovariates_i

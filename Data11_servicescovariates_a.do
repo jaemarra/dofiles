@@ -66,46 +66,48 @@ clear
 use Clin_serv
 keep if elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
 //pull out covariate date of interest
-bysort patid servtype : egen prx_covdate_s = max(elgdate2) if elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
-format prx_covdate_s %td
-gen prx_cov_s_b = 1 if !missing(prx_covdate_s)
+bysort patid servtype : egen prx_covdate_g_s = max(elgdate2) if elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
+format prx_covdate_g_s %td
+gen prx_cov_g_s_b = 1 if !missing(prx_covdate_g_s)
 //pull out type of doctor visit
-bysort patid: gen prx_servvalue_s = nr_data
+bysort patid: gen prx_servvalue_g_s = nr_data
 
 //CREATE COUNTS
 //serv_num_un = ennumerates all doctor visits of each type per patient
-bysort patid prx_servvalue_s: generate serv_num_un = _n
+bysort patid prx_servvalue_g_s: generate serv_num_un = _n
 //serv_total_un = max(serv_num_un) = total doctor visits of each type per patient
-bysort patid prx_servvalue_s:egen serv_total_un = max(serv_num_un)
+bysort patid prx_servvalue_g_s:egen serv_total_un = max(serv_num_un)
 //serv_num = ennumerates all doctor visits per patient
 bysort patid: gen serv_num = _n
 //serv_total = max(serv_num) = grand total of doctor visits in window of interest
-bysort patid: egen serv_total = max(serv_num)
+bysort patid: egen serv_total_g_s = max(serv_num)
 
 //Pull most recent date of a doctor appointment
-bysort patid: egen prx_type_servdate_s= max(elgdate)
-format prx_type_servdate_s %td
-keep if elgdate2==prx_type_servdate_s
+bysort patid: egen prx_type_servdate_g_s= max(elgdate)
+format prx_type_servdate_g_s %td
+keep if elgdate2==prx_type_servdate_g_s
 bysort patid: gen dupck= cond(_N==1, 0, _n)
 drop if dupck>1
 
 //Rectangularize data
-fillin patid prx_servvalue_s
+fillin patid prx_servvalue_g_s
 
 //Generate binary
-gen prx_serv_s_b = 0
-replace prx_serv_s_b = 1 if !missing(prx_type_servdate_s)
+gen prx_serv_g_s_b = 0
+replace prx_serv_g_s_b = 1 if !missing(prx_type_servdate_g_s)
 replace servtype=1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid serv_total servtype prx_servvalue_s prx_serv_s_b
+keep patid serv_total_g_s servtype prx_servvalue_g_s prx_serv_g_s_b
 
 bysort patid: gen dupb= cond(_N==1, 0, _n)
 drop if dupb>1
 
 //Reshape
-reshape wide prx_servvalue_s serv_total prx_serv_s_b, i(patid) j(servtype)
-
+reshape wide prx_servvalue_g_s serv_total_g prx_serv_g_s_b, i(patid) j(servtype)
+label var prx_servvalue_g_s "Most recent constype for physician visits in studyentrydate window (gold)"
+label var serv_total_g_s "Total number of physician visits in studyentrydate window (gold)"
+label var prx_serv_g_s_b "Binary indicator: 1=have information; 0:no information (gold)"
 save Clin_serv_s, replace
 clear
 
@@ -115,48 +117,50 @@ use Clin_serv
 keep if elgdate2>=cohortentrydate-365 & elgdate2<cohortentrydate
 
 //pull out type of doctor visit
-bysort patid: gen prx_servvalue_c = nr_data
+bysort patid: gen prx_servvalue_g_c = nr_data
 
 //check for duplicates-NO ACTION
-bysort patid prx_servvalue_c elgdate2: gen dupck= cond(_N==1, 0, _n)
+bysort patid prx_servvalue_g_c elgdate2: gen dupck= cond(_N==1, 0, _n)
 
 //CREATE COUNTS
 //serv_num_un = ennumerates all doctor visits of each type per patient
-bysort patid prx_servvalue_c: generate serv_num_un = _n
+bysort patid prx_servvalue_g_c: generate serv_num_un = _n
 //serv_total_un = max(serv_num_un) = total doctor visits of each type per patient
-bysort patid prx_servvalue_c:egen serv_total_un = max(serv_num_un)
+bysort patid prx_servvalue_g_c:egen serv_total_un = max(serv_num_un)
 //serv_num = ennumerates all doctor visits per patient
 bysort patid: gen serv_num = _n
 //serv_total = max(serv_num) = grand total of doctor visits in window of interest
-bysort patid: egen serv_total = max(serv_num)
+bysort patid: egen serv_total_g_c = max(serv_num)
 
 //Pull most recent date of each type 
-bysort patid prx_servvalue_c: egen prx_type_servdate_c= max(elgdate)
-format prx_type_servdate_c %td
-keep if elgdate2==prx_type_servdate_c
+bysort patid prx_servvalue_g_c: egen prx_type_servdate_g_c= max(elgdate)
+format prx_type_servdate_g_c %td
+keep if elgdate2==prx_type_servdate_g_c
 drop if dupck>1
 
 //Rectangularize data
-fillin patid prx_servvalue_c
+fillin patid prx_servvalue_g_c
 
 //Generate binary
-gen prx_serv_c_b = 0
-replace prx_serv_c_b = 1 if !missing(prx_type_servdate_c)
+gen prx_serv_g_c_b = 0
+replace prx_serv_g_c_b = 1 if !missing(prx_type_servdate_g_c)
 replace servtype=1
 
 // IF WE WANT TO RESHAPE, collapse down to one observation for each patid
-bysort patid: egen prx_servdate_c = max(prx_type_servdate_c)
-format prx_servdate_c %td
-keep if elgdate2==prx_servdate_c
+bysort patid: egen prx_servdate_g_c = max(prx_type_servdate_g_c)
+format prx_servdate_g_c %td
+keep if elgdate2==prx_servdate_g_c
 bysort patid: gen dupck2= cond(_N==1, 0, _n)
 drop if dupck2>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid serv_total servtype prx_servvalue_c prx_serv_c_b
+keep patid serv_total_g_c servtype prx_servvalue_g_c prx_serv_g_c_b
 
 //Reshape
-reshape wide prx_servvalue_c serv_total prx_serv_c_b, i(patid) j(servtype)
-
+reshape wide prx_servvalue_g_c serv_total_g prx_serv_g_c_b, i(patid) j(servtype)
+label var prx_servvalue_g_c "Most recent constype for physician visits in studyentrydate window (gold)"
+label var serv_total_g_c "Total number of physician visits in studyentrydate window (gold)"
+label var prx_serv_g_c_b "Binary indicator: 1=have information; 0:no information (gold)"
 save Clin_serv_c, replace
 clear
 
@@ -166,47 +170,47 @@ use Clin_serv
 keep if elgdate2>=indexdate-365 & elgdate2<indexdate
 
 //pull out type of doctor visit
-bysort patid: gen prx_servvalue_i = nr_data
+bysort patid: gen prx_servvalue_g_i = nr_data
 
 //check for duplicates-NO ACTION
-bysort patid prx_servvalue_i elgdate2: gen dupck= cond(_N==1, 0, _n)
+bysort patid prx_servvalue_g_i elgdate2: gen dupck= cond(_N==1, 0, _n)
 
 //CREATE COUNTS
 //serv_num_un = ennumerates all doctor visits of each type per patient
-bysort patid prx_servvalue_i: generate serv_num_un = _n
+bysort patid prx_servvalue_g_i: generate serv_num_un = _n
 //serv_total_un = max(serv_num_un) = total doctor visits of each type per patient
-bysort patid prx_servvalue_i:egen serv_total_un = max(serv_num_un)
+bysort patid prx_servvalue_g_i:egen serv_total_un = max(serv_num_un)
 //serv_num = ennumerates all doctor visits per patient
 bysort patid: gen serv_num = _n
 //serv_total = max(serv_num) = grand total of doctor visits in window of interest
-bysort patid: egen serv_total = max(serv_num)
+bysort patid: egen serv_total_g_i = max(serv_num)
 
 //Pull most recent date of each type 
-bysort patid prx_servvalue_i: egen prx_type_servdate_i= max(elgdate)
-format prx_type_servdate_i %td
-keep if elgdate2==prx_type_servdate_i
+bysort patid prx_servvalue_g_i: egen prx_type_servdate_g_i= max(elgdate)
+format prx_type_servdate_g_i %td
+keep if elgdate2==prx_type_servdate_g_i
 drop if dupck>1
 
 //Rectangularize data
-fillin patid prx_servvalue_i
+fillin patid prx_servvalue_g_i
 
 //Generate binary
-gen prx_serv_i_b = 0
-replace prx_serv_i_b = 1 if !missing(prx_type_servdate_i)
+gen prx_serv_g_i_b = 0
+replace prx_serv_g_i_b = 1 if !missing(prx_type_servdate_g_i)
 replace servtype=1
 
 // IF WE WANT TO RESHAPE, collapse down to one observation for each patid
-bysort patid: egen prx_servdate_i = max(prx_type_servdate_i)
-format prx_servdate_i %td
-keep if elgdate2==prx_servdate_i
+bysort patid: egen prx_servdate_g_i = max(prx_type_servdate_g_i)
+format prx_servdate_g_i %td
+keep if elgdate2==prx_servdate_g_i
 bysort patid: gen dupck2= cond(_N==1, 0, _n)
 drop if dupck2>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid serv_total servtype prx_servvalue_i prx_serv_i_b
+keep patid serv_total_g_i servtype prx_servvalue_g_i prx_serv_g_i_b
 
 //Reshape
-reshape wide prx_servvalue_i serv_total prx_serv_i_b, i(patid) j(servtype)
+reshape wide prx_servvalue_g_i serv_total_g_i prx_serv_g_i_b, i(patid) j(servtype)
 
 save Clin_serv_i, replace
 clear

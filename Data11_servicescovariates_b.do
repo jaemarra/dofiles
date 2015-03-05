@@ -37,170 +37,170 @@ save hes_serv, replace
 //RESTRICT TO WINDOW OF INTEREST
 use hes_serv, clear
 
-bysort patid: egen prx_servdate_s = max(elgdate2) if elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
-format prx_servdate_s %td
-gen prx_serv_s_b = 1 if !missing(prx_servdate_s)
+bysort patid: egen prx_servdate_h_s = max(elgdate2) if elgdate2>=studyentrydate_cprd2-365 & elgdate2<studyentrydate_cprd2
+format prx_servdate_h_s %td
+gen prx_serv_h_s_b = 1 if !missing(prx_servdate_h_s)
 
 // Based on HES codes
 //Hospital Visits 
 //identify number of unique visits
 bysort patid spno: gen temp_visit = cond(_N==1,0,_n)
 //generate binary
-gen prx_serv2_s_b = 0
-replace prx_serv2_s_b = 1 if temp_visit==1
+gen prx_serv2_h_s_b = 0
+replace prx_serv2_h_s_b = 1 if temp_visit==1
 //Apply service type
-replace servtype2=1 if prx_serv2_s_b==1
+replace servtype2=1 if prx_serv2_h_s_b==1
 //total visits per patient
-bysort patid: egen tot_visits_pptn = total(prx_serv2_s)
+bysort patid: egen tot_visits_pptn = total(prx_serv2_h_s)
 //replace nr_data with total visits per patid
-gen prx_servvalue2_s=.
-replace prx_servvalue2_s = tot_visits_pptn if servtype2==1
+gen prx_servvalue2_h_s=.
+replace prx_servvalue2_h_s = tot_visits_pptn if servtype2==1
 
 //Duration of Hospital Stays
 //identify duration of unique visits from the identified visits above (servtype2)
 gen hosp_duration = . 
-replace hosp_duration = duration if prx_serv2_s_b==1
+replace hosp_duration = duration if prx_serv2_h_s_b==1
 //generate binary
-gen prx_serv3_s_b = 0
-replace prx_serv3_s_b =1 if hosp_duration >0 & hosp_duration <.
+gen prx_serv3_h_s_b = 0
+replace prx_serv3_h_s_b =1 if hosp_duration >0 & hosp_duration <.
 //apply service type
-replace servtype3=1 if prx_serv3_s_b==1
+replace servtype3=1 if prx_serv3_h_s_b==1
 //generate total days in hospital
-bysort patid: egen temp_duration = total(duration) if prx_serv2_s_b==1
+bysort patid: egen temp_duration = total(duration) if prx_serv2_h_s_b==1
 bysort patid: egen tot_duration = max(temp_duration)
 //populate nr_data with total days in hospital
-gen prx_servvalue3_s=.
-replace prx_servvalue3_s = tot_duration if servtype3==1
+gen prx_servvalue3_h_s=.
+replace prx_servvalue3_h_s = tot_duration if servtype3==1
 
 //Hospital Services
 //identify unique services
-gen prx_serv4_s_b = 0
+gen prx_serv4_h_s_b = 0
 bysort patid spno: gen temp_serv = cond(_N==1,0,_n)
-replace prx_serv4_s_b = 1 if temp_serv >0
-label variable prx_serv4_s_b "Hospital services numeric, 1 = 1 sevice per unique spno visit"
-replace servtype4=1 if prx_serv4_s_b==1
+replace prx_serv4_h_s_b = 1 if temp_serv >0
+label variable prx_serv4_h_s_b "Hospital services numeric, 1 = 1 sevice per unique spno visit"
+replace servtype4=1 if prx_serv4_h_s_b==1
 //identify hospital services duplicates- TAKE NO ACTION
 quietly bysort patid spno eventdate2 opcs: gen dupa = cond(_N==1,0,_n)
 //count number of services per visit
 bysort patid spno: egen serv_per_visit= max(temp_visit)
 //total services per patient
-replace serv_per_visit = . if prx_serv4_s_b == 0
+replace serv_per_visit = . if prx_serv4_h_s_b == 0
 bysort patid: egen tot_servs_pptn = total(serv_per_visit)
 //average services per visit per patient
 gen mean_servs =.
 replace mean_servs = (tot_servs_pptn/tot_visits_pptn)
 //replace nr_data with 
-gen prx_servvalue4_s_b=.
-replace prx_servvalue4_s_b = mean_servs if servtype4==1
+gen prx_servvalue4_h_s_b=.
+replace prx_servvalue4_h_s_b = mean_servs if servtype4==1
 
-bysort patid: egen temp_tot_4 = total(prx_serv4_s_b)
-bysort patid: egen temp_tot_2 = total(prx_serv2_s_b)
+bysort patid: egen temp_tot_4 = total(prx_serv4_h_s_b)
+bysort patid: egen temp_tot_2 = total(prx_serv2_h_s_b)
 
-gen totservs_s = .
-replace totservs_s = temp_tot_4 + temp_tot_2
+gen totservs_h_s = .
+replace totservs_h_s = temp_tot_4 + temp_tot_2
 
 //only keep the observations relevant to the current window
-drop if prx_servvalue4_s >=. | prx_servvalue3_s >=. | prx_servvalue2_s >=.
+drop if (prx_servvalue4_h_s >=. | prx_servvalue3_h_s >=. | prx_servvalue2_h_s >=.)
 
 //Check for duplicates
 bysort patid: gen dupck = cond(_N==1,0,_n)
 drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totservs_s prx_serv*
-label var totservs_s "Total services utilized in studyentry window: number of hospital visits + number of hospital services"
-label var prx_servvalue2_s "Number of hospital visits during studyentry window"
-label var prx_servvalue3_s "Number of days spent in hospital during studyentry window"
-label var prx_servvalue4_s "Mean number of hospital services used per visit in studyentry window"
-label var prx_serv4_s_b "Hospital visits binary; 1=at least 1 hospital visit during studyentry window, 0=no hospital visit"
-label var prx_serv3_s_b "Hospital duration binary; 1=hospital duration >=1 day during studyentry window, 0=no hospital duration"
-label var prx_serv2_s_b "Hospital services binary; 1=at least one hospital service during studyentry window, no hospital service"
+keep patid totservs_h_s prx_serv*
+label var totservs_h_s "Total services utilized in studyentry window: number of hospital visits/services (hes)"
+label var prx_servvalue2_h_s "Number of hospital visits during studyentry window (hes)"
+label var prx_servvalue3_h_s "Number of days spent in hospital during studyentry window (hes)"
+label var prx_servvalue4_h_s "Mean number of hospital services used per visit in studyentry window (hes)"
+label var prx_serv4_h_s_b "Bin ind hospital visits (studyentry window): 1=at least; 0=none (hes)"
+label var prx_serv3_h_s_b "Bin ind hosp visit duration (studyentry window): 1=at least 1 day; 0=none (hes)"
+label var prx_serv2_h_s_b "Bin ind hosp services (studyentry window): 1=at least 1 service; 0=none (hes)"
 
-save hes_serv_s, replace
+save hes_serv_h_s, replace
 clear 
 
 //COHORTENTRYDATE
 //pull out dates of interest
 use hes_serv, clear
 
-bysort patid: egen prx_servdate_c = max(elgdate2) if elgdate2>=cohortentrydate-365 & elgdate2<cohortentrydate
-format prx_servdate_c %td
-gen prx_serv_c_b = 1 if !missing(prx_servdate_c)
+bysort patid: egen prx_servdate_h_c = max(elgdate2) if elgdate2>=cohortentrydate-365 & elgdate2<cohortentrydate
+format prx_servdate_h_c %td
+gen prx_serv_h_c_b = 1 if !missing(prx_servdate_h_c)
 
 // Based on HES codes
 //Hospital Visits 
 //identify number of unique visits
 bysort patid spno: gen temp_visit = cond(_N==1,0,_n)
 //generate binary
-gen prx_serv2_c_b = 0
-replace prx_serv2_c_b = 1 if temp_visit==1
+gen prx_serv2_h_c_b = 0
+replace prx_serv2_h_c_b = 1 if temp_visit==1
 //Apply service type
-replace servtype2=1 if prx_serv2_c_b==1
+replace servtype2=1 if prx_serv2_h_c_b==1
 //total visits per patient
-bysort patid: egen tot_visits_pptn = total(prx_serv2_c)
+bysort patid: egen tot_visits_pptn = total(prx_serv2_h_c)
 //replace nr_data with total visits per patid
-gen prx_servvalue2_c=.
-replace prx_servvalue2_c = tot_visits_pptn if servtype2==1
+gen prx_servvalue2_h_c=.
+replace prx_servvalue2_h_c = tot_visits_pptn if servtype2==1
 
 //Duration of Hospital Stays
 //identify duration of unique visits from the identified visits above (servtype2)
 gen hosp_duration = . 
-replace hosp_duration = duration if prx_serv2_c_b==1
+replace hosp_duration = duration if prx_serv2_h_c_b==1
 //generate binary
-gen prx_serv3_c_b = 0
-replace prx_serv3_c_b =1 if hosp_duration >0 & hosp_duration <.
+gen prx_serv3_h_c_b = 0
+replace prx_serv3_h_c_b =1 if hosp_duration >0 & hosp_duration <.
 //apply service type
-replace servtype3=1 if prx_serv3_c_b==1
+replace servtype3=1 if prx_serv3_h_c_b==1
 //generate total days in hospital
-bysort patid: egen temp_duration = total(duration) if prx_serv2_c_b==1
+bysort patid: egen temp_duration = total(duration) if prx_serv2_h_c_b==1
 bysort patid: egen tot_duration = max(temp_duration)
 //populate nr_data with total days in hospital
-gen prx_servvalue3_c=.
-replace prx_servvalue3_c = tot_duration if servtype3==1
+gen prx_servvalue3_h_c=.
+replace prx_servvalue3_h_c = tot_duration if servtype3==1
 
 //Hospital Services
 //identify unique services
-gen prx_serv4_c_b = 0
+gen prx_serv4_h_c_b = 0
 bysort patid spno: gen temp_serv = cond(_N==1,0,_n)
-replace prx_serv4_c_b = 1 if temp_serv >0
-label variable prx_serv4_c_b "Hospital services numeric, 1 = 1 sevice per unique spno visit"
-replace servtype4=1 if prx_serv4_c_b==1
+replace prx_serv4_h_c_b = 1 if temp_serv >0
+label variable prx_serv4_h_c_b "Hospital services numeric, 1 = 1 sevice per unique spno visit"
+replace servtype4=1 if prx_serv4_h_c_b==1
 //identify hospital services duplicates- TAKE NO ACTION
 quietly bysort patid spno eventdate2 opcs: gen dupa = cond(_N==1,0,_n)
 //count number of services per visit
 bysort patid spno: egen serv_per_visit= max(temp_visit)
 //total services per patient
-replace serv_per_visit = . if prx_serv4_c_b == 0
+replace serv_per_visit = . if prx_serv4_h_c_b == 0
 bysort patid: egen tot_servs_pptn = total(serv_per_visit)
 //average services per visit per patient
 gen mean_servs =.
 replace mean_servs = (tot_servs_pptn/tot_visits_pptn)
 //replace nr_data with 
-gen prx_servvalue4_c_b=.
-replace prx_servvalue4_c_b = mean_servs if servtype4==1
+gen prx_servvalue4_h_c_b=.
+replace prx_servvalue4_h_c_b = mean_servs if servtype4==1
 
-bysort patid: egen temp_tot_4 = total(prx_serv4_c_b)
-bysort patid: egen temp_tot_2 = total(prx_serv2_c_b)
+bysort patid: egen temp_tot_4 = total(prx_serv4_h_c_b)
+bysort patid: egen temp_tot_2 = total(prx_serv2_h_c_b)
 
-gen totservs_c = .
-replace totservs_c = temp_tot_4 + temp_tot_2
+gen totservs_h_c = .
+replace totservs_h_c = temp_tot_4 + temp_tot_2
 
 //only keep the observations relevant to the current window
-drop if prx_servvalue4_c >=. | prx_servvalue3_c >=. | prx_servvalue2_c >=.
+drop if (prx_servvalue4_h_c >=. | prx_servvalue3_h_c >=. | prx_servvalue2_h_c >=.)
 
 //Check for duplicates
 bysort patid: gen dupck = cond(_N==1,0,_n)
 drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totservs_c prx_serv*
-label var totservs_c "Total services utilized in cohort window: number of hospital visits + number of hospital services"
-label var prx_servvalue2_c "Number of hospital visits during cohort window"
-label var prx_servvalue3_c "Number of days spent in hospital during cohort window"
-label var prx_servvalue4_c "Mean number of hospital services used per visit in cohort window"
-label var prx_serv4_c_b "Hospital visits binary; 1=at least 1 hospital visit during cohort window, 0=no hospital visit"
-label var prx_serv3_c_b "Hospital duration binary; 1=hospital duration >=1 day during cohort window, 0=no hospital duration"
-label var prx_serv2_c_b "Hospital services binary; 1=at least one hospital service during cohort window, no hospital service"
+keep patid totservs_h_c prx_serv*
+label var totservs_h_c "Total services utilized in cohortent window: number of hospital visits/services (hes)"
+label var prx_servvalue2_h_c "Number of hospital visits during cohortent window (hes)"
+label var prx_servvalue3_h_c "Number of days spent in hospital during cohortent window (hes)"
+label var prx_servvalue4_h_c "Mean number of hospital services used per visit in cohortent window (hes)"
+label var prx_serv4_h_c_b "Bin ind hospital visits (cohortent window): 1=at least; 0=none (hes)"
+label var prx_serv3_h_c_b "Bin ind hosp visit duration (cohortent window): 1=at least 1 day; 0=none (hes)"
+label var prx_serv2_h_c_b "Bin ind hosp services (cohortent window): 1=at least 1 service; 0=none (hes)"
 
 save hes_serv_c, replace
 clear
@@ -209,9 +209,9 @@ clear
 //pull out dates of interest
 use hes_serv, clear
 
-bysort patid: egen prx_servdate_i = max(elgdate2) if elgdate2>=indexdate-365 & elgdate2<indexdate
-format prx_servdate_i %td
-gen prx_serv_i_b = 1 if !missing(prx_servdate_i)
+bysort patid: egen prx_servdate_h_i = max(elgdate2) if elgdate2>=indexdate-365 & elgdate2<indexdate
+format prx_servdate_h_i %td
+gen prx_serv_h_i_b = 1 if !missing(prx_servdate_h_i)
 
 // Based on HES codes
 //Hospital Visits 
@@ -219,74 +219,74 @@ gen prx_serv_i_b = 1 if !missing(prx_servdate_i)
 bysort patid spno: gen temp_visit = cond(_N==1,0,_n)
 //generate binary
 gen prx_serv2_i_b = 0
-replace prx_serv2_i_b = 1 if temp_visit==1
+replace prx_serv2_h_i_b = 1 if temp_visit==1
 //Apply service type
-replace servtype2=1 if prx_serv2_i_b==1
+replace servtype2=1 if prx_serv2_h_i_b==1
 //total visits per patient
-bysort patid: egen tot_visits_pptn = total(prx_serv2_i)
+bysort patid: egen tot_visits_pptn = total(prx_serv2_h_i)
 //replace nr_data with total visits per patid
-gen prx_servvalue2_i=.
-replace prx_servvalue2_i = tot_visits_pptn if servtype2==1
+gen prx_servvalue2_h_i=.
+replace prx_servvalue2_h_i = tot_visits_pptn if servtype2==1
 
 //Duration of Hospital Stays
 //identify duration of unique visits from the identified visits above (servtype2)
 gen hosp_duration = . 
-replace hosp_duration = duration if prx_serv2_i_b==1
+replace hosp_duration = duration if prx_serv2_h_i_b==1
 //generate binary
-gen prx_serv3_i_b = 0
-replace prx_serv3_i_b =1 if hosp_duration >0 & hosp_duration <.
+gen prx_serv3_h_i_b = 0
+replace prx_serv3_h_i_b =1 if (hosp_duration >0 & hosp_duration <.)
 //apply service type
-replace servtype3=1 if prx_serv3_i_b==1
+replace servtype3=1 if prx_serv3_h_i_b==1
 //generate total days in hospital
-bysort patid: egen temp_duration = total(duration) if prx_serv2_i_b==1
+bysort patid: egen temp_duration = total(duration) if prx_serv2_h_i_b==1
 bysort patid: egen tot_duration = max(temp_duration)
 //populate nr_data with total days in hospital
-gen prx_servvalue3_i=.
-replace prx_servvalue3_i = tot_duration if servtype3==1
+gen prx_servvalue3_h_i=.
+replace prx_servvalue3_h_i = tot_duration if servtype3==1
 
 //Hospital Services
 //identify unique services
-gen prx_serv4_i_b = 0
+gen prx_serv4_h_i_b = 0
 bysort patid spno: gen temp_serv = cond(_N==1,0,_n)
-replace prx_serv4_i_b = 1 if temp_serv >0
-label variable prx_serv4_i_b "Hospital services numeric, 1 = 1 sevice per unique spno visit"
-replace servtype4=1 if prx_serv4_i_b==1
+replace prx_serv4_h_i_b = 1 if temp_serv >0
+label variable prx_serv4_h_i_b "Hospital services numeric, 1 = 1 sevice per unique spno visit"
+replace servtype4=1 if prx_serv4_h_i_b==1
 //identify hospital services duplicates- TAKE NO ACTION
 quietly bysort patid spno eventdate2 opcs: gen dupa = cond(_N==1,0,_n)
 //count number of services per visit
 bysort patid spno: egen serv_per_visit= max(temp_visit)
 //total services per patient
-replace serv_per_visit = . if prx_serv4_i_b == 0
+replace serv_per_visit = . if prx_serv4_h_i_b == 0
 bysort patid: egen tot_servs_pptn = total(serv_per_visit)
 //average services per visit per patient
 gen mean_servs =.
 replace mean_servs = (tot_servs_pptn/tot_visits_pptn)
 //replace nr_data with 
-gen prx_servvalue4_i_b=.
-replace prx_servvalue4_i_b = mean_servs if servtype4==1
+gen prx_servvalue4_h_i_b=.
+replace prx_servvalue4_h_i_b = mean_servs if servtype4==1
 
-bysort patid: egen temp_tot_4 = total(prx_serv4_i_b)
-bysort patid: egen temp_tot_2 = total(prx_serv2_i_b)
+bysort patid: egen temp_tot_4 = total(prx_serv4_h_i_b)
+bysort patid: egen temp_tot_2 = total(prx_serv2_h_i_b)
 
-gen totservs_i = .
-replace totservs_i = temp_tot_4 + temp_tot_2
+gen totservs_h_i = .
+replace totservs_h_i = temp_tot_4 + temp_tot_2
 
 //only keep the observations relevant to the current window
-drop if prx_servvalue4_i >=. | prx_servvalue3_i >=. | prx_servvalue2_i >=.
+drop if (prx_servvalue4_h_i >=. | prx_servvalue3_h_i >=. | prx_servvalue2_h_i >=.)
 
 //Check for duplicates
 bysort patid: gen dupck = cond(_N==1,0,_n)
 drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totservs_i prx_serv*
-label var totservs_i "Total services utilized in index window: number of hospital visits + number of hospital services"
-label var prx_servvalue2_i "Number of hospital visits during index window"
-label var prx_servvalue3_i "Number of days spent in hospital during index window"
-label var prx_servvalue4_i "Mean number of hospital services used per visit in index window"
-label var prx_serv4_i_b "Hospital visits binary; 1=at least 1 hospital visit during index window, 0=no hospital visit"
-label var prx_serv3_i_b "Hospital duration binary; 1=hospital duration >=1 day during index window, 0=no hospital duration"
-label var prx_serv2_i_b "Hospital services binary; 1=at least one hospital service during index window, no hospital service"
+keep patid totservs_h_i prx_serv*
+label var totservs_h_i "Total services utilized in index window: number of hospital visits/services (hes)"
+label var prx_servvalue2_h_i "Number of hospital visits during index window (hes)"
+label var prx_servvalue3_h_i "Number of days spent in hospital during index window (hes)"
+label var prx_servvalue4_h_i "Mean number of hospital services used per visit in index window (hes)"
+label var prx_serv4_h_i_b "Bin ind hospital visits (index window): 1=at least; 0=none (hes)"
+label var prx_serv3_h_i_b "Bin ind hosp visit duration (index window): 1=at least 1 day; 0=none (hes)"
+label var prx_serv2_h_i_b "Bin ind hosp services (index window): 1=at least 1 service; 0=none (hes)"
 
 save hes_serv_i, replace
 clear
