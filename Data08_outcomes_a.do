@@ -106,11 +106,12 @@ local outcome myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g 
 		by patid: egen `y'_date_s = min(`y'_date_temp_s)
 		format `y'_date_s %td
 		drop `y'_date_temp_s
-		label var `y'_date_i "Earliest date of episode recorded for events after study entry date"
+		label var `y'_date_s "Earliest date of episode recorded for events after study entry date"
 		}
 
 collapse (min) cohortentrydate indexdate studyentrydate deathdate2 myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i heartfail_g_date_i arrhythmia_g_date_i angina_g_date_i revasc_g_date_i myoinfarct_g_date_s stroke_g_date_s cvdeath_g_date_s heartfail_g_date_s arrhythmia_g_date_s angina_g_date_s revasc_g_date_s (max) death_g myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g revasc_g, by(patid)
 compress
+save Outcomes_gold_`file', replace
 }
 
 use Outcomes_gold_Clinical001_2a, clear 
@@ -125,6 +126,15 @@ foreach file in Outcomes_gold_Clinical002_2a Outcomes_gold_Clinical003_2a Outcom
 use Outcomes_gold.dta
 collapse (min) cohortentrydate indexdate studyentrydate deathdate2 myoinfarct_g_date_i stroke_g_date_i cvdeath_g_date_i heartfail_g_date_i arrhythmia_g_date_i angina_g_date_i revasc_g_date_i myoinfarct_g_date_s stroke_g_date_s cvdeath_g_date_s heartfail_g_date_s arrhythmia_g_date_s angina_g_date_s revasc_g_date_s (max) death_g myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g revasc_g, by(patid)
 compress
+local outcome myoinfarct_g stroke_g cvdeath_g heartfail_g arrhythmia_g angina_g revasc_g 
+
+foreach x of local outcome {
+label var `x'_date_i "Earliest date of episode recorded for events after index date"
+		}
+foreach y of local outcome {
+label var `y'_date_s "Earliest date of episode recorded for events after study entry date"
+}
+
 label variable revasc_g "Revascularization (gold) 1=event 0=no event"
 label variable angina_g "Unstable angina (gold) 1=event 0=no event"
 label variable arrhythmia_g "Cardiac arrhythmia (gold) 1=event 0=no event"
