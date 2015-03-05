@@ -494,8 +494,16 @@ keep patid enttype totlabs prx_testvalue_i prx_test_i_b
 
 //Reshape
 reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(enttype)
-//label var prx_testvalue_i "Value of most proximal, eligible lab test"
-//label var prx_test_i_b "Lab test binary; 1=test, 0=no test"
+local x=0
+local ents "152 155 156 158 163 165 166 173 175 177 202 275"
+local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+forval i=1/12 {
+local x= `x'+1
+local nextname:word `x' of `names'
+local nextent:word `x' of `ents'
+label var prx_testvalue_i`nextent' "Value of most proximal `nextname' test (studyentry window)"
+label var prx_test_i_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
+}
 
 //Save
 save LabCovariates_i.dta, replace
@@ -537,9 +545,16 @@ keep patid totlabs enttype prx_testvalue_c prx_test_c_b
 
 //Reshape
 reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(enttype)
-//label var prx_testvalue_c "Value of most proximal, eligible lab test"
-//label var prx_test_c_b "Lab test binary; 1=test, 0=no test"
-
+local x=0
+local ents "152 155 156 158 163 165 166 173 175 177 202 275"
+local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+forval i=1/12 {
+local x= `x'+1
+local nextname:word `x' of `names'
+local nextent:word `x' of `ents'
+label var prx_testvalue_c`nextent' "Value of most proximal `nextname' test (studyentry window)"
+label var prx_test_c_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
+}
 //Save
 save LabCovariates_c, replace
 clear
@@ -580,9 +595,16 @@ keep patid totlabs enttype prx_testvalue_s prx_test_s_b
 
 //Reshape
 reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(enttype)
-//label var prx_testvalue_s "Value of most proximal, eligible lab test"
-//label var prx_test_s_b "Lab test binary; 1= eligible test, 0=no eligible test"
-
+local x=0
+local ents "152 155 156 158 163 165 166 173 175 177 202 275"
+local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+forval i=1/12 {
+local x= `x'+1
+local nextname:word `x' of `names'
+local nextent:word `x' of `ents'
+label var prx_testvalue_s`nextent' "Value of most proximal `nextname' test (studyentry window)"
+label var prx_test_s_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
+}
 save LabCovariates_s, replace
 clear
 /////////////////////////////////////////ALTERNATE ENDING ////////////////////////////////////////////
