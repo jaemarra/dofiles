@@ -97,17 +97,23 @@ gen prx_serv_g_s_b = 0
 replace prx_serv_g_s_b = 1 if !missing(prx_type_servdate_g_s)
 replace servtype=1
 
+// IF WE WANT TO RESHAPE, collapse down to one observation for each patid
+bysort patid: egen prx_servdate_g_s = max(prx_type_servdate_g_s)
+format prx_servdate_g_s %td
+keep if elgdate2==prx_servdate_g_s
+bysort patid: gen dupck2= cond(_N==1, 0, _n)
+drop if dupck2>1
+
 //Drop all fields that aren't wanted in the final dta file
-keep patid serv_total_g_s servtype prx_servvalue_g_s prx_serv_g_s_b
+keep patid serv_total_g_s prx_servvalue_g_s prx_serv_g_s_b
 
-bysort patid: gen dupb= cond(_N==1, 0, _n)
-drop if dupb>1
-
-//Reshape
-reshape wide prx_servvalue_g_s serv_total_g prx_serv_g_s_b, i(patid) j(servtype)
-label var prx_servvalue_g_s "Most recent constype for physician visits in studyentrydate window (gold)"
-label var serv_total_g_s "Total number of physician visits in studyentrydate window (gold)"
-label var prx_serv_g_s_b "Binary indicator: 1=have information; 0:no information (gold)"
+//collapse (max) serv_total_g_i prx_servvalue_g_i prx_serv_g_i_b, by(patid)
+rename serv_total_g_s totservs_g_s
+rename prx_servvalue_g_s prx_servvalue1_g_s
+rename prx_serv_g_s_b prx_serv1_g_s_b
+label var prx_servvalue1_g_s "Most recent constype for physician visits in studyentrydate window (gold)"
+label var totservs_g_s "Total number of physician visits in studyentrydate window (gold)"
+label var prx_serv1_g_s_b "Binary indicator: 1=have information; 0:no information (gold)"
 save Clin_serv_s, replace
 clear
 
@@ -154,13 +160,16 @@ bysort patid: gen dupck2= cond(_N==1, 0, _n)
 drop if dupck2>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid serv_total_g_c servtype prx_servvalue_g_c prx_serv_g_c_b
+keep patid serv_total_g_c prx_servvalue_g_c prx_serv_g_c_b
 
 //Reshape
-reshape wide prx_servvalue_g_c serv_total_g prx_serv_g_c_b, i(patid) j(servtype)
-label var prx_servvalue_g_c "Most recent constype for physician visits in studyentrydate window (gold)"
-label var serv_total_g_c "Total number of physician visits in studyentrydate window (gold)"
-label var prx_serv_g_c_b "Binary indicator: 1=have information; 0:no information (gold)"
+//reshape wide prx_servvalue_g_c serv_total_g prx_serv_g_c_b, i(patid) j(servtype)
+rename serv_total_g_c totservs_g_c
+rename prx_servvalue_g_c prx_servvalue1_g_c
+rename prx_serv_g_c_b prx_serv1_g_c_b
+label var prx_servvalue1_g_c "Most recent constype for physician visits in studyentrydate window (gold)"
+label var totservs_g_c "Total number of physician visits in studyentrydate window (gold)"
+label var prx_serv1_g_c_b "Binary indicator: 1=have information; 0:no information (gold)"
 save Clin_serv_c, replace
 clear
 
@@ -207,12 +216,17 @@ bysort patid: gen dupck2= cond(_N==1, 0, _n)
 drop if dupck2>1
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid serv_total_g_i servtype prx_servvalue_g_i prx_serv_g_i_b
-
-//Reshape
-reshape wide prx_servvalue_g_i serv_total_g_i prx_serv_g_i_b, i(patid) j(servtype)
-
+keep patid serv_total_g_i prx_servvalue_g_i prx_serv_g_i_b
+//collapse (max) serv_total_g_i prx_servvalue_g_i prx_serv_g_i_b, by(patid)
+rename serv_total_g_i totservs_g_i
+rename prx_servvalue_g_i prx_servvalue1_g_i
+rename prx_serv_g_i_b prx_serv1_g_i_b
+label var prx_servvalue1_g_i "Most recent constype for physician visits in studyentrydate window (gold)"
+label var totservs_g_i "Total number of physician visits in studyentrydate window (gold)"
+label var prx_serv1_g_i_b "Binary indicator: 1=have information; 0:no information (gold)"
 save Clin_serv_i, replace
+
+
 clear
 
 timer off 1

@@ -108,6 +108,8 @@ drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
 keep patid totservs_h_s prx_serv*
+label var prx_servdate_h_s "Most recent hospital utilization date (studyentry window) (hes)"
+label var prx_serv_h_s_b "Bin ind any hosp utilization (studyentry window): 1=at least one; 0= none (hes)"
 label var totservs_h_s "Total services utilized in studyentry window: number of hospital visits/services (hes)"
 label var prx_servvalue2_h_s "Number of hospital visits during studyentry window (hes)"
 label var prx_servvalue3_h_s "Number of days spent in hospital during studyentry window (hes)"
@@ -194,6 +196,8 @@ drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
 keep patid totservs_h_c prx_serv*
+label var prx_servdate_h_c "Most recent hospital utilization date (cohortent window) (hes)"
+label var prx_serv_h_c_b "Bin ind any hosp utilization (cohortent window): 1=at least one; 0= none (hes)"
 label var totservs_h_c "Total services utilized in cohortent window: number of hospital visits/services (hes)"
 label var prx_servvalue2_h_c "Number of hospital visits during cohortent window (hes)"
 label var prx_servvalue3_h_c "Number of days spent in hospital during cohortent window (hes)"
@@ -280,6 +284,8 @@ drop if dupck>1
 
 //Drop all fields that aren't wanted in the final dta file
 keep patid totservs_h_i prx_serv*
+label var prx_servdate_h_i "Most recent hospital utilization date (index window) (hes)"
+label var prx_serv_h_i_b "Bin ind any hosp utilization (index window): 1=at least one; 0= none (hes)"
 label var totservs_h_i "Total services utilized in index window: number of hospital visits/services (hes)"
 label var prx_servvalue2_h_i "Number of hospital visits during index window (hes)"
 label var prx_servvalue3_h_i "Number of days spent in hospital during index window (hes)"

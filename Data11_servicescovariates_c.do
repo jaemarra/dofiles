@@ -13,19 +13,19 @@ timer on 1
 
 //INDEXDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 
 use Clin_serv_i
-merge 1:1 patid using hes_serv_i
+merge 1:1 patid using hes_serv_i, keep(match master) nogen
 save ServicesCovariates_merged_i, replace
 clear
 
 //COHORTENRYDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 										
 use Clin_serv_c.dta
-merge 1:1 patid using hes_serv_c
+merge 1:1 patid using hes_serv_c, keep(match master) nogen
 save ServicesCovariates_merged_c, replace
 clear
 
 //STUDYENTRYDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 
 use Clin_serv_s.dta
-merge 1:1 patid using hes_serv_s
+merge 1:1 patid using hes_serv_s, keep(match master) nogen
 save ServicesCovariates_merged_s, replace
 clear
 
