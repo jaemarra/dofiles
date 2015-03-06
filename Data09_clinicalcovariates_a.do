@@ -315,7 +315,7 @@ local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_i`i' "Most recent covariate value for: `next' (studyentry window)"
 }
-label var totcovs "Number of total clinical covariates (index window) (gold)"
+label var totcovs_i "Number of total clinical covariates (index window) (gold)"
 
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
@@ -379,7 +379,7 @@ local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_c`i' "Most recent covariate value for: `next' (studyentry window)"
 }
-label var totcovs "Number of total clinical covariates (cohortent window) (gold)"
+label var totcovs_c "Number of total clinical covariates (cohortent window) (gold)"
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
 save Clinical_Covariates_c, replace
@@ -442,7 +442,7 @@ local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_s`i' "Most recent covariate value for: `next' (studyentry window)"
 }
-label var totcovs "Number of total clinical covariates (studyentry window) (gold)"
+label var totcovs_s "Number of total clinical covariates (studyentry window) (gold)"
 
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
