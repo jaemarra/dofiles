@@ -296,13 +296,13 @@ drop dupa
 fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs = total(cov_num_un_i)
+bysort patid: egen totcovs_i = total(cov_num_un_i)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs covtype prx_covvalue_i prx_cov_i_b
+keep patid totcovs_i covtype prx_covvalue_i prx_cov_i_b
 
 //Reshape
-reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(covtype)
+reshape wide prx_covvalue_i prx_cov_i_b totcovs_i, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
@@ -360,13 +360,13 @@ drop dupa
 fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
-capture bysort patid: egen totcovs = total(cov_num_un_c)
+capture bysort patid: egen totcovs_c = total(cov_num_un_c)
 
 //Drop all fields that aren't wanted in the final dta file
-capture keep patid totcovs covtype prx_covvalue_c prx_cov_c_b
+capture keep patid totcovs_c covtype prx_covvalue_c prx_cov_c_b
 
 //Reshape
-reshape wide prx_covvalue_c prx_cov_c_b totcovs, i(patid) j(covtype)
+reshape wide prx_covvalue_c prx_cov_c_b totcovs_c, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
@@ -423,13 +423,13 @@ drop dupa
 fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs = total(cov_num_un_s)
+bysort patid: egen totcovs_s = total(cov_num_un_s)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs covtype prx_covvalue_s prx_cov_s_b
+keep patid totcovs_s covtype prx_covvalue_s prx_cov_s_b
 
 //Reshape
-reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(covtype)
+reshape wide prx_covvalue_s prx_cov_s_b totcovs_s, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
