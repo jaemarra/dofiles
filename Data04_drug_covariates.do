@@ -393,7 +393,7 @@ replace cortico_oral = 1 if cortico_gi==1|cortico_endocr==1
 					penicillin ceph_carb_betalac tetracyc aminoglyc macrolide clinda otherantibiot sulfo_trimeth antituberc antileprotic     ///
 					metro_tinidazole quinolone uti_drugs antibacterial antifungal antiviral antiprotoz anthelmintic thyroidhorm cortico_endocr ///
 					estro_hrt bisphos cytotoxic antiprolif otherimmunosuppress antilymph_mab otherimmunomodul immunosuppress_all iron_oral     ///
-					iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral {             
+					iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral cortico_inject {             
 			generate `x'_c = 0										
 			replace `x'_c = 1 if `x'==1 & rxdate2>=cohortentrydate-365 & rxdate2<cohortentrydate
 			}
@@ -404,7 +404,7 @@ replace cortico_oral = 1 if cortico_gi==1|cortico_endocr==1
 					penicillin ceph_carb_betalac tetracyc aminoglyc macrolide clinda otherantibiot sulfo_trimeth antituberc antileprotic     ///
 					metro_tinidazole quinolone uti_drugs antibacterial antifungal antiviral antiprotoz anthelmintic thyroidhorm cortico_endocr ///
 					estro_hrt bisphos cytotoxic antiprolif otherimmunosuppress antilymph_mab otherimmunomodul immunosuppress_all iron_oral     ///
-					iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral {             
+					iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral cortico_inject {             
 			generate `y'_i = 0										
 			replace `y'_i = 1 if `y'==1 & rxdate2>=indexdate-365 & rxdate2<indexdate
 			}
@@ -415,7 +415,7 @@ replace cortico_oral = 1 if cortico_gi==1|cortico_endocr==1
 					penicillin ceph_carb_betalac tetracyc aminoglyc macrolide clinda otherantibiot sulfo_trimeth antituberc antileprotic     ///
 					metro_tinidazole quinolone uti_drugs antibacterial antifungal antiviral antiprotoz anthelmintic thyroidhorm cortico_endocr ///
 					estro_hrt bisphos cytotoxic antiprolif otherimmunosuppress antilymph_mab otherimmunomodul immunosuppress_all iron_oral     ///
-					iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral {             
+					iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral cortico_inject {             
 			generate `z'_s = 0										
 			replace `z'_s = 1 if `z'==1 & rxdate2>=studyentrydate_cprd2-365 & rxdate2<studyentrydate_cprd2
 			}
@@ -428,7 +428,7 @@ collapse (max)  h2recep ppi cortico_gi thiazdiur loopdiur potsparediur_aldos pot
 				antipark_dop penicillin ceph_carb_betalac tetracyc aminoglyc macrolide clinda otherantibiot sulfo_trimeth antituberc antileprotic ///
 				metro_tinidazole quinolone uti_drugs antibacterial antifungal antiviral antiprotoz anthelmintic thyroidhorm cortico_endocr ///
 				estro_hrt bisphos cytotoxic antiprolif otherimmunosuppress antilymph_mab otherimmunomodul immunosuppress_all iron_oral ///
-				iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral h2recep_c ppi_c cortico_gi_c ///
+				iron_parenteral potassium_oral multivit nsaid antigout antirheum benzo opioid2 opioid cortico_oral cortico_inject h2recep_c ppi_c cortico_gi_c ///
 				thiazdiur_c loopdiur_c potsparediur_aldos_c potsparediur_other_c antiarrhythmic_c betablock_c acei_c angiotensin2recepant_c renini_c ///
 				ras_c nitrates_c calchan_c anticoag_oral_c antiplat_c statin_c fibrates_c ezetimibe_c bileacidseq_c lipidreg_c bronchodil_c ///
 				cortico_inh_c leukotri_c antihist_c hyp_anx_c psychoses_c antidepress_c antiobes_c opioid1_c antiepilep_c antipark_dop_c penicillin_c ///
@@ -436,21 +436,21 @@ collapse (max)  h2recep ppi cortico_gi thiazdiur loopdiur potsparediur_aldos pot
 				metro_tinidazole_c quinolone_c uti_drugs_c antibacterial_c antifungal_c antiviral_c antiprotoz_c anthelmintic_c thyroidhorm_c ///
 				cortico_endocr_c estro_hrt_c bisphos_c cytotoxic_c antiprolif_c otherimmunosuppress_c antilymph_mab_c otherimmunomodul_c ///
 				immunosuppress_all_c iron_oral_c iron_parenteral_c potassium_oral_c multivit_c nsaid_c antigout_c antirheum_c benzo_c opioid2_c ///
-				opioid_c cortico_oral_c h2recep_i ppi_i cortico_gi_i thiazdiur_i loopdiur_i potsparediur_aldos_i potsparediur_other_i antiarrhythmic_i ///
+				opioid_c cortico_oral_c cortico_inject_c h2recep_i ppi_i cortico_gi_i thiazdiur_i loopdiur_i potsparediur_aldos_i potsparediur_other_i antiarrhythmic_i ///
 				betablock_i acei_i angiotensin2recepant_i renini_i ras_i nitrates_i calchan_i anticoag_oral_i antiplat_i statin_i fibrates_i ezetimibe_i ///
 				bileacidseq_i lipidreg_i bronchodil_i cortico_inh_i leukotri_i antihist_i hyp_anx_i psychoses_i antidepress_i antiobes_i opioid1_i ///
 				antiepilep_i antipark_dop_i penicillin_i ceph_carb_betalac_i tetracyc_i aminoglyc_i macrolide_i clinda_i otherantibiot_i sulfo_trimeth_i ///
 				antituberc_i antileprotic_i metro_tinidazole_i quinolone_i uti_drugs_i antibacterial_i antifungal_i antiviral_i antiprotoz_i ///
 				anthelmintic_i thyroidhorm_i cortico_endocr_i estro_hrt_i bisphos_i cytotoxic_i antiprolif_i otherimmunosuppress_i antilymph_mab_i ///
 				otherimmunomodul_i immunosuppress_all_i iron_oral_i iron_parenteral_i potassium_oral_i multivit_i nsaid_i antigout_i antirheum_i benzo_i ///
-				opioid2_i opioid_i cortico_oral_i h2recep_s ppi_s cortico_gi_s thiazdiur_s loopdiur_s potsparediur_aldos_s potsparediur_other_s ///
+				opioid2_i opioid_i cortico_oral_i cortico_inject_i h2recep_s ppi_s cortico_gi_s thiazdiur_s loopdiur_s potsparediur_aldos_s potsparediur_other_s ///
 				antiarrhythmic_s betablock_s acei_s angiotensin2recepant_s renini_s ras_s nitrates_s calchan_s anticoag_oral_s antiplat_s statin_s ///
 				fibrates_s ezetimibe_s bileacidseq_s lipidreg_s bronchodil_s cortico_inh_s leukotri_s antihist_s hyp_anx_s psychoses_s antidepress_s ///
 				antiobes_s opioid1_s antiepilep_s antipark_dop_s penicillin_s ceph_carb_betalac_s tetracyc_s aminoglyc_s macrolide_s clinda_s ///
 				otherantibiot_s sulfo_trimeth_s antituberc_s antileprotic_s metro_tinidazole_s quinolone_s uti_drugs_s antibacterial_s antifungal_s ///
 				antiviral_s antiprotoz_s anthelmintic_s thyroidhorm_s cortico_endocr_s estro_hrt_s bisphos_s cytotoxic_s antiprolif_s ///
 				otherimmunosuppress_s antilymph_mab_s otherimmunomodul_s immunosuppress_all_s iron_oral_s iron_parenteral_s potassium_oral_s multivit_s ///
-				nsaid_s antigout_s antirheum_s benzo_s opioid2_s opioid_s cortico_oral_s, by(patid)
+				nsaid_s antigout_s antirheum_s benzo_s opioid2_s opioid_s cortico_oral_s cortico_inject_s, by(patid)
 compress
 // #4 Generate indicator variables fro the number of unique drugs for one year prior to study entry date, cohort entry date and index date.
 
@@ -467,7 +467,87 @@ label var unqrxi "Total number of unique drugs in the year prior to index date"
 egen unqrxs= anycount(`rxlists'), values(1)
 label var unqrxs "Total number of unique drugs in the year prior to study entry date"	
 
-//tidy labelling 
+//tidy labelling
+local x=0
+local suffixes "_c _i _s"
+local windows "cohortent index studyentry"
+forval i=1/3   {
+local x= `x'+1
+local suffix: word `x' of `suffixes'
+local next: word `x' of `windows'
+label variable ppi`suffix' "Proton pump inhibitor exposure (`next' window): 0=no exp, 1=exp"
+label variable h2recep`suffix' "H2 receptor antagonist exposure (`next' window): 0=no exp, 1=exp"
+label variable cortico_gi`suffix' "Corticosteroid (GI) exposure (`next' window):0=no exp, 1=exp"
+label variable thiazdiur`suffix' "thiazide and related diuretic exposure (`next' window): 0=no exp, 1=exp"
+label variable loopdiur`suffix' "loop diuretic exposure (`next' window): 0=no exp, 1=exp"
+label variable potsparediur_aldos`suffix' "K-sparing diuretic and aldost agonist (`next' window): 0=no exp, 1=exp"
+label variable potsparediur_other`suffix' "K-sparing diuretic and other diuretic (`next' window): 0=no exp, 1=exp"
+label variable antiarrhythmic`suffix' "antiarrhythmic exposure (`next' window): 0=no exp, 1=exp"
+label variable betablock`suffix' "beta-blocker exposure (`next' window): 0=no exp, 1=exp"
+label variable acei`suffix' "ACE inhibitor exposure (`next' window): 0=no exp, 1=exp"
+label variable angiotensin2recepant`suffix' "Angiotensin II recep antag (`next' window): 0=no exp, 1=exp"
+label variable renini`suffix' "Renin inhibitor exposure (`next' window): 0=no exp, 1=exp"
+label variable nitrates`suffix' "nitrates exposure (`next' window): 0=no exp, 1=exp"
+label variable calchan`suffix' "calcium channel blocker exposure (`next' window): 0=no exp, 1=exp"
+label variable anticoag_oral`suffix' "Oral anticoagulant exposure (`next' window): 0=no exp, 1=exp"
+label variable antiplat`suffix' "antiplatelet exposure (`next' window): 0=no exp, 1=exp"
+label variable statin`suffix' "statin exposure (`next' window): 0=no exp, 1=exp"
+label variable fibrates`suffix' "fibrates exposure (`next' window): 0=no exp, 1=exp"
+label variable ezetimibe`suffix' "ezetimibe exposure (`next' window): 0=no exp, 1=exp"
+label variable bileacidseq`suffix' "Bile acid sequestrants exposure (`next' window): 0=no exp, 1=exp"
+label variable bronchodil`suffix' "Bronchodilator exposure (`next' window):0=no exp, 1=exp"
+label variable cortico_inh`suffix' "Inhaled corticosteroid exposure (`next' window):0=no exp, 1=exp"
+label variable leukotri`suffix' "Leukotriene receptor antagonist exposur (`next' window)e:0=no exp, 1=exp"
+label variable antihist`suffix' "Antihistamine exposure (`next' window):0=no exp, 1=exp"
+label variable hyp_anx`suffix' "Hypnotic/Anxiolytic exposure (`next' window):0=no exp, 1=exp"
+label variable psychoses`suffix' "Drugs used in psychoses and related disorders (`next' window):0=no exp, 1=exp"
+label variable antidepress`suffix' "Antidepressant exposure (`next' window):0=no exp, 1=exp"
+label variable antiobes`suffix' "Antiobesity drug exposure (`next' window):0=no exp, 1=exp"
+label variable opioid1`suffix' "Opioid analgesic (CNS) exposure (`next' window):0=no exp, 1=exp"
+label variable antiepilep`suffix' "Antiepileptic exposure (`next' window):0=no exp, 1=exp"
+label variable penicillin`suffix' "Penicillin exposure (`next' window): 0=no exp, 1=exp"
+label variable ceph_carb_betalac`suffix' "Cephalosporins, carbapenems and oth beta-lactams (`next' window): 0=no exp, 1=exp"
+label variable tetracyc`suffix' "Tetracycline exposure (`next' window): 0=no exp, 1=exp"
+label variable aminoglyc`suffix' "Aminoglycoside exposure (`next' window): 0=no exp, 1=exp"
+label variable macrolide`suffix' "Macrolide exposure (`next' window): 0=no exp, 1=exp"
+label variable clinda`suffix' "Clindamycin exposure (`next' window): 0=no exp, 1=exp"
+label variable otherantibiot`suffix' "Other antibiotic exposure (`next' window): 0=no exp, 1=exp"
+label variable sulfo_trimeth`suffix' "Sulfonamides and trimethoprim exposure (`next' window): 0=no exp, 1=exp"
+label variable antituberc`suffix' "Antituberculosis drug exposure (`next' window): 0=no exp, 1=exp"
+label variable antileprotic`suffix' "Antileprotic drug exposure (`next' window): 0=no exp, 1=exp"
+label variable metro_tinidazole`suffix' "Metronidazole and tinidazole (`next' window): 0=no exp, 1=exp"
+label variable quinolone`suffix' "Quinolone exposure (`next' window): 0=no exp, 1=exp"
+label variable uti_drugs`suffix' "UTI drug exposure (`next' window): 0=no exp, 1=exp"
+label variable antifungal`suffix' "Antifungal exposure (`next' window):0=no exp, 1=exp"
+label variable antiviral`suffix' "Antiviral exposure (`next' window):0=no exp, 1=exp"
+label variable antiprotoz`suffix' "Antiprotozoal exposure (`next' window):0=no exp, 1=exp"
+label variable anthelmintic`suffix' "Anthelmintic exposure (`next' window):0=no exp, 1=exp"
+label variable thyroidhorm`suffix' "Thyroid hormone exposure (`next' window): 0=no exp, 1=exp"
+label variable cortico_endocr`suffix' "Corticosteroid (endocrine) exposure (`next' window):0=no exp, 1=exp"
+label variable estro_hrt`suffix' "Estrogen and HRT exposure (`next' window): 0=no exp, 1=exp"
+label variable bisphos`suffix' "Bisphosphonate drug exposure (`next' window): 0=no exp, 1=exp"
+label variable cytotoxic`suffix' "Cytotoxic drug exposure (`next' window):0=no exp, 1=exp"
+label variable antilymph_mab`suffix' "Antilymphocyte monoclonal antibody (`next' window):0=no exp, 1=exp"
+label variable otherimmunomodul`suffix' "Other immunomodulating drug (`next' window):0=no exp, 1=exp"
+label variable iron_oral`suffix' "Oral iron exposure (`next' window): 0=no exp, 1=exp"
+label variable iron_parenteral`suffix' "Parenteral iron exposure (`next' window): 0=no exp, 1=exp"
+label variable potassium_oral`suffix' "Oral potassium exposure (`next' window): 0=no exp, 1=exp"
+label variable multivit`suffix' "Multivitamin exposure (`next' window): 0=no exp, 1=exp"
+label variable nsaid`suffix' "NSAID exposure (`next' window): 0=no exp, 1=exp"
+label variable cortico_inject`suffix' "Corticosteroid (local inj) (`next' window):0=no exp, 1=exp"
+label variable antigout`suffix' "Antigout drug exposure (`next' window): 0=no exp, 1=exp"
+label variable antirheum`suffix' "Antirheumatic drug exposure (`next' window): 0=no exp, 1=exp"
+label variable benzo`suffix' "Benzodiazepine exposure (`next' window): 0=no exp, 1=exp" 
+label variable opioid2`suffix' "Opioid analgesic (anaes) exposure (`next' window): 0=no exp, 1=exp"
+label variable opioid`suffix' "any opioid exposure (`next' window): 0=no exp, 1=exp"
+label variable cortico_oral`suffix' "any oral corticosteroid (`next' window): 0=no exp, 1=exp"
+label variable antipark_dop`suffix' "Antiparkison's dopaminergic drug (`next' window):0=no exp, 1=exp"
+label variable antibacterial`suffix' "Antibacterial drug exposure (`next' window): 0=no exp, 1=exp"
+label variable antiprolif`suffix' "Antiproliferative immunosuppresant (`next' window):0=no exp, 1=exp"
+label variable otherimmunosuppress`suffix' "Corticosteroids and other immunosupps (`next' window):0=no exp, 1=exp"
+label variable immunosuppress_all`suffix' "Any immunosuppressant drug exposure (`next' window):0=no exp, 1=exp"
+}
+
 label variable ppi "Proton pump inhibitor exposure: 0=no exp, 1=exp"
 label variable h2recep "H2 receptor antagonist exposure: 0=no exp, 1=exp"
 label variable cortico_gi "Corticosteroid (GI) exposure:0=no exp, 1=exp"
