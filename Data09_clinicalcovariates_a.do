@@ -268,11 +268,11 @@ clear
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
 //pull out covariate date of interest
-bysort patid covtype : egen prx_covdate_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
-format prx_covdate_i %td
-gen prx_cov_i_b = 1 if !missing(prx_covdate_i)
+bysort patid covtype : egen prx_covdate_g_i = max(eltestdate2) if eltestdate2>=indexdate-365 & eltestdate2<indexdate
+format prx_covdate_g_i %td
+gen prx_cov_g_i_b = 1 if !missing(prx_covdate_g_i)
 //pull out covariate value of interest
-bysort patid covtype : gen prx_covvalue_i = nr_data if prx_covdate_i==eltestdate2
+bysort patid covtype : gen prx_covvalue_g_i = nr_data if prx_covdate_g_i==eltestdate2
 
 //create counts
 tempvar cov_num_un_i_temp
@@ -285,7 +285,7 @@ by patid: egen cov_num_un_i = min(`cov_num_un_i_temp')
 label var cov_num_un_i "Identifies most recent entry for each covtype in the index window"
 
 //only keep the observations relevant to the current window
-drop if prx_covvalue_i >=.
+drop if prx_covvalue_g_i >=.
 
 //Check for duplicates again- no duplicates found then continue
 bysort patid covtype: gen dupa = cond(_N==1,0,_n)
@@ -296,26 +296,26 @@ drop dupa
 fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs_i = total(cov_num_un_i)
+bysort patid: egen totcovs_g_i = total(cov_num_un_i)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs_i covtype prx_covvalue_i prx_cov_i_b
+keep patid totcovs_g_i covtype prx_covvalue_g_i prx_cov_g_i_b
 
 //Reshape
-reshape wide prx_covvalue_i prx_cov_i_b totcovs_i, i(patid) j(covtype)
+reshape wide prx_covvalue_g_i prx_cov_g_i_b, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
-replace prx_covvalue_i`i' = 0 if prx_covvalue_i`i'==.
+replace prx_covvalue_g_i`i' = 0 if prx_covvalue_g_i`i'==.
 }
 local x=0
 local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
 forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
-label var prx_covvalue_i`i' "Most recent covariate value for: `next' (studyentry window)"
+label var prx_covvalue_g_i`i' "Most recent covariate value for: `next' (studyentry window)"
 }
-label var totcovs_i "Number of total clinical covariates (index window) (gold)"
+label var totcovs_g_i "Number of total clinical covariates (index window) (gold)"
 
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
@@ -332,11 +332,11 @@ clear
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
 //pull out covariate date of interest
-bysort patid covtype : egen prx_covdate_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
-format prx_covdate_c %td
-gen prx_cov_c_b = 1 if !missing(prx_covdate_c)
+bysort patid covtype : egen prx_covdate_g_c = max(eltestdate2) if eltestdate2>=cohortentrydate-365 & eltestdate2<cohortentrydate
+format prx_covdate_g_c %td
+gen prx_cov_g_c_b = 1 if !missing(prx_covdate_g_c)
 //pull out covariate value of interest
-bysort patid covtype: gen prx_covvalue_c = nr_data if prx_covdate_c==eltestdate2
+bysort patid covtype: gen prx_covvalue_g_c = nr_data if prx_covdate_g_c==eltestdate2
 
 //create counts
 tempvar cov_num_un_c_temp
@@ -349,7 +349,7 @@ by patid: egen cov_num_un_c = min(`cov_num_un_c_temp')
 label var cov_num_un_c "Identifies most recent entry for each covtype in the cohort entry window"
 
 //only keep the observations relevant to the current window
-drop if prx_covvalue_c >=.
+drop if prx_covvalue_g_c >=.
 
 //Check for duplicates again- no duplicates found then continue
 bysort patid covtype: gen dupa = cond(_N==1,0,_n)
@@ -360,26 +360,26 @@ drop dupa
 fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
-capture bysort patid: egen totcovs_c = total(cov_num_un_c)
+capture bysort patid: egen totcovs_g_c = total(cov_num_un_c)
 
 //Drop all fields that aren't wanted in the final dta file
-capture keep patid totcovs_c covtype prx_covvalue_c prx_cov_c_b
+keep patid totcovs_g_c covtype prx_covvalue_g_c prx_cov_g_c_b
 
 //Reshape
-reshape wide prx_covvalue_c prx_cov_c_b totcovs_c, i(patid) j(covtype)
+reshape wide prx_covvalue_g_c prx_cov_g_c_b, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
-replace prx_covvalue_c`i' = 0 if prx_covvalue_c`i'==.
+replace prx_covvalue_g_c`i' = 0 if prx_covvalue_g_c`i'==.
 }
 local x=0
 local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
 forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
-label var prx_covvalue_c`i' "Most recent covariate value for: `next' (studyentry window)"
+label var prx_covvalue_g_c`i' "Most recent covariate value for: `next' (studyentry window)"
 }
-label var totcovs_c "Number of total clinical covariates (cohortent window) (gold)"
+label var totcovs_g_c "Number of total clinical covariates (cohortent window) (gold)"
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
 save Clinical_Covariates_c, replace
@@ -395,11 +395,11 @@ clear
 foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
 use `file', clear
 //pull out covariate date of interest
-bysort patid covtype : egen prx_covdate_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
-format prx_covdate_s %td
-gen prx_cov_s_b = 1 if !missing(prx_covdate_s)
+bysort patid covtype : egen prx_covdate_g_s = max(eltestdate2) if eltestdate2>=studyentrydate_cprd2-365 & eltestdate2<studyentrydate_cprd2
+format prx_covdate_g_s %td
+gen prx_cov_g_s_b = 1 if !missing(prx_covdate_g_s)
 //pull out covariate value of interest
-bysort patid covtype : gen prx_covvalue_s = nr_data if prx_covdate_s==eltestdate2
+bysort patid covtype : gen prx_covvalue_g_s = nr_data if prx_covdate_g_s==eltestdate2
 
 //create counts
 tempvar cov_num_un_s_temp
@@ -412,7 +412,7 @@ by patid: egen cov_num_un_s = min(`cov_num_un_s_temp')
 label var cov_num_un_s "Identifies most recent entry for each covtype in the study entry window"
 
 //only keep the observations relevant to the current window
-drop if prx_covvalue_s >=.
+drop if prx_covvalue_g_s >=.
 
 //Check for duplicates again- no duplicates found then continue
 bysort patid covtype: gen dupa = cond(_N==1,0,_n)
@@ -423,26 +423,26 @@ drop dupa
 fillin patid covtype
 
 //Fillin the total number of labs in the window of interest
-bysort patid: egen totcovs_s = total(cov_num_un_s)
+bysort patid: egen totcovs_g_s = total(cov_num_un_s)
 
 //Drop all fields that aren't wanted in the final dta file
-keep patid totcovs_s covtype prx_covvalue_s prx_cov_s_b
+keep patid totcovs_g_s covtype prx_covvalue_g_s prx_cov_g_s_b
 
 //Reshape
-reshape wide prx_covvalue_s prx_cov_s_b totcovs_s, i(patid) j(covtype)
+reshape wide prx_covvalue_g_s prx_cov_g_s_b, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
-replace prx_covvalue_s`i' = 0 if prx_covvalue_s`i'==.
+replace prx_covvalue_g_s`i' = 0 if prx_covvalue_g_s`i'==.
 }
 local x=0
 local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
 forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
-label var prx_covvalue_s`i' "Most recent covariate value for: `next' (studyentry window)"
+label var prx_covvalue_g_s`i' "Most recent covariate value for: `next' (studyentry window)"
 }
-label var totcovs_s "Number of total clinical covariates (studyentry window) (gold)"
+label var totcovs_g_s "Number of total clinical covariates (studyentry window) (gold)"
 
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
@@ -512,7 +512,7 @@ save Clinical_cci_c, replace
 use Clinical_cci_c, clear
 
 // Charlson Comorbidity Index
-// Source: Khan et al 2010
+// Source: Khan et al a2010
 //CPRD GOLD
 
 charlsonreadadd readcode, icd(00) idvar(patid) assign0
