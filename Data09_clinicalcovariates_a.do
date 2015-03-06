@@ -310,7 +310,7 @@ replace prx_covvalue_i`i' = 0 if prx_covvalue_i`i'==.
 }
 local x=0
 local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
-forval 1=1/14{
+forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_i`i' "Most recent covariate value for: `next' (studyentry window)"
@@ -374,7 +374,7 @@ replace prx_covvalue_c`i' = 0 if prx_covvalue_c`i'==.
 }
 local x=0
 local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
-forval 1=1/14{
+forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_c`i' "Most recent covariate value for: `next' (studyentry window)"
@@ -437,7 +437,7 @@ replace prx_covvalue_s`i' = 0 if prx_covvalue_s`i'==.
 }
 local x=0
 local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
-forval 1=1/14{
+forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_s`i' "Most recent covariate value for: `next' (studyentry window)"
