@@ -15,7 +15,7 @@ use Clinical_Covariates_i
 merge 1:1 patid using hesCovariates_i, keep(match master) nogen
 merge 1:1 patid using Clinical_cci_i, keep(match master) nogen
 merge 1:1 patid using hes_cci_i, keep(match master) nogen
-save ClinicalCovariates_merged_i
+save ClinicalCovariates_merged_i, replace
 clear
 
 //COHORTENRYDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 										
@@ -23,7 +23,7 @@ use Clinical_Covariates_c
 merge 1:1 patid using hesCovariates_c, keep(match master) nogen
 merge 1:1 patid using Clinical_cci_c, keep(match master) nogen
 merge 1:1 patid using hes_cci_c, keep(match master) nogen
-save ClinicalCovariates_merged_c
+save ClinicalCovariates_merged_c, replace
 clear
 
 //STUDYENTRYDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 
@@ -31,7 +31,7 @@ use Clinical_Covariates_s
 merge 1:1 patid using hesCovariates_s, keep(match master) nogen
 merge 1:1 patid using Clinical_cci_s, keep(match master) nogen
 merge 1:1 patid using hes_cci_s, keep(match master) nogen
-save ClinicalCovariates_merged_s
+save ClinicalCovariates_merged_s, replace
 clear
 
 timer off 1

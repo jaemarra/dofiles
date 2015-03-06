@@ -14,7 +14,7 @@ timer on 1
 // #1 Merge all files.
 
 // 1) Exposure dataset, 2) Immunizations dataset, 3) Demographic dataset, 4) SES dataset, 5) Outcome dataset (already one file containing ///
-// 4 + procedures + all cause hosp), 6) ClinicalCovariate dataset,  7) LabCovariate dataset ) 8) ServicesCovariate dataset 
+// 4 + procedures + all cause hosp), 6) ClinicalCovariate dataset,  7) LabCovariate dataset ) 8) ServicesCovariate dataset 9) Exclusion dataset 10) Censor dataset
 
 use Drug_Exposures_a_wide.dta
 merge 1:1 patid using Drug_Exposures_B, nogen
