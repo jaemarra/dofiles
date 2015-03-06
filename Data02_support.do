@@ -1,4 +1,4 @@
-//  program:    Data02_support_v4.do
+//  program:    Data02_support.do
 //  task:		Data management of CPRD Data
 //				for six support files, import .txt file, re-label variables, change date formats and save as .dta files. Merge support files with data files.
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)

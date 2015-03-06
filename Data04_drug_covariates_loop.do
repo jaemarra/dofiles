@@ -1,4 +1,4 @@
-//  program:    Data04_loop.do
+//  program:    Data04_drug_covariates_loop.do
 //  task:		Generate a loop through all Therapy files for Data04_drug_covariates
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     JM \ Feb2015
