@@ -13,8 +13,7 @@ timer on 1
 // #1 Use data files generated in Data02_Support
 // Keep only if eventdate2 is before indexdate.
 timer on 2
-foreach file in Clinical001_2 Clinical002_2 Clinical003_2 Clinical004_2 Clinical005_2 Clinical006_2 Clinical007_2 Clinical008_2 ///
-				Clinical009_2 Clinical010_2 Clinical011_2 Clinical012_2 Clinical013_2 {
+foreach file in Clinical001_2 Clinical002_2 Clinical003_2 Clinical004_2 Clinical005_2 Clinical006_2 Clinical007_2 Clinical008_2 Clinical009_2 Clinical010_2 Clinical011_2 Clinical012_2 Clinical013_2 {
 use `file', clear
 sort patid
 merge m:1 patid using Dates, keep(match) nogen
@@ -304,24 +303,20 @@ keep patid totcovs covtype prx_covvalue_i prx_cov_i_b
 
 //Reshape
 reshape wide prx_covvalue_i prx_cov_i_b, i(patid) j(covtype)
+
+//Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
 replace prx_covvalue_i`i' = 0 if prx_covvalue_i`i'==.
 }
-label var totcovs "Number of total clinical covariates with information (gold)"
-label var prx_covvalue_i1 "Most recent covariate value for: Height (index window)"
-label var prx_covvalue_i2 "Most recent covariate value for: Weight (index window)"
-label var prx_covvalue_i3 "Most recent covariate value for: Systolic blood pressure (index window)"
-label var prx_covvalue_i4 "Most recent covariate value for: Smoking status (index window)"
-label var prx_covvalue_i5 "Most recent covariate value for: Alcohol abuse (index window)"
-label var prx_covvalue_i6 "Most recent covariate value for: Myocardial infarction (index window)"
-label var prx_covvalue_i7 "Most recent covariate value for: Stroke (index window)"
-label var prx_covvalue_i8 "Most recent covariate value for: Heart failure (index window)"
-label var prx_covvalue_i9 "Most recent covariate value for: Arrhythmia (index window)"
-label var prx_covvalue_i10 "Most recent covariate value for: Angina (index window)"
-label var prx_covvalue_i11 "Most recent covariate value for: Urgent revascularizaion (index window)"
-label var prx_covvalue_i12 "Most recent covariate value for: Hypertension (index window)"
-label var prx_covvalue_i13 "Most recent covariate value for: Atrial fibrillation (index window)"
-label var prx_covvalue_i14 "Most recent covariate value for: Pulmonary vascular disease (index window)"
+local x=0
+local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
+forval 1=1/14{
+local x=`x'+1
+local next:word `x' of `names'
+label var prx_covvalue_i`i' "Most recent covariate value for: `next' (studyentry window)"
+}
+label var totcovs "Number of total clinical covariates (index window) (gold)"
+
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
 save Clinical_Covariates_i, replace
@@ -372,24 +367,19 @@ capture keep patid totcovs covtype prx_covvalue_c prx_cov_c_b
 
 //Reshape
 reshape wide prx_covvalue_c prx_cov_c_b totcovs, i(patid) j(covtype)
+
+//Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
 replace prx_covvalue_c`i' = 0 if prx_covvalue_c`i'==.
 }
-label var totcovs "Number of total clinical covariates with information (gold)"
-label var prx_covvalue_c1 "Most recent covariate value for: Height (cohortentry window)"
-label var prx_covvalue_c2 "Most recent covariate value for: Weight (cohortentry window)"
-label var prx_covvalue_c3 "Most recent covariate value for: Systolic blood pressure (cohortentry window)"
-label var prx_covvalue_c4 "Most recent covariate value for: Smoking status (cohortentry window)"
-label var prx_covvalue_c5 "Most recent covariate value for: Alcohol abuse (cohortentry window)"
-label var prx_covvalue_c6 "Most recent covariate value for: Myocardial infarction (cohortentry window)"
-label var prx_covvalue_c7 "Most recent covariate value for: Stroke (cohortentry window)"
-label var prx_covvalue_c8 "Most recent covariate value for: Heart failure (cohortentry window)"
-label var prx_covvalue_c9 "Most recent covariate value for: Arrhythmia (cohortentry window)"
-label var prx_covvalue_c10 "Most recent covariate value for: Angina (cohortentry window)"
-label var prx_covvalue_c11 "Most recent covariate value for: Urgent revascularizaion (cohortentry window)"
-label var prx_covvalue_c12 "Most recent covariate value for: Hypertension (cohortentry window)"
-label var prx_covvalue_c13 "Most recent covariate value for: Atrial fibrillation (cohortentry window)"
-label var prx_covvalue_c14 "Most recent covariate value for: Pulmonary vascular disease (cohortentry window)"
+local x=0
+local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
+forval 1=1/14{
+local x=`x'+1
+local next:word `x' of `names'
+label var prx_covvalue_c`i' "Most recent covariate value for: `next' (studyentry window)"
+}
+label var totcovs "Number of total clinical covariates (cohortent window) (gold)"
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
 save Clinical_Covariates_c, replace
@@ -440,24 +430,19 @@ keep patid totcovs covtype prx_covvalue_s prx_cov_s_b
 
 //Reshape
 reshape wide prx_covvalue_s prx_cov_s_b, i(patid) j(covtype)
+
+//Label and replace missing values with "0" for covvalues
 forval i = 4/14	{
 replace prx_covvalue_s`i' = 0 if prx_covvalue_s`i'==.
 }
-label var totcovs "Number of total clinical covariates with information (gold)"
-label var prx_covvalue_s1 "Most recent covariate value for: Height (studyentry window)"
-label var prx_covvalue_s2 "Most recent covariate value for: Weight (studyentry window)"
-label var prx_covvalue_s3 "Most recent covariate value for: Systolic blood pressure (studyentry window)"
-label var prx_covvalue_s4 "Most recent covariate value for: Smoking status (studyentry window)"
-label var prx_covvalue_s5 "Most recent covariate value for: Alcohol abuse (studyentry window)"
-label var prx_covvalue_s6 "Most recent covariate value for: Myocardial infarction (studyentry window)"
-label var prx_covvalue_s7 "Most recent covariate value for: Stroke (studyentry window)"
-label var prx_covvalue_s8 "Most recent covariate value for: Heart failure (studyentry window)"
-label var prx_covvalue_s9 "Most recent covariate value for: Arrhythmia (studyentry window)"
-label var prx_covvalue_s10 "Most recent covariate value for: Angina (studyentry window)"
-label var prx_covvalue_s11 "Most recent covariate value for: Urgent revascularizaion (studyentry window)"
-label var prx_covvalue_s12 "Most recent covariate value for: Hypertension (studyentry window)"
-label var prx_covvalue_s13 "Most recent covariate value for: Atrial fibrillation (studyentry window)"
-label var prx_covvalue_s14 "Most recent covariate value for: Pulmonary vascular disease (studyentry window)"
+local x=0
+local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
+forval 1=1/14{
+local x=`x'+1
+local next:word `x' of `names'
+label var prx_covvalue_s`i' "Most recent covariate value for: `next' (studyentry window)"
+}
+label var totcovs "Number of total clinical covariates (studyentry window) (gold)"
 
 //Save and append
 if "`file'"=="Clinical001_2b_cov" {
@@ -504,9 +489,9 @@ generate cci_g_b = 0
 replace cci_g_b=1 if cci_g >=1 &cci_g!=.
 rename cci_g_b prx_cci_g_i_b
 rename cci_g prx_ccivalue_g_i
-label variable prx_ccivalue_g_i "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-label var prx_cci_g_i_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-label var wcharlsum "Weighted Charlson score, note diabetes set to==1"
+label variable prx_ccivalue_g_i "Charlson Comrbidity Index (index window)(gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_g_i_b "Charlson Comrbidity Index (index window) (gold) 1=event 0 =no event"
+label var wcharlsum "Weighted Charlson score, (index window) note diabetes set to==1"
 keep patid prx_ccivalue_g_i prx_cci_g_i_b wcharlsum
 save Clinical_cci_i, replace
 
@@ -541,9 +526,9 @@ generate cci_g_b = 0
 replace cci_g_b=1 if cci_g >=1 &cci_g!=.
 rename cci_g_b prx_cci_g_c_b
 rename cci_g prx_ccivalue_g_c
-label var prx_ccivalue_g_c "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-label var prx_cci_g_c_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-label var wcharlsum "Weighted Charlson score, note diabetes set to==1"
+label var prx_ccivalue_g_c "Charlson Comrbidity Index (cohortent window) (gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_g_c_b "Charlson Comrbidity Index (cohortent window) (gold) 1=event 0 =no event"
+label var wcharlsum "Weighted Charlson score, (cohortent window) note diabetes set to==1"
 keep patid prx_ccivalue_g_c prx_cci_g_c_b wcharlsum
 
 save Clinical_cci_c, replace
@@ -579,9 +564,9 @@ generate cci_g_b = 0
 replace cci_g_b=1 if cci_g >=1 & cci_g!=.
 rename cci_g_b prx_cci_g_s_b
 rename cci_g prx_ccivalue_g_s
-label variable prx_ccivalue_g_s "Charlson Comrbidity Index (gold) 1=1, 2=2, 3=3, 4>=4"
-label var prx_cci_g_s_b "Charlson Comrbidity Index (gold) 1=event 0 =no event"
-label var wcharlsum "Weighted Charlson score, note diabetes set to==1"
+label variable prx_ccivalue_g_s "Charlson Comrbidity Index (studyentry window) (gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_g_s_b "Charlson Comrbidity Index (studyentry window) (gold) 1=event 0 =no event"
+label var wcharlsum "Weighted Charlson score, (studyentry window) note diabetes set to==1"
 keep patid prx_ccivalue_g_s prx_cci_g_s_b wcharlsum
 save Clinical_cci_s, replace
 

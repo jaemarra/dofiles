@@ -26,7 +26,6 @@ merge m:1 patid using ClinicalCovariates_wt, keep(match using) nogen
 keep if inlist(enttype, 275,163,175,177,202,165,166,152,155,156,158,173)   // need to add other enttype's if adding other labs
 save Test, replace
 
-/****CHECK DATA2 FOR REASONABLE VALUE RANGE, DISTRIBUTION, AND UNITS***
 //check for units used in each labtest & distribution
 
 foreach i of num 275,163,175,177,202,165,166,152,155,156,158,173 {
@@ -388,12 +387,6 @@ replace ckd_ce=5 if egfr_ce < 15 //do we have a marker for dialysis???
 label define ckd_ce_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
 label values ckd_ce ckd_ce_labels
 
-***CHECK NEW CONTINUOUS AND CATEGORICAL VARS FOR DISTRIBUTION
-/*foreach var of varlist egfr_cg egfr_ mcg egfr_amdrd egfr_ce ckd_cg ckd_mcg ckd_amdrd ckd_ce nr*{
-summ `var', detail
-histogram `var', saving(gr`var', replace)
-}*/
-
 ***GENERATE BINARIES***
 //hba1c
 gen hba1c_b = 0
@@ -607,27 +600,8 @@ label var prx_test_s_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab t
 }
 save LabCovariates_s, replace
 clear
-/////////////////////////////////////////ALTERNATE ENDING ////////////////////////////////////////////
-//want one obs per person that shows their values for each lab 	
-/*collapse (max) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 maincohort metcohort prx_test_i_b prx_test_c_b prx_test_s_b prx_testvalue_i ///
-			prx_testdate_i prx_testvalue_c prx_testdate_c prx_testvalue_s prx_testdate_s lab_num_un lab_num_un_c lab_num_un_i lab_num_un_s hba1c totchol hdl ///
-			ldl tg scr crcl albumin alt ast bilirubin hemoglobin uma hba1c_b totchol_b hdl_b ldl_b tg_b scr_b crcl_b ///
-			albumin_b alt_b ast_b bilirubin_b hemoglobin_b uma_b, by(patid enttype)	
-			
-foreach var of varlist hba1c totchol hdl ldl tg scr crcl albumin alt ast bilirubin hemoglobin uma{
-by patid: egen `var'2 = min(`var')
-	}
-	
-collapse (max) cohortentrydate indexdate studyentrydate studyentrydate_cprd2 maincohort metcohort prx_test_i_b prx_test_c_b prx_test_s_b prx_testvalue_i ///
-			prx_testdate_i prx_testvalue_c prx_testdate_c prx_testvalue_s prx_testdate_s lab_num_un lab_num_un_c lab_num_un_i lab_num_un_s hba1c2 totchol2 hdl2 ///
-			ldl2 tg2 scr2 crcl_2 albumin2 alt2 ast2 bilirubin2 hemoglobin2 uma2 hba1c_b totchol_b hdl_b ldl_b tg_b scr_b crcl_b ///
-			albumin_b alt_b ast_b bilirubin_b hemoglobin_b uma_b, by(patid)	
-compress
-
-save LabCovs.dta, replace
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-*/
 
 timer off 1 
 timer list 1

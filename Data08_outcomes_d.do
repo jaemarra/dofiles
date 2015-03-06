@@ -19,8 +19,8 @@ merge 1:1 patid using Outcomes_ons, keep(match master) nogen
 
 // #2 Merge all-cause hospitalization in also
 
-**for two steps below, see Data08_outcomes.do. A lot of this code is written in there (before we decided to break it into
-//    separate files), so should be able to copy and paste lots into here.
+// for two steps below, see Data08_outcomes.do. A lot of this code is written in there (before we decided to break it into
+// separate files), so should be able to copy and paste lots into here.
 
 // #3 Make variables of composites from different sources (ie CPRD, HES, ONS for each variable):
 

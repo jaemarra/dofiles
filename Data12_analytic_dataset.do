@@ -23,7 +23,7 @@ merge 1:1 patid using Demographic, nogen
 merge 1:1 patid using ses, nogen
 merge 1:1 patid using Outcomes, nogen
 merge 1:1 patid using Exclusion_merged, nogen
-merge 1:1 patid using Censor, nogen
+merge 1:1 patid using Censor, nognen
 save raw_dataset, replace
 
 //Generate 3 datasets for studyentry, cohortentry and indexdate windows
@@ -57,16 +57,10 @@ datasignature set, reset
 save Analytic_Dataset_i, replace
 clear
 
-//TRY MERGING EVERTHING TOGETHER FOR ONE MASTER ANALYIC DATASET!!!!!!!!!!!!
+//MERGE FOR FINAL DATASET
 use Analytic_Dataset_s, clear
 merge 1:1 patid using Analytic_Dataset_c, generate(cohort_ind)
 merge 1:1 patid using Analytic_Dataset_i, generate(index_ind)
-//drop if cohort_b==0
-//35049 patids dropped
-//drop if age_cohortdate<30
-//5572 observations dropped
-//drop if pcos==1|preg==1|gest_diab==1
-//6840 observations dropped
 datasignature set, reset
 save Analytic_Dataset_Master, replace
 clear
