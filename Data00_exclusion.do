@@ -39,13 +39,13 @@ save Exclusion_cprd, replace
 //collapse to one per patid and label
 bysort patid: egen pcos_g = max(pcos)
 drop pcos
-label var pcos_g "PCOS CPRD: 1=presence of PCOS, 0=no PCOS diagnostic code"
+label var pcos_g "PCOS (gold): 1=presence of PCOS, 0=no PCOS diagnostic code"
 bysort patid: egen gest_diab_g = max(gest_diab)
 drop gest_diab
-label var gest_diab_g "Gestational Diabetes CPRD: 1=presence of GD, 0=no GD diagnostic code"
+label var gest_diab_g "Gestational Diabetes (gold): 1=presence of GD, 0=no GD diagnostic code"
 bysort patid: egen preg_g = max(preg)
 drop preg
-label var preg_g "Pregnancy CPRD: 1=presence of pregnancy, 0=no pregnancy-related diagnostic code"
+label var preg_g "Pregnancy (gold)PRD: 1=presence of pregnancy, 0=no pregnancy-related diagnostic code"
 
 //check for duplicates
 bysort patid: gen dupck = cond(_N==1,0,_n)
@@ -75,13 +75,13 @@ replace preg = 1 if regexm(icd_primary, "Z35|Z37|Z38|Z32.1|Z33|Z34.0|Z34.8|Z34.9
 //collapse to one per patid and label
 bysort patid: egen pcos_h = max(pcos)
 drop pcos
-label var pcos_h "PCOS HES: 1=presence of PCOS, 0=no PCOS diagnostic code"
+label var pcos_h "PCOS (hes): 1=presence of PCOS, 0=no PCOS diagnostic code"
 bysort patid: egen gest_diab_h = max(gest_diab)
 drop gest_diab
-label var gest_diab_h "Gestational Diabetes HES: 1=presence of GD, 0=no GD diagnostic code"
+label var gest_diab_h "Gestational Diabetes (hes): 1=presence of GD, 0=no GD diagnostic code"
 bysort patid: egen preg_h = max(preg)
 drop preg
-label var preg_h "Pregnancy HES: 1=presence of pregnancy, 0=no pregnancy-related diagnostic code"
+label var preg_h "Pregnancy (hes): 1=presence of pregnancy, 0=no pregnancy-related diagnostic code"
 
 //check for duplicates
 bysort patid: gen dupck = cond(_N==1,0,_n)
@@ -94,7 +94,7 @@ use hes_maternity, clear
 keep patid
 //each patid recorded is associated with a pregnancy
 gen preg_hm=1
-label variable preg_hm "Pregnancy hes_maternity: 1=pregnancy recorded in hes_maternity"
+label variable preg_hm "Pregnancy (hes_maternity): 1=pregnancy recorded in hes_maternity"
 
 //drop duplicates
 bysort patid: gen dupck = cond(_N==1,0,_n)
@@ -111,15 +111,15 @@ merge 1:1 patid using Exclusion_hes_mat, nogen
 //PCOS
 gen pcos=.
 replace pcos=1 if pcos_g==1 | pcos_h==1
-label var pcos "PCOS: 1=PCOS recorded in CPRD or HES, 0=no record of PCOS"
+label var pcos "PCOS: 1=PCOS recorded in GOLD or HES, 0=no record of PCOS"
 //Gestational Diabetes
 gen gest_diab=.
 replace gest_diab=1 if gest_diab_g==1 |  gest_diab_h==1
-label var gest_diab "Gestational Diabetes: 1=gestational DM recorded in CPRD or HES, 0=no record of gDM"
+label var gest_diab "Gestational Diabetes: 1=gestational DM recorded in GOLD or HES, 0=no record of gDM"
 //Pregnancy
 gen preg=.
 replace preg=1 if preg_g==1 | preg_h==1 |preg_hm==1
-label var preg "Pregnancy: 1=pregnancy recorded in CPRD or HES, 0=no record of pregnancy"
+label var preg "Pregnancy: 1=pregnancy recorded in GOLD or HES, 0=no record of pregnancy"
 
 keep patid preg gest_diab pcos
 
