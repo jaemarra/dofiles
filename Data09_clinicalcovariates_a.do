@@ -313,7 +313,8 @@ local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke H
 forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
-label var prx_covvalue_g_i`i' "Most recent covariate value for: `next' (studyentry window)"
+label var prx_covvalue_g_i`i' "Most recent covariate value for: `next' (index window)"
+label var prx_cov_g_i_b`i' "Bin indicator for `next' (index window): 1=covariate; 0=not covariate"
 }
 label var totcovs_g_i "Number of total clinical covariates (index window) (gold)"
 
@@ -377,7 +378,8 @@ local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke H
 forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
-label var prx_covvalue_g_c`i' "Most recent covariate value for: `next' (studyentry window)"
+label var prx_covvalue_g_c`i' "Most recent covariate value for: `next' (cohortent window)"
+label var prx_cov_g_c_b`i' "Bin indicator for `next' (cohortent window): 1=covariate; 0=not covariate"
 }
 label var totcovs_g_c "Number of total clinical covariates (cohortent window) (gold)"
 //Save and append
@@ -441,6 +443,7 @@ forval i=1/14{
 local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_g_s`i' "Most recent covariate value for: `next' (studyentry window)"
+label var prx_cov_g_s_b`i' "Bin indicator for `next' (studyentry window): 1=covariate; 0=not covariate"
 }
 label var totcovs_g_s "Number of total clinical covariates (studyentry window) (gold)"
 
