@@ -169,7 +169,7 @@ local rxlist = "exenatide liraglutide lixisenatide glp_combo alogliptin linaglip
 //Generate the variable for totals
 egen unqrx= anycount(`rxlist'), values(1)
 
-save drugexpb`i'
+save drugexpb`i', replace
 timer off 2
 timer list 2
 }
