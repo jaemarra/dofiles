@@ -118,7 +118,7 @@ label var prx_serv4_h_s_b "Bin ind hospital visits (studyentry window): 1=at lea
 label var prx_serv3_h_s_b "Bin ind hosp visit duration (studyentry window): 1=at least 1 day; 0=none (hes)"
 label var prx_serv2_h_s_b "Bin ind hosp services (studyentry window): 1=at least 1 service; 0=none (hes)"
 
-save hes_serv_h_s, replace
+save hes_serv_s, replace
 clear 
 
 //COHORTENTRYDATE
