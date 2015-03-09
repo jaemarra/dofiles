@@ -93,7 +93,7 @@ do Data02_support
 						packtype.dta
 						product.dta
 						scoremethod.dta
-Merged files saved:		Therapy_0-99.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 product)
+Merged files saved:		Therapy_0-49.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 product)
 						Clinical001_2-0013_2.dta (merged 1:1 medical)
 						hes (merged 1:1 BasePatidDate + joinby hes_hospital, hes_episodes, hes_diagnosis_epi, hes_diagnosis_hosp, hes_procedures, hes_maternity)
 */			
