@@ -721,7 +721,7 @@ local x= `x'+1
 local next:word `x' of `names'
 label var ever`i' "Indicator for ever exposed: 1=exposed to `next' otherwise missing "
 }
-label var tx "Censor date: calculated as earliest of lcd, tod, dod, deathdate, and end"
+label var tx "Censor date: calculated as earliest of lcd, tod, deathdate"
 label var cohort_b "Metformin only first cohort: 1=met first; 0=other or met combo first"
 label var unqrx "Total number of unique antidiabetic classes exposed to"
 //merge with analytic variables.dta file generated in Data01_import.do: patid linked_practices hes_e death_e lsoa_e cprd_e start end lcd2 tod2 deathdate2 dod2
@@ -748,7 +748,6 @@ fillin patid rxtype
 bysort patid rxtype exporder: gen dupa = cond(_N==1,0,_n)
 drop if dupa>1
 drop dupa
-save adm_drug_exposures_tidy.dta, replace
 //reshape to wide
 keep patid rxtype exposuret0 exposuret1 exposuretf
 reshape wide exposuret0 exposuret1 exposuretf, i(patid) j(rxtype)
@@ -763,7 +762,7 @@ label var exposuretf`i' "Last ever exposure to `next'"
 }
 //merge with ALL analytic variables
 merge m:1 patid using Analytic_variables_a, keep(match master) nogen
-label var tx "Censor date calculated as first of lcd, dod, tod, deathdate"
+label var tx "Censor date calculated as first of lcd, tod"
 label var cohort_b "Binary indicator; 1=metformin first only cohort; 0=not in cohort"
 label var unqrx "Number of unique antidiabetic medications"
 save Drug_Exposures_a_wide.dta, replace
