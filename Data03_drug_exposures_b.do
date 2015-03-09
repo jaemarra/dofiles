@@ -211,6 +211,7 @@ label variable insulin_ultralong "Ultra-long Insulin exposure: 0=no exp, 1=exp"
 label variable insulin_premixed "Pre-mixed Insulin exposure: 0=no exp, 1=exp"
 label variable insulin_combo "Insulin exposure combination of ind agents: 0=no exp, 1=exp"
 label var unqrx "Total number of unique antidiabetic subclasses exposed to"
+rename unqrx unqrx_b
 forval i=0/49 {		
 	erase drugexpb`i'.dta
 	}
