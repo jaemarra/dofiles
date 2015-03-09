@@ -44,7 +44,7 @@ collapse (max) h2recep_c ppi_c cortico_gi_c ///
 				immunosuppress_all_c iron_oral_c iron_parenteral_c potassium_oral_c multivit_c nsaid_c antigout_c antirheum_c benzo_c opioid2_c ///
 				opioid_c cortico_oral_c unqrxc, by(patid)
 				//tidy labelling 
-local x=c			
+local x "c"			
 label variable ppi_`x' "Proton pump inhibitor exposure: 0=no exp, 1=exp"
 label variable h2recep_`x' "H2 receptor antagonist exposure: 0=no exp, 1=exp"
 label variable cortico_gi_`x' "Corticosteroid (GI) exposure:0=no exp, 1=exp"
@@ -138,7 +138,7 @@ collapse (max) h2recep_i ppi_i cortico_gi_i thiazdiur_i loopdiur_i potsparediur_
 				otherimmunomodul_i immunosuppress_all_i iron_oral_i iron_parenteral_i potassium_oral_i multivit_i nsaid_i antigout_i antirheum_i benzo_i ///
 				opioid2_i opioid_i cortico_oral_i unqrxi, by(patid)	
 
-local x=i			
+local x "i"			
 label variable ppi_`x' "Proton pump inhibitor exposure: 0=no exp, 1=exp"
 label variable h2recep_`x' "H2 receptor antagonist exposure: 0=no exp, 1=exp"
 label variable cortico_gi_`x' "Corticosteroid (GI) exposure:0=no exp, 1=exp"
@@ -231,7 +231,7 @@ collapse (max) h2recep_s ppi_s cortico_gi_s thiazdiur_s loopdiur_s potsparediur_
 				antiviral_s antiprotoz_s anthelmintic_s thyroidhorm_s cortico_endocr_s estro_hrt_s bisphos_s cytotoxic_s antiprolif_s ///
 				otherimmunosuppress_s antilymph_mab_s otherimmunomodul_s immunosuppress_all_s iron_oral_s iron_parenteral_s potassium_oral_s multivit_s ///
 				nsaid_s antigout_s antirheum_s benzo_s opioid2_s opioid_s cortico_oral_s unqrxs, by(patid)
-local x=s			
+local x "s"			
 label variable ppi_`x' "Proton pump inhibitor exposure: 0=no exp, 1=exp"
 label variable h2recep_`x' "H2 receptor antagonist exposure: 0=no exp, 1=exp"
 label variable cortico_gi_`x' "Corticosteroid (GI) exposure:0=no exp, 1=exp"
