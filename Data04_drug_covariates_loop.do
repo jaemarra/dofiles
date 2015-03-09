@@ -44,11 +44,8 @@ collapse (max) h2recep_c ppi_c cortico_gi_c ///
 				immunosuppress_all_c iron_oral_c iron_parenteral_c potassium_oral_c multivit_c nsaid_c antigout_c antirheum_c benzo_c opioid2_c ///
 				opioid_c cortico_oral_c cortico_inject_c unqrxc, by(patid)
 				//tidy labelling 
-<<<<<<< HEAD
-local x "c"			
-=======
+				
 local x="c"			
->>>>>>> b1d2d36a6e6d447ae9c07151689920bc2f742458
 label variable ppi_`x' "Proton pump inhibitor exposure: 0=no exp, 1=exp"
 label variable h2recep_`x' "H2 receptor antagonist exposure: 0=no exp, 1=exp"
 label variable cortico_gi_`x' "Corticosteroid (GI) exposure:0=no exp, 1=exp"
@@ -112,14 +109,14 @@ label variable cortico_inject_`x' "Corticosteroid (local inj) exposure:0=no exp,
 label variable antigout_`x' "Antigout drug exposure: 0=no exp, 1=exp"
 label variable antirheum_`x' "Antirheumatic drug exposure: 0=no exp, 1=exp"
 label variable benzo_`x' "Benzodiazepine exposure: 0=no exp, 1=exp" 
-label variable opioid2`x' "Opioid analgesic (anaes) exposure: 0=no exp, 1=exp"
-label variable opioid`x' "any opioid exposure: 0=no exp, 1=exp"
-label variable cortico_oral`x' "any oral corticosteroid exposure: 0=no exp, 1=exp"
-label variable antipark_dop`x' "Antiparkison's dopaminergic drug exposure:0=no exp, 1=exp"
-label variable antibacterial`x' "Antibacterial drug exposure: 0=no exp, 1=exp"
-label variable antiprolif`x' "Antiproliferative immunosuppresant exposure:0=no exp, 1=exp"
-label variable otherimmunosuppress`x' "Corticosteroids and other immunosuppresant exposure:0=no exp, 1=exp"
-label variable immunosuppress_all`x' "Any immunosuppressant drug exposure:0=no exp, 1=exp"
+label variable opioid2_`x' "Opioid analgesic (anaes) exposure: 0=no exp, 1=exp"
+label variable opioid_`x' "any opioid exposure: 0=no exp, 1=exp"
+label variable cortico_oral_`x' "any oral corticosteroid exposure: 0=no exp, 1=exp"
+label variable antipark_dop_`x' "Antiparkison's dopaminergic drug exposure:0=no exp, 1=exp"
+label variable antibacterial_`x' "Antibacterial drug exposure: 0=no exp, 1=exp"
+label variable antiprolif_`x' "Antiproliferative immunosuppresant exposure:0=no exp, 1=exp"
+label variable otherimmunosuppress_`x' "Corticosteroids and other immunosuppresant exposure:0=no exp, 1=exp"
+label variable immunosuppress_all_`x' "Any immunosuppressant drug exposure:0=no exp, 1=exp"
 
 save Drug_Covariates_c.dta, replace
 clear
@@ -142,11 +139,8 @@ collapse (max) h2recep_i ppi_i cortico_gi_i thiazdiur_i loopdiur_i potsparediur_
 				otherimmunomodul_i immunosuppress_all_i iron_oral_i iron_parenteral_i potassium_oral_i multivit_i nsaid_i antigout_i antirheum_i benzo_i ///
 				opioid2_i opioid_i cortico_oral_i cortico_inject_i unqrxi, by(patid)	
 
-<<<<<<< HEAD
-local x "i"			
-=======
+
 local x="i"			
->>>>>>> b1d2d36a6e6d447ae9c07151689920bc2f742458
 label variable ppi_`x' "Proton pump inhibitor exposure: 0=no exp, 1=exp"
 label variable h2recep_`x' "H2 receptor antagonist exposure: 0=no exp, 1=exp"
 label variable cortico_gi_`x' "Corticosteroid (GI) exposure:0=no exp, 1=exp"
@@ -210,14 +204,14 @@ label variable cortico_inject_`x' "Corticosteroid (local inj) exposure:0=no exp,
 label variable antigout_`x' "Antigout drug exposure: 0=no exp, 1=exp"
 label variable antirheum_`x' "Antirheumatic drug exposure: 0=no exp, 1=exp"
 label variable benzo_`x' "Benzodiazepine exposure: 0=no exp, 1=exp" 
-label variable opioid2`x' "Opioid analgesic (anaes) exposure: 0=no exp, 1=exp"
-label variable opioid`x' "any opioid exposure: 0=no exp, 1=exp"
-label variable cortico_oral`x' "any oral corticosteroid exposure: 0=no exp, 1=exp"
-label variable antipark_dop`x' "Antiparkison's dopaminergic drug exposure:0=no exp, 1=exp"
-label variable antibacterial`x' "Antibacterial drug exposure: 0=no exp, 1=exp"
-label variable antiprolif`x' "Antiproliferative immunosuppresant exposure:0=no exp, 1=exp"
-label variable otherimmunosuppress`x' "Corticosteroids and other immunosuppresant exposure:0=no exp, 1=exp"
-label variable immunosuppress_all`x' "Any immunosuppressant drug exposure:0=no exp, 1=exp"
+label variable opioid2_`x' "Opioid analgesic (anaes) exposure: 0=no exp, 1=exp"
+label variable opioid_`x' "any opioid exposure: 0=no exp, 1=exp"
+label variable cortico_oral_`x' "any oral corticosteroid exposure: 0=no exp, 1=exp"
+label variable antipark_dop_`x' "Antiparkison's dopaminergic drug exposure:0=no exp, 1=exp"
+label variable antibacterial_`x' "Antibacterial drug exposure: 0=no exp, 1=exp"
+label variable antiprolif_`x' "Antiproliferative immunosuppresant exposure:0=no exp, 1=exp"
+label variable otherimmunosuppress_`x' "Corticosteroids and other immunosuppresant exposure:0=no exp, 1=exp"
+label variable immunosuppress_all_`x' "Any immunosuppressant drug exposure:0=no exp, 1=exp"
 
 save Drug_Covariates_i.dta, replace
 clear
@@ -238,13 +232,8 @@ collapse (max) h2recep_s ppi_s cortico_gi_s thiazdiur_s loopdiur_s potsparediur_
 				otherantibiot_s sulfo_trimeth_s antituberc_s antileprotic_s metro_tinidazole_s quinolone_s uti_drugs_s antibacterial_s antifungal_s ///
 				antiviral_s antiprotoz_s anthelmintic_s thyroidhorm_s cortico_endocr_s estro_hrt_s bisphos_s cytotoxic_s antiprolif_s ///
 				otherimmunosuppress_s antilymph_mab_s otherimmunomodul_s immunosuppress_all_s iron_oral_s iron_parenteral_s potassium_oral_s multivit_s ///
-<<<<<<< HEAD
-				nsaid_s antigout_s antirheum_s benzo_s opioid2_s opioid_s cortico_oral_s unqrxs, by(patid)
-local x "s"			
-=======
 				nsaid_s antigout_s antirheum_s benzo_s opioid2_s opioid_s cortico_oral_s cortico_inject_s unqrxs, by(patid)
 local x="s"			
->>>>>>> b1d2d36a6e6d447ae9c07151689920bc2f742458
 label variable ppi_`x' "Proton pump inhibitor exposure: 0=no exp, 1=exp"
 label variable h2recep_`x' "H2 receptor antagonist exposure: 0=no exp, 1=exp"
 label variable cortico_gi_`x' "Corticosteroid (GI) exposure:0=no exp, 1=exp"
@@ -308,14 +297,14 @@ label variable cortico_inject_`x' "Corticosteroid (local inj) exposure:0=no exp,
 label variable antigout_`x' "Antigout drug exposure: 0=no exp, 1=exp"
 label variable antirheum_`x' "Antirheumatic drug exposure: 0=no exp, 1=exp"
 label variable benzo_`x' "Benzodiazepine exposure: 0=no exp, 1=exp" 
-label variable opioid2`x' "Opioid analgesic (anaes) exposure: 0=no exp, 1=exp"
-label variable opioid`x' "any opioid exposure: 0=no exp, 1=exp"
-label variable cortico_oral`x' "any oral corticosteroid exposure: 0=no exp, 1=exp"
-label variable antipark_dop`x' "Antiparkison's dopaminergic drug exposure:0=no exp, 1=exp"
-label variable antibacterial`x' "Antibacterial drug exposure: 0=no exp, 1=exp"
-label variable antiprolif`x' "Antiproliferative immunosuppresant exposure:0=no exp, 1=exp"
-label variable otherimmunosuppress`x' "Corticosteroids and other immunosuppresant exposure:0=no exp, 1=exp"
-label variable immunosuppress_all`x' "Any immunosuppressant drug exposure:0=no exp, 1=exp"
+label variable opioid2_`x' "Opioid analgesic (anaes) exposure: 0=no exp, 1=exp"
+label variable opioid_`x' "any opioid exposure: 0=no exp, 1=exp"
+label variable cortico_oral_`x' "any oral corticosteroid exposure: 0=no exp, 1=exp"
+label variable antipark_dop_`x' "Antiparkison's dopaminergic drug exposure:0=no exp, 1=exp"
+label variable antibacterial_`x' "Antibacterial drug exposure: 0=no exp, 1=exp"
+label variable antiprolif_`x' "Antiproliferative immunosuppresant exposure:0=no exp, 1=exp"
+label variable otherimmunosuppress_`x' "Corticosteroids and other immunosuppresant exposure:0=no exp, 1=exp"
+label variable immunosuppress_all_`x' "Any immunosuppressant drug exposure:0=no exp, 1=exp"
 save Drug_Covariates_s.dta, replace
 clear
 
