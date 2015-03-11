@@ -177,6 +177,89 @@ gen tg_i = 1 if prx_test_i_b202==1
 replace tg_i=0 if tg_i!=1
 tab tg_i if exclude==0
 
+***ESTIMATE GLOMERULAR FILTRATION RATE***
+//ref for CG and MDRD formulas: http://cjhp-online.ca/index.php/cjhp/article/viewFile/31/30
+//Cockcroft-Galt continuous variable in SI units (umol/L, years, kg)
+gen egfr_cg =.
+replace weight = 90 if weight ==.
+replace egfr_cg = ((140-testage)*weight*1.2)/prx_testvalue_i2165 if sex==0
+//multiply by 0.85 for women
+replace egfr_cg = (((140-testage)*weight*1.2)/prx_testvalue_i2165)*0.85 if sex==1
+label var egfr_cg "Estimated glomerular filtration rate- Cockcroft-Galt method"
+
+//modified CG continuous variable in SI units (umol/L, years)
+gen egfr_mcg =.
+replace egfr_mcg = ((140-testage)*90)/prx_testvalue_i2165
+label var egfr_mcg "Estimated glomerular filtration rate- modified Cockcroft-Galt method"
+
+//abbreviated MDRD continuous variable
+gen egfr_amdrd=. 
+replace egfr_amdrd = 186.3*((prx_testvalue_i2165/88.4)^-1.154)*testage^-0.203 if sex==0
+//multiply by 0.742 for women **note there is a race factor usually included: if race==black (*1.21)
+replace egfr_amdrd = (186.3*((prx_testvalue_i2165/88.4)^-1.154)*testage^-0.203)*0.742 if sex==1
+label var egfr_amdrd "Estimated glomerular filtration rate- abbreviated MDRD method"
+
+//ref for CKD-EPI formulas: http://www.biomedcentral.com/1471-2318/13/113/table/T1
+//CKD-EPI continuous variable
+gen egfr_ce=.
+//populate with CKD-EPI estimate for males with scr<=80
+replace egfr_ce = (141*((prx_testvalue_i2165/88.4/0.7)^-0.411)*(0.993^testage)) if prx_testvalue_i2165<=80 & sex==0
+//populate with CKD-EPI estimate for males with scr>80
+replace egfr_ce = (141*((prx_testvalue_i2165/88.4/0.7)^-1.209)*(0.993^testage)) if prx_testvalue_i2165>80 & sex==0
+//populate with CKD-EPI estimate for females with scr<=62
+replace egfr_ce = (144*((prx_testvalue_i2165/88.4/0.7)^-0.329)*(0.993^testage)) if prx_testvalue_i2165<=62 & sex==1
+//populate with CKD-EPI estimate for females with scr>62
+replace egfr_ce = (144*((prx_testvalue_i2165/88.4/0.7)^-1.209)*(0.993^testage)) if prx_testvalue_i2165>62 & sex==1
+label var egfr_ce "Estimated glomerular filtration rate- CKD-EPI method"
+
+***CREATE CATEGORICAL VARIABLES***
+//CKD (GFR ³90; 89.9-60; 59.9-30; 29.9-15; <15 or dialysis)
+// generate the categorical variable for the Cockcroft-Galt eGFR
+gen ckd_cg= .
+replace ckd_cg=1 if egfr_cg < .  & egfr_cg >= 90
+replace ckd_cg=2 if egfr_cg < 90 & egfr_cg >= 60
+replace ckd_cg=3 if egfr_cg < 60 & egfr_cg >= 30
+replace ckd_cg=4 if egfr_cg < 30 & egfr_cg >= 15
+replace ckd_cg=5 if egfr_cg < 15 //do we have a marker for dialysis???
+label var ckd_cg "Chronic kidney disease categories using CG eGFR"
+//create value labels for ckd 1-5
+label define ckd_cg_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
+label values ckd_cg ckd_cg_labels
+
+// generate the categorical variable for the modified Cockcroft-Galt eGFR
+gen ckd_mcg= .
+replace ckd_mcg=1 if egfr_mcg < .  & egfr_mcg >= 90
+replace ckd_mcg=2 if egfr_mcg < 90 & egfr_mcg >= 60
+replace ckd_mcg=3 if egfr_mcg < 60 & egfr_mcg >= 30
+replace ckd_mcg=4 if egfr_mcg < 30 & egfr_mcg >= 15
+replace ckd_mcg=5 if egfr_mcg < 15 //do we have a marker for dialysis???
+label var ckd_mcg "Chronic kidney disease categories using mCG eGFR"
+//create value labels for ckd 1-5
+label define ckd_mcg_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
+label values ckd_mcg ckd_mcg_labels
+
+// generate the categorical variable for the abbreviated MDRD eGFR
+gen ckd_amdrd= .
+replace ckd_amdrd=1 if egfr_amdrd < .  & egfr_amdrd >= 90
+replace ckd_amdrd=2 if egfr_amdrd < 90 & egfr_amdrd >= 60
+replace ckd_amdrd=3 if egfr_amdrd < 60 & egfr_amdrd >= 30
+replace ckd_amdrd=4 if egfr_amdrd < 30 & egfr_amdrd >= 15
+replace ckd_amdrd=5 if egfr_amdrd < 15 //do we have a marker for dialysis???
+//create value labels for ckd 1-5
+label define ckd_amdrd_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
+label values ckd_amdrd ckd_amdrd_labels
+
+// generate the categorical variable for the CKD-EPI eGFR
+gen ckd_ce= .
+replace ckd_ce=1 if egfr_ce < .  & egfr_ce >= 90
+replace ckd_ce=2 if egfr_ce < 90 & egfr_ce >= 60
+replace ckd_ce=3 if egfr_ce < 60 & egfr_ce >= 30
+replace ckd_ce=4 if egfr_ce < 30 & egfr_ce >= 15
+replace ckd_ce=5 if egfr_ce < 15 //do we have a marker for dialysis???
+//create value labels for ckd 1-5
+label define ckd_ce_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
+label values ckd_ce ckd_ce_labels
+
 //PREPARE FOR TABLE
 //Gen indextype
 gen indextype=.
