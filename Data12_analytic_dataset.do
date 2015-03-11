@@ -61,6 +61,8 @@ clear
 use Analytic_Dataset_s, clear
 merge 1:1 patid using Analytic_Dataset_c, generate(cohort_ind)
 merge 1:1 patid using Analytic_Dataset_i, generate(index_ind)
+merge 1:1 patid using uts, nogen
+merge 1:1 patid using LabCovariates_i2, nogen
 datasignature set, reset
 save Analytic_Dataset_Master, replace
 clear
