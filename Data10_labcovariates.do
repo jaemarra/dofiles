@@ -541,7 +541,7 @@ local nextname:word `x' of `names'
 local nextent:word `x' of `ents'
 local nextunit:word `x' of `units'
 label var prx_testvalue_i2`nextent' "Value of most proximal `nextname' (`nextunit') (index window)"
-label var prx_test_i2_b`nextent' "Bin ind `nextname' (index window); 1=lab test, 0=no lab test"
+label var prx_test_i2_b`nextent' "Bin ind `nextname' (index2 window); 1=lab test, 0=no lab test"
 }
 
 //Save
@@ -608,7 +608,7 @@ local nextname:word `x' of `names'
 local nextent:word `x' of `ents'
 local nextunit:word `x' of `units'
 label var prx_testvalue_c2`nextent' "Value of most proximal `nextname' (`nextunit') (cohortent window)"
-label var prx_test_c2_b`nextent' "Bin ind `nextname' (cohortent window); 1=lab test, 0=no lab test"
+label var prx_test_c2_b`nextent' "Bin ind `nextname' (cohortent2 window); 1=lab test, 0=no lab test"
 }
 
 //Save
@@ -675,7 +675,7 @@ local nextname:word `x' of `names'
 local nextent:word `x' of `ents'
 local nextunit:word `x' of `units'
 label var prx_testvalue_s2`nextent' "Value of most proximal `nextname' (`nextunit') (studyentry window)"
-label var prx_test_s2_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
+label var prx_test_s2_b`nextent' "Bin ind `nextname' (studyentry2 window); 1=lab test, 0=no lab test"
 }
 
 //Save
