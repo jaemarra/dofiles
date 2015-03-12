@@ -375,15 +375,18 @@ reshape wide prx_testvalue_i prx_test_i_b, i(patid) j(enttype)
 local x=0
 local ents "152 155 156 158 163 165 166 173 175 177 202 275"
 local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+local units "g/L IU/L IU/L umol/L mmol/L umol/L mL/min g/dL mmol/L mmol/L mmol/L %glycated"
 forval i=1/12 {
 local x= `x'+1
 local nextname:word `x' of `names'
 local nextent:word `x' of `ents'
-label var prx_testvalue_i`nextent' "Value of most proximal `nextname' test (studyentry window)"
+local nextunit:word `x' of `units'
+label var prx_testvalue_i`nextent' "Value of most proximal `nextname' (`nextunit') (studyentry window)"
 label var prx_test_i_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
 }
 
 //Save
+merge 1:1 patid using uts, keep (match using) nogen
 save LabCovariates_i.dta, replace
 clear
 
@@ -425,14 +428,17 @@ reshape wide prx_testvalue_c prx_test_c_b, i(patid) j(enttype)
 local x=0
 local ents "152 155 156 158 163 165 166 173 175 177 202 275"
 local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+local units "g/L IU/L IU/L umol/L mmol/L umol/L mL/min g/dL mmol/L mmol/L mmol/L %glycated"
 forval i=1/12 {
 local x= `x'+1
 local nextname:word `x' of `names'
 local nextent:word `x' of `ents'
-label var prx_testvalue_c`nextent' "Value of most proximal `nextname' test (studyentry window)"
-label var prx_test_c_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
+local nextunit:word `x' of `units'
+label var prx_testvalue_c`nextent' "Value of most proximal `nextname' (`nextunit') (cohortent window)"
+label var prx_test_c_b`nextent' "Bin ind `nextname' (cohortent window); 1=lab test, 0=no lab test"
 }
 //Save
+merge 1:1 patid using uts, keep (match using) nogen
 save LabCovariates_c, replace
 clear
 
@@ -474,17 +480,20 @@ reshape wide prx_testvalue_s prx_test_s_b, i(patid) j(enttype)
 local x=0
 local ents "152 155 156 158 163 165 166 173 175 177 202 275"
 local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+local units "g/L IU/L IU/L umol/L mmol/L umol/L mL/min g/dL mmol/L mmol/L mmol/L %glycated"
 forval i=1/12 {
 local x= `x'+1
 local nextname:word `x' of `names'
 local nextent:word `x' of `ents'
-label var prx_testvalue_s`nextent' "Value of most proximal `nextname' test (studyentry window)"
+local nextunit:word `x' of `units'
+label var prx_testvalue_s`nextent' "Value of most proximal `nextname' (`nextunit') (studyentry window)"
 label var prx_test_s_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
 }
+merge 1:1 patid using uts, keep (match using) nogen
 save LabCovariates_s, replace
 clear
 
-////////////////////////////////////ADDITONAL WINDOW- ANYTIME BEFORE INDEXDATE /////////////////////////////////////
+////////////////////////////////////ADDITONAL WINDOWS- ANYTIME BEFORE /////////////////////////////////////
 //INDEXDATE2
 //pull out testdate of interest
 
@@ -525,17 +534,21 @@ reshape wide prx_testvalue_i2 prx_test_i2_b, i(patid) j(enttype)
 local x=0
 local ents "152 155 156 158 163 165 166 173 175 177 202 275"
 local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+local units "g/L IU/L IU/L umol/L mmol/L umol/L mL/min g/dL mmol/L mmol/L mmol/L %glycated"
 forval i=1/12 {
 local x= `x'+1
 local nextname:word `x' of `names'
 local nextent:word `x' of `ents'
-label var prx_testvalue_i2`nextent' "Value of most proximal `nextname' test (studyentry window)"
-label var prx_test_i2_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
+local nextunit:word `x' of `units'
+label var prx_testvalue_i2`nextent' "Value of most proximal `nextname' (`nextunit') (index window)"
+label var prx_test_i2_b`nextent' "Bin ind `nextname' (index window); 1=lab test, 0=no lab test"
 }
 
 //Save
+merge 1:1 patid using uts, keep (match using) nogen
 save LabCovariates_i2.dta, replace
 use LabCovariates, clear
+merge m:1 patid using uts, keep (match using) nogen
 keep patid eltestdate2 testage weight sex
 label var testage "Age at time of serum creatinine test"
 label var weight "Weight at time of serum creatinine test"
@@ -543,10 +556,144 @@ label var sex "Gender for eGFR and CKD calculations"
 sort patid eltestdate2
 drop eltestdate2
 collapse (lastnm) testage weight sex, by(patid)
-save LabVars, replace
+save LabVars_i2, replace
 use LabCovariates_i2
-merge 1:1 patid using LabVars, keep (match using) nogen
+merge 1:1 patid using LabVars_i2, keep (match using) nogen
 save LabCovariates_i2.dta, replace
+
+//COHORTENTRYDATE
+//pull out testdate of interest
+
+use LabCovariates
+bysort patid enttype: egen prx_testdate_c2 = max(eltestdate2) if eltestdate2<=cohortentrydate
+format prx_testdate_c2 %td
+gen prx_test_c2_b = 1 if !missing(prx_testdate_c2)
+
+//pull out lab value of interest
+bysort patid enttype : gen prx_testvalue_c2 = nr_data2 if prx_testdate_c2==eltestdate2
+drop if prx_testvalue_c2==.
+
+//Check for duplicates again- no duplicates found then continue
+bysort patid enttype: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+
+//create counts
+sort patid enttype eltestdate2
+by patid enttype: generate lab_num = _n
+by patid: egen lab_num_un = count(enttype) if lab_num==1 
+
+by patid: egen lab_num_un_i_temp = count(enttype) if lab_num==1 & eltestdate2<=cohortentrydate
+by patid: egen lab_num_un_i = min(lab_num_un_i_temp)
+drop lab_num_un_i_temp
+
+//Rectangularize data
+fillin patid enttype
+
+//Fillin the total number of labs in the window of interest
+bysort patid: egen totlabs = total(lab_num)
+
+//Drop all fields that aren't wanted in the final dta file
+keep patid enttype totlabs prx_testvalue_c2 prx_test_c2_b
+
+//Reshape
+reshape wide prx_testvalue_c2 prx_test_c2_b, i(patid) j(enttype)
+local x=0
+local ents "152 155 156 158 163 165 166 173 175 177 202 275"
+local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+local units "g/L IU/L IU/L umol/L mmol/L umol/L mL/min g/dL mmol/L mmol/L mmol/L %glycated"
+forval i=1/12 {
+local x= `x'+1
+local nextname:word `x' of `names'
+local nextent:word `x' of `ents'
+local nextunit:word `x' of `units'
+label var prx_testvalue_c2`nextent' "Value of most proximal `nextname' (`nextunit') (cohortent window)"
+label var prx_test_c2_b`nextent' "Bin ind `nextname' (cohortent window); 1=lab test, 0=no lab test"
+}
+
+//Save
+merge 1:1 patid using uts, keep (match using) nogen
+save LabCovariates_c2.dta, replace
+use LabCovariates, clear
+merge m:1 patid using uts, keep (match using) nogen
+keep patid eltestdate2 testage weight sex
+label var testage "Age at time of serum creatinine test"
+label var weight "Weight at time of serum creatinine test"
+label var sex "Gender for eGFR and CKD calculations"
+sort patid eltestdate2
+drop eltestdate2
+collapse (lastnm) testage weight sex, by(patid)
+save LabVars_c2, replace
+use LabCovariates_c2
+merge 1:1 patid using LabVars_c2, keep (match using) nogen
+save LabCovariates_c2.dta, replace
+
+//STUDYENTRYDATE2
+//pull out testdate of interest
+
+use LabCovariates
+bysort patid enttype: egen prx_testdate_s2 = max(eltestdate2) if eltestdate2<=studyentrydate_cprd2
+format prx_testdate_s2 %td
+gen prx_test_s2_b = 1 if !missing(prx_testdate_s2)
+
+//pull out lab value of interest
+bysort patid enttype : gen prx_testvalue_s2 = nr_data2 if prx_testdate_s2==eltestdate2
+drop if prx_testvalue_s2==.
+
+//Check for duplicates again- no duplicates found then continue
+bysort patid enttype: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+
+//create counts
+sort patid enttype eltestdate2
+by patid enttype: generate lab_num = _n
+by patid: egen lab_num_un = count(enttype) if lab_num==1 
+
+by patid: egen lab_num_un_s2_temp = count(enttype) if lab_num==1 & eltestdate2<=studyentrydate_cprd2
+by patid: egen lab_num_un_s2 = min(lab_num_un_s2_temp)
+drop lab_num_un_s2_temp
+
+//Rectangularize data
+fillin patid enttype
+
+//Fillin the total number of labs in the window of interest
+bysort patid: egen totlabs = total(lab_num)
+
+//Drop all fields that aren't wanted in the final dta file
+keep patid enttype totlabs prx_testvalue_s2 prx_test_s2_b
+
+//Reshape
+reshape wide prx_testvalue_s2 prx_test_s2_b, i(patid) j(enttype)
+local x=0
+local ents "152 155 156 158 163 165 166 173 175 177 202 275"
+local names "Albumin ALT AST Bilirubin Cholesterol-total Creatinine-serum Creatinine-clearance Hemoglobin HDL LDL Triglycerides HbA1c"
+local units "g/L IU/L IU/L umol/L mmol/L umol/L mL/min g/dL mmol/L mmol/L mmol/L %glycated"
+forval i=1/12 {
+local x= `x'+1
+local nextname:word `x' of `names'
+local nextent:word `x' of `ents'
+local nextunit:word `x' of `units'
+label var prx_testvalue_s2`nextent' "Value of most proximal `nextname' (`nextunit') (studyentry window)"
+label var prx_test_s2_b`nextent' "Bin ind `nextname' (studyentry window); 1=lab test, 0=no lab test"
+}
+
+//Save
+merge 1:1 patid using uts, keep (match using) nogen
+save LabCovariates_s2.dta, replace
+use LabCovariates, clear
+merge m:1 patid using uts, keep (match using) nogen
+keep patid eltestdate2 testage weight sex
+label var testage "Age at time of serum creatinine test"
+label var weight "Weight at time of serum creatinine test"
+label var sex "Gender for eGFR and CKD calculations"
+sort patid eltestdate2
+drop eltestdate2
+collapse (lastnm) testage weight sex, by(patid)
+save LabVars_s2, replace
+use LabCovariates_s2
+merge 1:1 patid using LabVars_s2, keep (match using) nogen
+save LabCovariates_s2.dta, replace
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 timer off 1 
