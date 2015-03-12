@@ -1,4 +1,4 @@
-/  program:     Stat01_Baseline_Characteristics.do
+//  program:     Stat01_Baseline_Characteristics.do
 //  task:		Statistical analyses of Analytic_Dataset_Master.dta USING YEAR BEFORE INDEX WINDOW
 //				Identify patients for exclusion, apply exclusion, and extract cohort characterisitics.
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
@@ -11,9 +11,11 @@ set more off
 log using Data01.smcl, replace
 timer on 1
 
+use Analytic_Dataset_Master
+
 //SOCIODEMOGRAPHICS//
 //Exclusion unification
-gen exclude=1 if (gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0)
+gen exclude=1 if (uts2==.|gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0)
 replace exclude=0 if exclude!=1
 label var exclude "Bin ind for pcos, preg, gest_diab, <30yo, or uts; excluded=1, not excluded=0)
 tab exclude
@@ -27,6 +29,7 @@ label values age_cat age_cats
 tab age_cat if exclude==0
 
 //Gender
+recode gender (1=0) (2=1)
 tab gender if exclude==0
 
 //Marital status 
@@ -137,15 +140,18 @@ gen revasc_com_i = 1 if (prx_cov_g_i_b11==1|prx_cov_i_b11==1)
 replace revasc_com_i=0 if revasc_com_i!=1
 tab revasc_com_i if exclude==0
 
+gen combined_cci_i = prx_ccivalue_g_i
+replace combined_cci_i = prx_ccivalue_h_i if prx_ccivalue_h_i>prx_ccivalue_g_i&prx_ccivalue_h_i!=.
+
 //PHYSIOLOGICS
 //HbA1c
-gen hba1c_i = prx_testvalue_i275
-tab hba1c_i if exclude==0
-gen hba1c_cats_i=round(hba1c)
-recode hba1c_cats_i (.=0) (min/7=1) (7/8=2) (8/9=3) (9/10=4) (10/max=5)
+gen hba1c_i2 = prx_testvalue_i2275 if prx_testvalue_i2275>=2& prx_testvalue_i2275<=25
+tab hba1c_i2 if exclude==0
+gen hba1c_cats_i2=round(hba1c_i2)
+recode hba1c_cats_i2 (.=0) (min/7=1) (7/8=2) (8/9=3) (9/10=4) (10/max=5)
 label define hba1c_cats 0 "Unknown" 1 "<7.0%" 2 "7.0-8.0%" 3 "8.0-9.0%" 4 "9.0-10.0%" 5 ">10%"
-label values hba1c_cats_i hba1c_cats
-tab hba1c_cats_i if exclude==0
+label values hba1c_cats_i2 hba1c_cats
+tab hba1c_cats_i2 if exclude==0
 
 //SBP
 tab prx_covvalue_g_i3 if exclude==0
@@ -177,19 +183,34 @@ gen tg_i = 1 if prx_test_i_b202==1
 replace tg_i=0 if tg_i!=1
 tab tg_i if exclude==0
 
+//Height
+gen height_i = prx_cov_g_i_b1
+gen heightsq_i = prx_cov_g_i_b1*prx_cov_g_i_b1
+
+//Weight
+gen weight_i = prx_cov_g_i_b2
+ 
+//BMI
+gen bmi_i = weight_i/heightsq_i if weight_i!=.&heightsq_i!=.
+
+//MEDICATIONS//
+gen ace_arb_renin_i=1 if (acei_i==1|renini_i==1|angiotensin2recepant_i)
+gen diuretics_all_i=1 if (thiazdiur_i==1|loopdiur_i==1|potsparediur_aldos_i==1|potsparediur_other_i==1)
+
+
 ***ESTIMATE GLOMERULAR FILTRATION RATE***
 //ref for CG and MDRD formulas: http://cjhp-online.ca/index.php/cjhp/article/viewFile/31/30
 //Cockcroft-Galt continuous variable in SI units (umol/L, years, kg)
 gen egfr_cg =.
-replace weight = 90 if weight ==.
-replace egfr_cg = ((140-testage)*weight*1.2)/prx_testvalue_i2165 if sex==0
+//replace weight = 90 if weight ==.
+replace egfr_cg = ((140-testage)*weight_i*1.2)/prx_testvalue_i2165 if sex==0
 //multiply by 0.85 for women
-replace egfr_cg = (((140-testage)*weight*1.2)/prx_testvalue_i2165)*0.85 if sex==1
+replace egfr_cg = (((140-testage)*weight_i*1.2)/prx_testvalue_i2165)*0.85 if sex==1
 label var egfr_cg "Estimated glomerular filtration rate- Cockcroft-Galt method"
 
 //modified CG continuous variable in SI units (umol/L, years)
 gen egfr_mcg =.
-replace egfr_mcg = ((140-testage)*90)/prx_testvalue_i2165
+replace egfr_mcg = ((140-testage)*weight_i)/prx_testvalue_i2165
 label var egfr_mcg "Estimated glomerular filtration rate- modified Cockcroft-Galt method"
 
 //abbreviated MDRD continuous variable
@@ -268,14 +289,33 @@ replace indextype=1 if secondadmrx=="DPP"
 replace indextype=2 if secondadmrx=="GLP"
 replace indextype=3 if secondadmrx=="insulin"
 replace indextype=4 if secondadmrx=="TZD"
-replace indextype=5 if secondadmrx=="other"
+replace indextype=5 if secondadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="DPPTZD"|secondadmrx=="DPPinsulin"|secondadmrx=="DPPother"|secondadmrx=="GLPTZD"|secondadmrx=="GLPinsulin"|secondadmrx=="GLPother"|secondadmrx=="SUDPP"|secondadmrx=="SUGLP"|secondadmrx=="SUTZD"|secondadmrx=="SUinsulin"|secondadmrx=="SUother"|secondadmrx=="TZDother"|secondadmrx=="insulinTZD"|secondadmrx=="insulinother"
 replace indextype=6 if secondadmrx=="metformin"
 
-//Create table1
-table1 if exclude==0, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender contn \ maritalstatus contn \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat) onecol saving(sociodemographics.xls, replace)
-table1 if exclude==0, by(indextype) vars(physician_vis contn \ hospitalizations contn \ hosp_services contn \ hosp_days contn) pdp(3) saving(healthservices.xls, replace)
-table1 if exclude==0, by(indextype) vars(physician_vis cat \ hospitalizations cat \ hosp_services cat \ hosp_days cat) onecol saving(healthservicescats.xls, replace)
-table1 if exclude==0, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin) pdp(3) onecol saving(comorbidities.xls, replace)
-table1 if exclude==0, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn) pdp(3) onecol saving(physiologics.xls, replace)
-table1 if exclude==0, by(indextype) vars(hba1c_cats_i cat \ sbp_i cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) pdp(3) onecol saving(physiologicscats.xls, replace)
-table1 if exclude==0, by(indextype) vars(unique_cov_drugs cat \ unqrx cat) onecol saving(medications.xls, replace)
+//Create table1 for entire base cohort if not excluded
+table1 if exclude==0&cohort_b==1, by(indextype) vars(age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat) format(%f9.2) onecol saving(sociodemographics.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(age_indexdate contn \ height_i contn \ weight_i contn \ bmi_i contn \ physician_vis contn) saving(healthservices.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(physician_vis cat) onecol format(%f9.2) saving(healthservicescats.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ combined_cci_i cat) onecol format(%f9.2) saving(comorbidities.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn) onecol saving(physiologics.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(hba1c_cats_i cat \ sbp_i cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) format(%f9.2) onecol saving(physiologicscats.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(unique_cov_drugs cat \ unqrx cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%f9.2) saving(medications.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(ckd_cg cat \ ckd_mcg cat \ ckd_amdrd cat \ ckd_ce cat) onecol format(%f9.2) saving(ckd.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(egfr_cg contn \ egfr_mcg contn \ egfr_amdrd contn \ egfr_ce contn) onecol saving(egfr.xls, replace)
+
+/*Create table1 by ever exposed if in cohort and not excluded
+forval i=0/5 {
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(age_indexdate contn \ age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat) format(%f9.2) onecol saving(sociodemographics`i'.xls, replace)
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(physician_vis contn \ hospitalizations contn \ hosp_services contn \ hosp_days contn) saving(healthservices`i'.xls, replace)
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(physician_vis cat \ hospitalizations cat \ hosp_services cat \ hosp_days cat) onecol format(%f9.2) saving(healthservicescats`i'.xls, replace)
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin) onecol format(%f9.2) saving(comorbidities`i'.xls, replace)
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn) saving(physiologics`i'.xls, replace)
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(hba1c_cats_i cat \ sbp_i cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) format(%f9.2) onecol saving(physiologicscats`i'.xls, replace)
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(unique_cov_drugs cat \ unqrx cat \ ever0 bin \ ever1 bin ever2 bin ever3 bin \ ) onecol format(%f9.2) saving(medications`i'.xls, replace)
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(ckd_cg cat \ ckd_mcg cat \ ckd_amdrd cat \ ckd_ce cat) saving(ckd`i'.xls, replace)
+table1 if exclude==0&cohort_b==1&ever`i'==1, vars(egfr_cg contn \ egfr_mcg contn \ egfr_amdrd contn \ egfr_ce contn) saving(egfr`i'.xls, replace)
+}
+*/
+
+log close
+timer off 1
