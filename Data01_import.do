@@ -182,10 +182,12 @@ compress
 capture drop _merge linked_practice 
 //sort, merge with Practice, compress
 sort pracid
-merge m:1 pracid using Practice
-drop _merge
+merge m:1 pracid using Practice, nogen
+preserve
+keep patid uts2
+save uts, replace
+restore
 //restrict to patients registered at an up to standard practice at least 1 year prior to entry date
-drop if uts >= studyentrydate_cprd2-365 // THIS IS WHERE WE DROP 16 PATIENTS
 save BaseCohort.dta, replace
 // create an abbreviated dataset to merge with ONS death_patient then into final Analytic Cohort
 preserve
