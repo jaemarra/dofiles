@@ -60,21 +60,21 @@ label define visits_cats 0 "None" 1 "One per month or less" 2 "Two per month" 3 
 label values physician_vis visits_cats
 tab physician_vis if exclude==0
 
-//Number of hospitalizations
+//Number of hospitalizations ONLY FOR LINKED
 gen hospitalizations=prx_servvalue2_h_i
 recode hospitalizations (0=0) (1=1) (2=2) (3=3) (4=4) (5=5) (6/12=6) (13/max=7) (.=8)
 label define hosp_cats 0 "None" 1 "One" 2 "Two" 3 "Three" 4 "Four" 5 "Five" 6 "Six to Twelve" 7 "More than Twelve" 8 "Unknown"
 label values hospitalizations hosp_cats
 tab hospitalizations if exclude==0
 
-//Hospital Services
+//Hospital Services ONLY FOR LINKED
 gen hosp_services = totservs_h_i
 recode hosp_services (min/100=0) (101/200=1) (201/300=2) (301/400=3) (401/500=4) (501/600=5) (601/700=6) (701/800=7) (801/900=8) (901/1000=9) (1001/max=10) (.=11)
 label define hosp_services_cats 0 "0-100" 1 "101-200" 2 "201-300" 3 "301-400" 4 "401-500" 5 "501-600" 6 "601-700" 7 "701-800" 8 "801-900" 9 "901-1000" 10 "More than 1000" 11 "Unknown"
 label values hosp_services hosp_services_cats
 tab hosp_services if exclude==0
 
-//Duration of Hospital Stay
+//Duration of Hospital Stay ONLY FOR LINKED
 gen hosp_days = prx_servvalue3_h_i
 recode hosp_days (min/7=0) (8/14=1) (15/21=2) (22/28=3) (29/35=4) (36/42=5) (43/49=6) (50/56=7) (57/63=8) (64/70=9) (71/max=10) (.=11)
 label define hosp_days_cats 0 "Up to 1 week" 1 "2 weeks" 2 "3 weeks" 3 "4 weeks" 4 "5 weeks" 5 "6 weeks" 6 "7 weeks" 7 "8 weeks" 8 "9 weeks" 9 "10 weeks" 10 "More than 10 weeks" 11 "unknown"
@@ -184,11 +184,11 @@ replace tg_i=0 if tg_i!=1
 tab tg_i if exclude==0
 
 //Height
-gen height_i = prx_cov_g_i_b1
-gen heightsq_i = prx_cov_g_i_b1*prx_cov_g_i_b1
+gen height_i = prx_covvalue_g_i1
+gen heightsq_i = prx_covvalue_g_i1*prx_covvalue_g_i1
 
 //Weight
-gen weight_i = prx_cov_g_i_b2
+gen weight_i = prx_covvalue_g_i2
  
 //BMI
 gen bmi_i = weight_i/heightsq_i if weight_i!=.&heightsq_i!=.
@@ -199,38 +199,43 @@ gen diuretics_all_i=1 if (thiazdiur_i==1|loopdiur_i==1|potsparediur_aldos_i==1|p
 
 
 ***ESTIMATE GLOMERULAR FILTRATION RATE***
+//Serum Creatinine
+gen scr_i = prx_testvalue_i2165
+recode scr_i (.=0) (min/65=1) (66/79=2) (80/94=3) (95/max=4)
+label define scr_i_cats 0 "Unknown" 1 "<65umol/L" 2 "66-79umol/L" 3 "80-94umol/L" 4 ">95umol/L"
+label values scr_i scr_i_cats
 //ref for CG and MDRD formulas: http://cjhp-online.ca/index.php/cjhp/article/viewFile/31/30
 //Cockcroft-Galt continuous variable in SI units (umol/L, years, kg)
 gen egfr_cg =.
 //replace weight = 90 if weight ==.
-replace egfr_cg = ((140-testage)*weight_i*1.2)/prx_testvalue_i2165 if sex==0
+replace egfr_cg = ((140-testage)*weight_i*1.2)/prx_testvalue_i2165 if sex==0 &prx_testvalue_i2165!=.&weight_i!=.&testage!=.
 //multiply by 0.85 for women
-replace egfr_cg = (((140-testage)*weight_i*1.2)/prx_testvalue_i2165)*0.85 if sex==1
+replace egfr_cg = (((140-testage)*weight_i*1.2)/prx_testvalue_i2165)*0.85 if sex==1 &prx_testvalue_i2165!=.&weight_i!=.&testage!=.
 label var egfr_cg "Estimated glomerular filtration rate- Cockcroft-Galt method"
 
 //modified CG continuous variable in SI units (umol/L, years)
 gen egfr_mcg =.
-replace egfr_mcg = ((140-testage)*weight_i)/prx_testvalue_i2165
+replace egfr_mcg = ((140-testage)*weight_i)/prx_testvalue_i2165 if prx_testvalue_i2165!=.&weight_i!=.&testage!=.
 label var egfr_mcg "Estimated glomerular filtration rate- modified Cockcroft-Galt method"
 
 //abbreviated MDRD continuous variable
 gen egfr_amdrd=. 
-replace egfr_amdrd = 186.3*((prx_testvalue_i2165/88.4)^-1.154)*testage^-0.203 if sex==0
+replace egfr_amdrd = 186.3*((prx_testvalue_i2165/88.4)^-1.154)*testage^-0.203 if sex==0& prx_testvalue_i2165!=.&testage!=.
 //multiply by 0.742 for women **note there is a race factor usually included: if race==black (*1.21)
-replace egfr_amdrd = (186.3*((prx_testvalue_i2165/88.4)^-1.154)*testage^-0.203)*0.742 if sex==1
+replace egfr_amdrd = (186.3*((prx_testvalue_i2165/88.4)^-1.154)*testage^-0.203)*0.742 if sex==1 &prx_testvalue_i2165!=.&testage!=.
 label var egfr_amdrd "Estimated glomerular filtration rate- abbreviated MDRD method"
 
 //ref for CKD-EPI formulas: http://www.biomedcentral.com/1471-2318/13/113/table/T1
 //CKD-EPI continuous variable
 gen egfr_ce=.
 //populate with CKD-EPI estimate for males with scr<=80
-replace egfr_ce = (141*((prx_testvalue_i2165/88.4/0.7)^-0.411)*(0.993^testage)) if prx_testvalue_i2165<=80 & sex==0
+replace egfr_ce = (141*((prx_testvalue_i2165/88.4/0.7)^-0.411)*(0.993^testage)) if prx_testvalue_i2165<=80 & sex==0 & prx_testvalue_i2165!=.&testage!=.
 //populate with CKD-EPI estimate for males with scr>80
-replace egfr_ce = (141*((prx_testvalue_i2165/88.4/0.7)^-1.209)*(0.993^testage)) if prx_testvalue_i2165>80 & sex==0
+replace egfr_ce = (141*((prx_testvalue_i2165/88.4/0.7)^-1.209)*(0.993^testage)) if prx_testvalue_i2165>80 & sex==0 & prx_testvalue_i2165!=.&testage!=.
 //populate with CKD-EPI estimate for females with scr<=62
-replace egfr_ce = (144*((prx_testvalue_i2165/88.4/0.7)^-0.329)*(0.993^testage)) if prx_testvalue_i2165<=62 & sex==1
+replace egfr_ce = (144*((prx_testvalue_i2165/88.4/0.7)^-0.329)*(0.993^testage)) if prx_testvalue_i2165<=62 & sex==1 & prx_testvalue_i2165!=.&testage!=.
 //populate with CKD-EPI estimate for females with scr>62
-replace egfr_ce = (144*((prx_testvalue_i2165/88.4/0.7)^-1.209)*(0.993^testage)) if prx_testvalue_i2165>62 & sex==1
+replace egfr_ce = (144*((prx_testvalue_i2165/88.4/0.7)^-1.209)*(0.993^testage)) if prx_testvalue_i2165>62 & sex==1 & prx_testvalue_i2165!=.&testage!=.
 label var egfr_ce "Estimated glomerular filtration rate- CKD-EPI method"
 
 ***CREATE CATEGORICAL VARIABLES***
@@ -293,15 +298,27 @@ replace indextype=5 if secondadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="
 replace indextype=6 if secondadmrx=="metformin"
 
 //Create table1 for entire base cohort if not excluded
-table1 if exclude==0&cohort_b==1, by(indextype) vars(age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat) format(%f9.2) onecol saving(sociodemographics.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(age_indexdate contn \ height_i contn \ weight_i contn \ bmi_i contn \ physician_vis contn) saving(healthservices.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(physician_vis cat) onecol format(%f9.2) saving(healthservicescats.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ combined_cci_i cat) onecol format(%f9.2) saving(comorbidities.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn) onecol saving(physiologics.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(hba1c_cats_i cat \ sbp_i cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) format(%f9.2) onecol saving(physiologicscats.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(unique_cov_drugs cat \ unqrx cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%f9.2) saving(medications.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(ckd_cg cat \ ckd_mcg cat \ ckd_amdrd cat \ ckd_ce cat) onecol format(%f9.2) saving(ckd.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(egfr_cg contn \ egfr_mcg contn \ egfr_amdrd contn \ egfr_ce contn) onecol saving(egfr.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat) format(%f9.2) onecol saving(table1a.xls, sheet("sociodemographics") replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(age_indexdate contn \ height_i contn \ weight_i contn \ bmi_i contn \ physician_vis contn) saving(table1a.xls, sheet("healthservices") replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(physician_vis cat) onecol format(%f9.2) saving(table1a.xls, sheet("healthservicescats") replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ combined_cci_i cat) onecol format(%f9.2) saving(table1a.xls, sheet("comorbidities") replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn \ scr_i contn) onecol saving(table1a.xls, sheet("physiologics") replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(scr_i cat \ hba1c_cats_i cat \ sbp_i cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) format(%f9.2) onecol saving(table1a.xls, sheet("physiologicscats") replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(unique_cov_drugs cat \ unqrx cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%f9.2) saving(table1a.xls, sheet("medications") replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(ckd_cg cat \ ckd_mcg cat \ ckd_amdrd cat \ ckd_ce cat) onecol format(%f9.2) saving(table1a.xls, sheet("ckd") replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(egfr_cg contn \ egfr_mcg contn \ egfr_amdrd contn \ egfr_ce contn) onecol saving(table1a.xls, sheet("egfr") replace)
+
+//Create table1 for entire base cohort if not excluded AND LINKED TO HES AND ONS
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat) format(%f9.2) onecol saving(table1b.xls, sheet("sociodemographics") replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(age_indexdate contn \ height_i contn \ weight_i contn \ bmi_i contn \ physician_vis contn \ hospitalizations contn \ hosp_services contn \ hosp_days contn) saving(table1b.xls, sheet("healthservices") replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(physician_vis cat \ hospitalizations cat \ hosp_services cat \ hosp_days cat) onecol format(%f9.2) saving(table1b.xls, sheet("healthservicescats") replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ combined_cci_i cat) onecol format(%f9.2) saving(table1b.xls, sheet("comorbidities") replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn) onecol saving(table1b.xls, sheet("physiologics") replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(scr_i cat \ hba1c_cats_i cat \ sbp_i cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) format(%f9.2) onecol saving(table1b.xls, sheet("physiologicscats") replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(unique_cov_drugs cat \ unqrx cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%f9.2) saving(table1b.xls, sheet("medications") replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(ckd_cg cat \ ckd_mcg cat \ ckd_amdrd cat \ ckd_ce cat) onecol format(%f9.2) saving(table1b.xls, sheet("ckd") replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(egfr_cg contn \ egfr_mcg contn \ egfr_amdrd contn \ egfr_ce contn) onecol saving(table1b.xls, sheet("egfr") replace)
+
 
 /*Create table1 by ever exposed if in cohort and not excluded
 forval i=0/5 {
