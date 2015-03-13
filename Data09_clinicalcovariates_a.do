@@ -496,6 +496,10 @@ label variable prx_ccivalue_g_i "Charlson Comrbidity Index (index window)(gold) 
 label var prx_cci_g_i_b "Charlson Comrbidity Index (index window) (gold) 1=event 0 =no event"
 label var wcharlsum "Weighted Charlson score, (index window) note diabetes set to==1"
 keep patid prx_ccivalue_g_i prx_cci_g_i_b wcharlsum
+merge 1:1 patid using uts, keep (match using) nogen
+replace prx_ccivalue_g_i = 1 if prx_ccivalue_g_i==.
+replace prx_cci_g_i_b = 0 if prx_cci_g_i_b==.
+drop uts2
 save Clinical_cci_i, replace
 
 //COHORTENTRYDATE
@@ -572,6 +576,49 @@ label var prx_cci_g_s_b "Charlson Comrbidity Index (studyentry window) (gold) 1=
 label var wcharlsum "Weighted Charlson score, (studyentry window) note diabetes set to==1"
 keep patid prx_ccivalue_g_s prx_cci_g_s_b wcharlsum
 save Clinical_cci_s, replace
+
+//INDEXDATE2
+
+foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
+use `file', clear
+keep patid readcode indexdate eventdate2
+drop if eventdate2>=indexdate
+//Save as one appended file to merge back in with other clinical covariates in Data09_c
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_cci_i2, replace
+}
+else {
+append using Clinical_cci_i2
+save Clinical_cci_i2, replace
+}
+}
+
+use Clinical_cci_i2, clear
+
+// Charlson Comorbidity Index
+// Source: Khan et al 2010
+//CPRD GOLD
+
+charlsonreadadd readcode, icd(00) idvar(patid) assign0
+gen cci_g = 0
+replace cci_g = 1 if wcharlsum == 1
+replace cci_g = 2 if wcharlsum == 2
+replace cci_g = 3 if wcharlsum == 3
+replace cci_g = 4 if wcharlsum >= 4 & wcharlsum <.
+capture drop ynch* weightch* charlindex smchindx
+generate cci_g_b = 0
+replace cci_g_b=1 if cci_g >=1 &cci_g!=.
+rename cci_g_b prx_cci_g_i2_b
+rename cci_g prx_ccivalue_g_i2
+label variable prx_ccivalue_g_i2 "Charlson Comrbidity Index (index window)(gold) 1=1, 2=2, 3=3, 4>=4"
+label var prx_cci_g_i2_b "Charlson Comrbidity Index (index window) (gold) 1=event 0 =no event"
+label var wcharlsum "Weighted Charlson score, (index window) note diabetes set to==1"
+keep patid prx_ccivalue_g_i2 prx_cci_g_i2_b wcharlsum
+merge 1:1 patid using uts, keep (match using) nogen
+replace prx_ccivalue_g_i2 = 1 if prx_ccivalue_g_i2==.
+replace prx_cci_g_i2_b = 0 if prx_cci_g_i2_b==.
+drop uts2
+save Clinical_cci_i2, replace
 
 ////////////////////////////////////CREATE CLINICAL COVARIATE WEIGHT FILE FOR DATA_10_LABCOVARIATES.DO TO CALL/////////////////////////////
 
