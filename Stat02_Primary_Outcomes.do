@@ -20,7 +20,7 @@ label var exclude "Bin ind for pcos, preg, gest_diab, or <30yo; excluded=1, not 
 
 drop if cohort_b!=1
 drop if exclude!=0
-drop if indextype!=.
+drop if indextype==.
 
 //Generate a categorical variable to indicate the class of antidiabetic prescription at index
 gen indextype=.
