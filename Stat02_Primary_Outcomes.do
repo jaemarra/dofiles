@@ -32,6 +32,7 @@ replace indextype=4 if secondadmrx=="TZD"
 replace indextype=5 if secondadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="DPPTZD"|secondadmrx=="DPPinsulin"|secondadmrx=="DPPother"|secondadmrx=="GLPTZD"|secondadmrx=="GLPinsulin"|secondadmrx=="GLPother"|secondadmrx=="SUDPP"|secondadmrx=="SUGLP"|secondadmrx=="SUTZD"|secondadmrx=="SUinsulin"|secondadmrx=="SUother"|secondadmrx=="TZDother"|secondadmrx=="insulinTZD"|secondadmrx=="insulinother"
 replace indextype=6 if secondadmrx=="metformin"
 label var indextype "Antidiabetic class at index (switch from or add to metformin)" 
+drop if indextype!=.
 
 //Using full CPRD Cohort
 //recode cvprim_comp_g_i (0=1) (1=0) (MARCH172015 dataset or earlier only)
@@ -48,15 +49,10 @@ label var acm_exit`i' "Exit date for acm follow-up for indextype=`i'"
 egen acm_exit = rowmin(acm_exit0 acm_exit1 acm_exit2 acm_exit3 acm_exit4 acm_exit5)
 format acm_exit %td
 label var acm_exit "End of exposure to indextype prescription"
-//Generate follow-up time for all-cause mortality
-forval i=0/5{
-gen acm_fup`i' = (acm_exit`i'-exposuret0`i') if exposuret0`i'!=.
-replace acm_fup`i'=1 if exposuret0`i'==tx
-label var acm_fup`i' "Follow up (in days) for all cause mortality outcome for indextype=`i'"
-}
+
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 forval i=0/5{
-stset acm_exit  if cohort_b==1&exclude==0, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
+stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
 stptime, title(person-years), if cohort_b==1&exclude==0&indextype==`i'
 stcox indextype
 }
