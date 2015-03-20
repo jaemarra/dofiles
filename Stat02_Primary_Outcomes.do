@@ -41,6 +41,7 @@ egen acm_exit`i' = rowmin(exposuretf`i' tod2 deathdate2 lcd2) if indextype==`i'&
 format acm_exit`i' %td
 label var acm_exit`i' "Exit date for acm follow-up for indextype=`i'"
 }
+gen index_tdc = min(acm_exit0-acm_exit5)
 //Generate follow-up time for all-cause mortality
 forval i=0/5{
 gen acm_fup`i' = (acm_exit`i'-exposuret0`i') if exposuret0`i'!=.
