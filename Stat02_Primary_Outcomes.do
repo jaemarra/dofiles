@@ -18,6 +18,10 @@ gen exclude=1 if (gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0)
 replace exclude=0 if exclude!=1
 label var exclude "Bin ind for pcos, preg, gest_diab, or <30yo; excluded=1, not excluded=0)
 
+drop if cohort_b!=1
+drop if exclude!=0
+drop if indextype!=.
+
 //Generate a categorical variable to indicate the class of antidiabetic prescription at index
 gen indextype=.
 replace indextype=0 if secondadmrx=="SU"
@@ -37,7 +41,7 @@ replace allcausemort = 1 if deathdate2!=.
 label var allcausemort "All-cause mortality"
 //Generate exit date for all cause mortality
 forval i=0/5{
-egen acm_exit`i' = rowmin(exposuretf`i' tod2 deathdate2 lcd2) if indextype==`i'&exposuretf`i'!=.&allcausemort!=.
+egen acm_exit`i' = rowmin(exposuretf`i' tod2 deathdate2 lcd2) 
 format acm_exit`i' %td
 label var acm_exit`i' "Exit date for acm follow-up for indextype=`i'"
 }
@@ -52,7 +56,7 @@ label var acm_fup`i' "Follow up (in days) for all cause mortality outcome for in
 }
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 forval i=0/5{
-stset acm_fup`i', fail(allcausemort) id(patid), if cohort_b==1&exclude==0&indextype==`i'
+stset acm_exit  if cohort_b==1&exclude==0, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
 stptime, title(person-years), if cohort_b==1&exclude==0&indextype==`i'
 stcox indextype
 }
