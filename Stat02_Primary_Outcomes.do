@@ -14,7 +14,7 @@ timer on 1
 use Analytic_Dataset_Master
 
 //Unify exclusion criteria into a binary indicator
-gen exclude=1 if (gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0)
+gen exclude=1 if (gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0|tx<=seconddate)
 replace exclude=0 if exclude!=1
 label var exclude "Bin ind for pcos, preg, gest_diab, or <30yo; excluded=1, not excluded=0)
 
@@ -54,7 +54,8 @@ label var acm_exit "End of exposure to indextype prescription"
 forval i=0/5{
 stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
 stptime, title(person-years), if cohort_b==1&exclude==0&indextype==`i'
-stcox indextype
+stcox i.indextype
+stptime, by(indextype)
 }
 
 //Composite CV event
