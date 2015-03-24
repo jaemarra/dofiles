@@ -505,7 +505,7 @@ label var `var'_next "Next OBSERVED presciption date for `var'"
 
 //Generate variable for number of days beyond the predicted date the actual next prescription was filled
 foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab {
-bysort patid: gen `var'_gap = `var'_next-`var'_pred if `var'==1
+bysort patid: gen `var'_gap = `var'_next-`var'_pred if `var'_next!=.&`var'_pred!=.
 label var `var'_gap "Number of days past predicted refill date for `var' "
 }
 
@@ -525,15 +525,16 @@ notes t0: "t0 contains every rxdate2 as the start date of each exposure duration
 label var t1 "Stop date for each prescription filled and the end of each gap date"
 notes t1: "t1 contains the stop dates associated with each t0 as either the end of a prescription (rxdate+predfactor OR next prescription filled date), the end of a gap duration (next prescription filled), or the censor date. Whichever comes first."
 
-foreach var of varlist metformin sulfonylurea dpp glp insulin tzd otherantidiab {
-//For the very last prescription of each type, project the exposure stop (t1) to include the predfactor
-replace t1=(t0+predfactor) if t0==`var't2
-replace exposure_b=1 if t1!=.
-//For prescription dates with no gap between pred and next, replace exposure stop (t1) as "next" and exposure as "1"
-replace t1=`var'_next if `var'_gap<=0
-replace exposure_b=1 if `var'_gap<=0
-//For prescription dates with a gap beween pred and next, replace exposure stop (t1) as "pred"
-replace t1=`var'_pred if `var'_gap>0 & `var'_gap<.
+local rxlist "0 1 2 3 4 5 6"
+local x=0
+foreach var of varlist sulfonylurea dpp glp insulin tzd otherantidiab metformin {
+local x=`x'+1
+local next:word `x' of `rxlist'
+replace t1=(t0+predfactor) if t0==`var't2 &rxtype==`next'
+replace exposure_b=1 if t1!=. 
+replace t1=`var'_next if `var'_gap<=0 &rxtype==`next'
+replace exposure_b=1 if `var'_gap<=0 &rxtype==`next'
+replace t1=`var'_pred if `var'_gap>0 & `var'_gap<. &rxtype==`next'
 }
 
 //#10 Generate duration for UNEXPOSED intervals
@@ -654,7 +655,8 @@ notes `var'totexp: Calculation is time from index date to censor date minus gaps
 sort patid rxdate2 rxtype
 gen ts=.
 replace ts=t1[_n-1] if exposure_b==0
-bysort patid: egen t1s=min(ts)
+bysort patid rxtype: replace ts=t1 if _n==1
+bysort patid rxtype: egen t1s=min(ts)
 label var t1s "Last continuous exposure to class; stands for t1'short'"
 drop ts
 format t1s %td
@@ -674,15 +676,48 @@ bysort patid: egen ever5= max(everoth)
 gen evermet=1 if exporder!=.& rxtype==6
 bysort patid: egen ever6= max(evermet)
 drop eversu everdpp everglp everins evertzd everoth evermet
+local rxlist "sulfonylurea DPP GLP insulin TZD otherantidiab"
+local x=0
 forval i=0/6 {
-label var ever`i' " Ever exposed to rxtype=`i'"
-notes: ever`i': rxtype key: 0=Sulfonylurea; 1=DPP-4i; 2=GLP-1RA; 3=Insulin; 4=TZD; 5=Other Antidiabetic
+local x=`x'+1
+local next:word `x' of rxlist
+label var ever`i' " Ever exposed to rxtype=`next'"
 }
 //#12 Determine how many classes of antidiabetic agents each patient was exposed to over the course of the study
 
+//#13 Generate unique drugs used variable
 bysort patid: egen unqrx=max(exporder)
-//save a copy of the file at this point
 
+//#14 Generate metformin overlap indicator
+gen metoverlap_b=0
+gen metoverlap =0
+gen overlapstart=.
+gen overlapend=.
+bysort patid: egen lastmet = metformint2 if metformint2==rxdate2
+bysort patid: egen pred = max(predfactor) if metformint2==rxdate2 &rxtype==6
+xfill lastmet, i(patid)
+xfill pred, i(patid)
+bysort patid: replace overlapend= lastmet+pred
+replace overlapend=. if rxtype==6
+replace metoverlap_b = 1 if overlapend>t0 & rxtype!=6 &overlapend!=.
+label var metoverlap_b "Binary indicator for antidiabetic agent overlap with metformin 1=overlap, 0=no overlap"
+replace overlapstart =t0 if metoverlap_b==1
+replace overlapend=t1 if overlapend>t1&rxtype!=6
+bysort patid rxtype: egen lastmetoverlap = max(overlapend) if overlapend!=.
+bysort patid rxtype: egen firstmetoverlap = min(overlapstart) 
+bysort patid rxtype: replace metoverlap = overlapend-overlapstart if overlapend!=. & overlapstart!=.
+replace metoverlap =. if exposure_b==0
+bysort patid rxtype: gen totmetoverlap = lastmetoverlap-firstmetoverlap
+drop overlapend overlapstart lastmet pred lastmetoverlap firstmetoverlap
+
+//Calculate adherence
+local rxlist "0 1 2 3 4 5 6"
+local x=0
+foreach var of varlist sulfonylurea dpp glp insulin tzd otherantidiab metformin {
+local x=`x'+1
+local next:word `x' of `rxlist'
+replace adherence = `var'gaptot/`var'tic if exporder!=. & rxtype==`next'
+}
 //Tidy up the labels
 label var firstadmrx "The first antidiabetic regimen"
 label var firstadmrxdate "The date associated with the first antidiabetic regimen"
@@ -735,8 +770,7 @@ save Analytic_variables_a.dta, replace
 //############################## generate wide dataset for ###################################
 use Drug_Exposures_a.dta, clear
 keep patid rxtype t0 t1 t1s exporder exposure_b
-gen exposuret0=.
-replace exposuret0=t0 if exporder!=.
+bysort patid rxtype: egen exposuret0=min(t0) if exporder!=.&exposure_b==1
 gen exposuret1=.
 replace exposuret1=t1s if exposuret0!=.
 bysort patid rxtype:egen exposuretf=max(t1) if t1!=.
