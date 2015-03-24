@@ -693,7 +693,7 @@ gen metoverlap_b=0
 gen metoverlap =0
 gen overlapstart=.
 gen overlapend=.
-bysort patid: egen lastmet = metformint2 if metformint2==rxdate2
+bysort patid: gen lastmet = metformint2 if metformint2==rxdate2
 bysort patid: egen pred = max(predfactor) if metformint2==rxdate2 &rxtype==6
 xfill lastmet, i(patid)
 xfill pred, i(patid)
@@ -713,6 +713,7 @@ drop overlapend overlapstart lastmet pred lastmetoverlap firstmetoverlap
 //Calculate adherence
 local rxlist "0 1 2 3 4 5 6"
 local x=0
+gen adherence=.
 foreach var of varlist sulfonylurea dpp glp insulin tzd otherantidiab metformin {
 local x=`x'+1
 local next:word `x' of `rxlist'
