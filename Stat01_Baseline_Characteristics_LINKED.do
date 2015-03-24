@@ -15,9 +15,9 @@ use Analytic_Dataset_Master
 
 //SOCIODEMOGRAPHICS//
 //Exclusion unification
-gen exclude=1 if (gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0|tx<=seconddate)
+gen exclude=1 if (uts2==.|gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0|tx<=seconddate)
 replace exclude=0 if exclude!=1
-label var exclude "Bin ind for pcos, preg, gest_diab, or <30yo; excluded=1, not excluded=0)
+label var exclude "Bin ind for pcos, preg, gest_diab, <30yo, or uts; excluded=1, not excluded=0)
 tab exclude
 
 //Age
@@ -74,7 +74,7 @@ label define hosp_services_cats 0 "0-100" 1 "101-200" 2 "201-300" 3 "301-400" 4 
 label values hosp_services hosp_services_cats
 tab hosp_services if exclude==0
 
-//Duration of Hospital Stay ONLY FOR LINKED
+//Duration of Hospital Stay
 gen hosp_days = prx_servvalue3_h_i
 recode hosp_days (min/7=0) (8/14=1) (15/21=2) (22/28=3) (29/35=4) (36/42=5) (43/49=6) (50/56=7) (57/63=8) (64/70=9) (71/max=10) (.=11)
 label define hosp_days_cats 0 "Up to 1 week" 1 "2 weeks" 2 "3 weeks" 3 "4 weeks" 4 "5 weeks" 5 "6 weeks" 6 "7 weeks" 7 "8 weeks" 8 "9 weeks" 9 "10 weeks" 10 "More than 10 weeks" 11 "unknown"
@@ -140,8 +140,8 @@ gen revasc_com_i = 1 if (prx_cov_g_i_b11==1|prx_cov_i_b11==1)
 replace revasc_com_i=0 if revasc_com_i!=1
 tab revasc_com_i if exclude==0
 
-//Fill in hes cci
-replace  prx_ccivalue_h_i=1 if prx_ccivalue_h_i==.
+gen combined_cci_i = prx_ccivalue_g_i
+replace combined_cci_i = prx_ccivalue_h_i if prx_ccivalue_h_i>prx_ccivalue_g_i&prx_ccivalue_h_i!=.
 
 //PHYSIOLOGICS
 //HbA1c
@@ -186,15 +186,9 @@ tab tg_i if exclude==0
 //Height
 gen height_i = prx_covvalue_g_i1
 gen heightsq_i = prx_covvalue_g_i1*prx_covvalue_g_i1
-gen height_bin = 1 if height_i!=.
-replace height_bin=0 if height_i==.
-recode height_bin (0=1) (1=0) 
 
 //Weight
 gen weight_i = prx_covvalue_g_i2
-gen weight_bin = 1 if weight_i!=.
-replace weight_bin=0 if weight_i==.
-recode weight_bin (0=1) (1=0) 
  
 //BMI
 gen bmi_i = weight_i/heightsq_i if weight_i!=.&heightsq_i!=.
@@ -205,13 +199,10 @@ gen diuretics_all_i=1 if (thiazdiur_i==1|loopdiur_i==1|potsparediur_aldos_i==1|p
 
 
 ***ESTIMATE GLOMERULAR FILTRATION RATE***
-//Serum Creatinine
-gen scr_i = prx_testvalue_i2165
-recode scr_i (.=0) (min/65=1) (66/79=2) (80/94=3) (95/max=4)
-label define scr_i_cats 0 "Unknown" 1 "<65umol/L" 2 "66-79umol/L" 3 "80-94umol/L" 4 ">95umol/L"
-label values scr_i scr_i_cats
 //ref for CG and MDRD formulas: http://cjhp-online.ca/index.php/cjhp/article/viewFile/31/30
 //Cockcroft-Galt continuous variable in SI units (umol/L, years, kg)
+gen scr_i = prx_testvalue_i2165
+recode scr_i (.=0) (min/65=1) (66/79=2) (80/94=3) (95/max=4)
 gen egfr_cg =.
 //replace weight = 90 if weight ==.
 replace egfr_cg = ((140-testage)*weight_i*1.2)/prx_testvalue_i2165 if sex==0 &prx_testvalue_i2165!=.&weight_i!=.&testage!=.
@@ -292,42 +283,6 @@ replace ckd_ce=5 if egfr_ce < 15 //do we have a marker for dialysis???
 label define ckd_ce_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15"
 label values ckd_ce ckd_ce_labels
 
-//Create post-index exposure numbers for cohort schematic
-local names "SU DPP GLP insulin TZD other metformin"
-local a=0
-forval i=0/6{
-local a=`a'+1
-local admrx:word `a' of `names'
-
-gen post_`admrx'=0
-local rxorder "thirdadmrx fourthadmrx fifthadmrx sixthadmrx seventhadmrx"
-local x=0
-forval i=0/4{
-local x=`x'+1
-local next:word `x' of `rxorder'
-replace postindex_`admrx' = 1 if regexm(`next', "`admrx'")
-}
-}
-//Create individual order of exposure numbers for each indextype
-local alist "third fourth fifth sixth seventh"
-local orderlist "thirdadmrx fourthadmrx fifthadmrx sixthadmrx seventhadmrx"
-local admrx "SU DPP GLP insulin TZD other metformin"
-local c=0
-forval i=0/6{
-local c =`c'+1
-local nextrx:word `c' of `admrx'
-local b=0
-forval i= 0/4 {
-local b= `b'+1
-local next1:word `b' of `alist'
-local nextadmrx1:word `b' of `orderlist'
-gen `next1'_`nextrx' = 0
-replace `next1'_`nextrx' = 1 if regexm(`nextadmrx1', "`nextrx'")
-tab `next1'_`nextrx' if cohort_b==1&exclude==0
-drop `next1'_`nextrx' 
-}
-}
-
 //PREPARE FOR TABLE
 //Gen indextype
 gen indextype=.
@@ -338,30 +293,17 @@ replace indextype=3 if secondadmrx=="insulin"
 replace indextype=4 if secondadmrx=="TZD"
 replace indextype=5 if secondadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="DPPTZD"|secondadmrx=="DPPinsulin"|secondadmrx=="DPPother"|secondadmrx=="GLPTZD"|secondadmrx=="GLPinsulin"|secondadmrx=="GLPother"|secondadmrx=="SUDPP"|secondadmrx=="SUGLP"|secondadmrx=="SUTZD"|secondadmrx=="SUinsulin"|secondadmrx=="SUother"|secondadmrx=="TZDother"|secondadmrx=="insulinTZD"|secondadmrx=="insulinother"
 replace indextype=6 if secondadmrx=="metformin"
-label var indextype "Antidiabetic class at index (switch from or add to metformin)" 
 
 //Create table1 for entire base cohort if not excluded
-table1 if exclude==0&cohort_b==1, by(indextype) vars(age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ weight_bin bin \ height_bin bin) format(%f9.2) onecol saving(sociodemographics.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat) format(%f9.2) onecol saving(sociodemographics.xls, replace)
 table1 if exclude==0&cohort_b==1, by(indextype) vars(age_indexdate contn \ height_i contn \ weight_i contn \ bmi_i contn \ physician_vis contn) saving(healthservices.xls, replace)
 table1 if exclude==0&cohort_b==1, by(indextype) vars(physician_vis cat) onecol format(%f9.2) saving(healthservicescats.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ prx_ccivalue_g_i2 cat \ prx_ccivalue_g_i cat \ prx_ccivalue_h_i cat) onecol format(%f9.2) saving(comorbidities.xls, replace)
-table1 if exclude==0&cohort_b==1, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn \ scr_i contn) onecol saving(physiologics.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ combined_cci_i cat) onecol format(%f9.2) saving(comorbidities.xls, replace)
+table1 if exclude==0&cohort_b==1, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn) onecol saving(physiologics.xls, replace)
 table1 if exclude==0&cohort_b==1, by(indextype) vars(scr_i cat \ hba1c_cats_i cat \ sbp_i cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) format(%f9.2) onecol saving(physiologicscats.xls, replace)
 table1 if exclude==0&cohort_b==1, by(indextype) vars(unique_cov_drugs cat \ unqrx cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%f9.2) saving(medications.xls, replace)
 table1 if exclude==0&cohort_b==1, by(indextype) vars(ckd_cg cat \ ckd_mcg cat \ ckd_amdrd cat \ ckd_ce cat) onecol format(%f9.2) saving(ckd.xls, replace)
 table1 if exclude==0&cohort_b==1, by(indextype) vars(egfr_cg contn \ egfr_mcg contn \ egfr_amdrd contn \ egfr_ce contn) onecol saving(egfr.xls, replace)
-
-//Create table1 for entire base cohort if not excluded AND LINKED TO HES AND ONS
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ weight_bin bin \ height_bin bin) format(%f9.2) onecol saving(sociodemographics_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(age_indexdate contn \ height_i contn \ weight_i contn \ bmi_i contn \ physician_vis contn \ hospitalizations contn \ hosp_services contn \ hosp_days contn) saving(healthservices_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(physician_vis cat \ hospitalizations cat \ hosp_services cat \ hosp_days cat) onecol format(%f9.2) saving(healthservicescats_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ prx_ccivalue_g_i2 cat \ prx_ccivalue_g_i cat) onecol format(%f9.2) saving(comorbidities_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn \ scr_i contn) onecol saving(physiologics_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(scr_i cat \ hba1c_cats_i cat \ sbp_i cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) format(%f9.2) onecol saving(physiologicscats_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(unique_cov_drugs cat \ unqrx cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%f9.2) saving(medications_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(ckd_cg cat \ ckd_mcg cat \ ckd_amdrd cat \ ckd_ce cat) onecol format(%f9.2) saving(ckd_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(egfr_cg contn \ egfr_mcg contn \ egfr_amdrd contn \ egfr_ce contn) onecol saving(egfr_linked.xls, replace)
-
 
 /*Create table1 by ever exposed if in cohort and not excluded
 forval i=0/5 {
@@ -377,35 +319,5 @@ table1 if exclude==0&cohort_b==1&ever`i'==1, vars(egfr_cg contn \ egfr_mcg contn
 }
 */
 
-
-//Prepare for analysis
-gen censored =0
-replace censored= 1 if exposuretf0==tx|exposuretf1==tx|exposuretf2==tx|exposuretf3==tx|exposuretf4==tx|exposuretf5==tx|exposuretf6==tx
-//Hazard Function
-gen firstdeath = dod2 if dod2<=deathdate2
-replace firstdeath= deathdate2 if deathdate<dod2
-gen acm=.
-replace acm=firstdeath-studyentrydate_cprd2 if firstdeath!=.
-stset acm, failure(censored)
-sts graph, na
-//Univariate Analyses
-sts test unqrx, logrank
-sts graph, by(unqrx)
-sts test hba1c_cats_i2, logrank
-sts graph, by(hba1c_cats_i2)
-sts test age_indexdate, logrank
-stcox age_indexdate, nohr
-//Model Building
-stcox age_indexdate prx_testvalue_i275 i.unqrx i.gender i.imd2010_5 i.maritalstatus i.prx_covvalue_g_i4 i.prx_covvalue_g_i5 totservs_g_i, nohr
-forval i=6/14{
-replace prx_cov_g_i_b`i' = 0 if prx_cov_g_i_b`i'==.
-}
-stcox i.prx_cov_g_i_b6 i.prx_cov_g_i_b7 i.prx_cov_g_i_b8 i.prx_cov_g_i_b9 i.prx_cov_g_i_b10 i.prx_cov_g_i_b11 i.prx_cov_g_i_b12 i.prx_cov_g_i_b13 i.prx_cov_g_i_b14, nohr
-stcox prx_testvalue_i175 prx_testvalue_i177 prx_testvalue_i163 prx_testvalue_i175  prx_testvalue_i202 prx_covvalue_g_i3 egfr_cg i.ckd_cg , nohr
-//Final Model
-stcox age_indexdate unqrx i.gender prx_testvalue_i275 prx_covvalue_g_i4 totservs_g_i totservs_h_i prx_ccivalue_g_i prx_testvalue_i175 prx_testvalue_i177 prx_testvalue_i163 prx_testvalue_i175  prx_testvalue_i202 prx_covvalue_g_i3 egfr_cg i.prx_cov_g_i_b6 i.prx_cov_g_i_b7 i.prx_cov_g_i_b10 i.prx_cov_g_i_b11 i.prx_cov_g_i_b12 i.prx_cov_g_i_b14, nohr
-//Interactions
-
 log close
 timer off 1
-
