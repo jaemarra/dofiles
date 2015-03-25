@@ -1,18 +1,3 @@
-//Using full HES-ONS LINKED ONLY
-
-//Composite CV event
-gen cvmajor_gho= 0
-replace cvmajor_gho=1 if cvprim_comp_g_i|cvprim_h_i==1|cvprim_o_i==1
-label var cvmajor_gho "Indicator for first major cv event (mi, stroke, cvdeath) 1=event, 0=no event"
-//MI
-gen myoinfarct_gho=0
-replace myoinfarct_gho=1 if myoinfarct_g==1|myoinfarct_h==1|myoinfarct_o==1
-//Stroke
-gen stroke_gho = 0
-replace stroke_gho=1 if stroke_g==1|stroke_h==1|stroke_o==1
-//Death
-gen cvdeath_gho=0
-replace cvdeath_gho=1 if cvdeath_g==1|cvdeath_h==1|cvdeath_o==1
 //  program:    Stat02_Primary_Outcomes.do
 //  task:		Statistical analyses of Analytic_Dataset_Master.dta to compare primary outcomes between classes of antidiabetics
 //				Identify cohort, extract outcomes by indextype.
@@ -23,7 +8,7 @@ replace cvdeath_gho=1 if cvdeath_g==1|cvdeath_h==1|cvdeath_o==1
 clear all
 capture log close
 set more off
-log using Data02.smcl, replace
+log using Stat02L.smcl, replace
 timer on 1
 
 use Analytic_Dataset_Master

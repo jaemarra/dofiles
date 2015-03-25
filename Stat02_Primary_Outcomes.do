@@ -8,7 +8,7 @@
 clear all
 capture log close
 set more off
-log using Data02.smcl, replace
+log using Stat02.smcl, replace
 timer on 1
 
 use Analytic_Dataset_Master
