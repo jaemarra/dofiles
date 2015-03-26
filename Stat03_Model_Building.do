@@ -33,7 +33,7 @@ replace indextype=6 if secondadmrx=="metformin"
 label var indextype "Antidiabetic class at index (switch from or add to metformin)" 
 drop if indextype==.
 
-//All-cause mortality
+///////////////////////////////////////All Cause Mortality /////////////////////////////////////////
 gen allcausemort = 0
 replace allcausemort = 1 if deathdate2!=.
 label var allcausemort "All-cause mortality"
@@ -47,7 +47,7 @@ egen acm_exit = rowmin(acm_exit0 acm_exit1 acm_exit2 acm_exit3 acm_exit4 acm_exi
 drop acm_exit0-acm_exit5
 format acm_exit %td
 label var acm_exit "Exit date for all-cause mortality"
-//Generate person-years, incidence rate, and 95%CI as well as hazard ratio
+//Set
 stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
 //Age
 stcox age_indexdate, nohr
