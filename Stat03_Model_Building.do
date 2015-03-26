@@ -152,6 +152,7 @@ matrix a=r(table)
 putexcel A26=("PVD") B26=(a[4,1]) using Univariate, sheet("ACM") modify
 
 //Multivariate analysis
+//16 in common with MCV
 stcox age_indexdate prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 totservs_g_i prx_servvalue2_h_i i.unqrx i.marital i.gender i.prx_covvalue_g_i4 i.prx_ccivalue_g_i i.prx_covvalue_g_i7 i.prx_covvalue_g_i8 i.prx_covvalue_g_i10 i.prx_covvalue_g_i13 i.prx_covvalue_g_i14, nohr
 matrix b=r(table)
 matrix c=b'
@@ -161,8 +162,21 @@ local matrownames "Age HbA1c Totchol HDL DocVisits Hospitalizations 2unqrx 3unqr
 forval i=1/43{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("ACM") modify
+putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("ACM16") modify
 }
+//19 distinct variables for ACM
+stcox age_indexdate prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 prx_testvalue_i2202 totservs_g_i prx_servvalue2_h_i i.unqrx i.marital i.gender i.prx_covvalue_g_i4 i.prx_ccivalue_g_i i.prx_covvalue_g_i6 i.prx_covvalue_g_i7 i.prx_covvalue_g_i8 i.prx_covvalue_g_i9 i.prx_covvalue_g_i10 i.prx_covvalue_g_i13 i.prx_covvalue_g_i14, nohr
+matrix b=r(table)
+matrix c=b'
+matrix list c
+matrix rownames c = Age HbA1c Totchol HDL TG DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0MI 1MI 0stroke 1stroke 0HF 1HF 0arr 1arr 0angina 1angina 0Afib 1Afib 0PVD 1PVD
+local matrownames "Age HbA1c Totchol HDL TG DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0MI 1MI 0stroke 1stroke 0HF 1HF 0arr 1arr 0angina 1angina 0Afib 1Afib 0PVD 1PVD"
+forval i=1/48{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("ACM19") modify
+}
+
 ///////////////////////////////////////Major CV Event /////////////////////////////////////////
 //Composite CV event
 gen cvmajor = cvprim_comp_g_i 
@@ -281,6 +295,7 @@ matrix a=r(table)
 putexcel A26=("PVD") B26=(a[4,1]) using Univariate, sheet("MCV") modify
 
 //Multivariate analysis
+//16 in common with ACM and MCV
 stcox age_indexdate prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 totservs_g_i prx_servvalue2_h_i i.unqrx i.marital i.gender i.prx_covvalue_g_i4 i.prx_ccivalue_g_i i.prx_covvalue_g_i7 i.prx_covvalue_g_i8 i.prx_covvalue_g_i10 i.prx_covvalue_g_i13 i.prx_covvalue_g_i14, nohr
 matrix b=r(table)
 matrix c=b'
@@ -290,5 +305,17 @@ local matrownames "Age HbA1c Totchol HDL DocVisits Hospitalizations 2unqrx 3unqr
 forval i=1/43{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("MCV") modify
+putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("MCV16") modify
+}
+//19 distinct variables for MCV
+stcox age_indexdate prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 prx_covvalue_g_i3 totservs_g_i prx_servvalue2_h_i i.unqrx i.imd2010_5 i.marital i.gender i.prx_covvalue_g_i4 i.prx_covvalue_g_i5 i.prx_ccivalue_g_i i.prx_covvalue_g_i7 i.prx_covvalue_g_i8 i.prx_covvalue_g_i10 i.prx_covvalue_g_i13 i.prx_covvalue_g_i14, nohr
+matrix b=r(table)
+matrix c=b'
+matrix list c
+matrix rownames c = Age HbA1c Totchol HDL SysBP DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 1SES 2SES 3SES 4SES 5SES 9SES 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 0alc 1alc 2alc 3alc 1cci 2cci 3cci 4cci 0stroke 1stroke 0HF 1HF 0angina 1angina 0Afib 1Afib 0PVD 1PVD
+local matrownames "Age HbA1c Totchol HDL SysBP DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 1SES 2SES 3SES 4SES 5SES 9SES 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 0alc 1alc 2alc 3alc 1cci 2cci 3cci 4cci 0stroke 1stroke 0HF 1HF 0angina 1angina 0Afib 1Afib 0PVD 1PVD"
+forval i=1/54{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("MCV19") modify
 }
