@@ -150,3 +150,119 @@ stcox prx_covvalue_g_i14
 matrix a=r(table)
 putexcel A26=("PVD") B26=(a[4,1]) using Univariate, sheet("ACM") modify
 
+///////////////////////////////////////Major CV Event /////////////////////////////////////////
+//Composite CV event
+gen cvmajor = cvprim_comp_g_i 
+label var cvmajor "Indicator for first major cv event (mi, stroke, cvdeath) 1=event, 0=no event"
+//Total follow-up time
+forval i=0/5{
+egen cvmajor_exit`i' = rowmin(exposuretf`i' cvprim_comp_g_date_i lcd2)
+format cvmajor_exit`i' %td
+label var cvmajor_exit`i' "Exit date for major cardiovascular event (MI, stroke, or CV death) for indextype=`i'"
+}
+egen cvmajor_exit = rowmin(cvmajor_exit0 cvmajor_exit1 cvmajor_exit2 cvmajor_exit3 cvmajor_exit4 cvmajor_exit5)
+drop cvmajor_exit0-cvmajor_exit5
+format cvmajor_exit %td
+label var cvmajor_exit "Exit date for major cardiovascular event (MI, stroke, or CV death)"
+//Set
+stset cvmajor_exit, fail(cvmajor) id(patid) origin(seconddate) scale(365.35)
+//Age
+stcox age_indexdate, nohr
+matrix a=r(table)
+putexcel A1=("Covariate") B1=("p-value") A2=("Age") B2=(a[4,1]) using Univariate, sheet("MCV") modify
+//HbA1c
+stcox prx_testvalue_s275
+matrix a=r(table)
+putexcel A3=("HbA1c") B3=(a[4,1]) using Univariate, sheet("MCV") modify
+//Number of hospital visits
+stcox prx_servvalue2_h_i
+matrix a=r(table)
+putexcel A4=("Hospitalizations") B4=(a[4,1]) using Univariate, sheet("MCV") modify
+//Total Cholesterol
+stcox prx_testvalue_i2163
+matrix a=r(table)
+putexcel A5=("Total Cholesterol") B5=(a[4,1]) using Univariate, sheet("MCV") modify
+//HDL
+stcox prx_testvalue_i2175
+matrix a=r(table)
+putexcel A6=("HDL") B6=(a[4,1]) using Univariate, sheet("MCV") modify
+//LDL
+stcox prx_testvalue_i2177
+matrix a=r(table)
+putexcel A7=("LDL") B7=(a[4,1]) using Univariate, sheet("MCV") modify
+//TG
+stcox prx_testvalue_i2202
+matrix a=r(table)
+putexcel A8=("Triglycerides") B8=(a[4,1]) using Univariate, sheet("MCV") modify
+//Systolic blood pressure
+stcox prx_covvalue_g_i3
+matrix a=r(table)
+putexcel A9=("Systolic BP") B9=(a[4,1]) using Univariate, sheet("MCV") modify
+//Unqrx
+stcox unqrx
+matrix a=r(table)
+putexcel A10=("Unique ADM Rx") B10=(a[4,1]) using Univariate, sheet("MCV") modify
+//Gender
+stcox gender
+matrix a=r(table)
+putexcel A11=("Gender") B11=(a[4,1]) using Univariate, sheet("MCV") modify
+//SES
+stcox imd2010_5
+matrix a=r(table)
+putexcel A12=("SES") B12=(a[4,1]) using Univariate, sheet("MCV") modify
+//Marital status
+stcox marital
+matrix a=r(table)
+putexcel A13=("Marital Status") B13=(a[4,1]) using Univariate, sheet("MCV") modify
+//Smoking Status
+stcox prx_covvalue_g_i4
+matrix a=r(table)
+putexcel A14=("Smoking Status") B14=(a[4,1]) using Univariate, sheet("MCV") modify
+//Alcohol Abuse Status
+stcox prx_covvalue_g_i5
+matrix a=r(table)
+putexcel A15=("Alcohol Status") B15=(a[4,1]) using Univariate, sheet("MCV") modify
+//Physician Visits
+stcox totservs_g_i
+matrix a=r(table)
+putexcel A16=("Physician Visits") B16=(a[4,1]) using Univariate, sheet("MCV") modify
+//Charlson Comorbidity Score
+stcox prx_ccivalue_g_i
+matrix a=r(table)
+putexcel A17=("CCI") B17=(a[4,1]) using Univariate, sheet("MCV") modify
+//MI
+stcox prx_covvalue_g_i6
+matrix a=r(table)
+putexcel A18=("MI") B18=(a[4,1]) using Univariate, sheet("MCV") modify
+//Stroke
+stcox prx_covvalue_g_i7
+matrix a=r(table)
+putexcel A19=("Stroke") B19=(a[4,1]) using Univariate, sheet("MCV") modify
+//HF
+stcox prx_covvalue_g_i8
+matrix a=r(table)
+putexcel A20=("HF") B20=(a[4,1]) using Univariate, sheet("MCV") modify
+//Arrhythmia
+stcox prx_covvalue_g_i9
+matrix a=r(table)
+putexcel A21=("Arrhythmia") B21=(a[4,1]) using Univariate, sheet("MCV") modify
+//Angina
+stcox prx_covvalue_g_i10
+matrix a=r(table)
+putexcel A22=("Angina") B22=(a[4,1]) using Univariate, sheet("MCV") modify
+//Revascularization
+stcox prx_covvalue_g_i11
+matrix a=r(table)
+putexcel A23=("Urgent Revasc") B23=(a[4,1]) using Univariate, sheet("MCV") modify
+//HTN
+stcox prx_covvalue_g_i12
+matrix a=r(table)
+putexcel A24=("HTN") B24=(a[4,1]) using Univariate, sheet("MCV") modify
+//Atrial Fibrillation
+stcox prx_covvalue_g_i13
+matrix a=r(table)
+putexcel A25=("AFib") B25=(a[4,1]) using Univariate, sheet("MCV") modify
+//Peripheral Vascular Disease
+stcox prx_covvalue_g_i14
+matrix a=r(table)
+putexcel A26=("PVD") B26=(a[4,1]) using Univariate, sheet("MCV") modify
