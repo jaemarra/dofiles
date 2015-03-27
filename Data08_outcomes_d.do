@@ -56,7 +56,7 @@ label variable cvprim_comp_h_s "CV composite primary outcome(hes) after study en
 gen cvprim_comp_o_date_i = min(myoinfarct_o_date_i, stroke_o_date_i, cvdeath_o_date_i)
 label variable cvprim_comp_o_date_i "Date of first primary CV composite outcome (ons) after index date"
 gen cvprim_comp_o_i = 0 if cvprim_comp_o_date_i==.
-replace vprim_comp_o_i = 1 if cvprim_comp_o_date_i!=.
+replace cvprim_comp_o_i = 1 if cvprim_comp_o_date_i!=.
 label variable cvprim_comp_o_i "CV composite primary outcome(ons) after index: 1=event 0=no event"
 
 gen cvprim_comp_o_date_s = min(myoinfarct_o_date_s, stroke_o_date_s, cvdeath_o_date_s)
