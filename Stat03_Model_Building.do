@@ -33,6 +33,25 @@ replace indextype=6 if secondadmrx=="metformin"
 label var indextype "Antidiabetic class at index (switch from or add to metformin)" 
 drop if indextype==.
 
+//abbreviated MDRD continuous variable
+gen egfr_amdrd=. 
+replace egfr_amdrd = 186.3*((prx_testvalue_i2165/88.4)^-1.154)*testage^-0.203 if sex==0& prx_testvalue_i2165!=.&testage!=.
+//multiply by 0.742 for women **note there is a race factor usually included: if race==black (*1.21)
+replace egfr_amdrd = (186.3*((prx_testvalue_i2165/88.4)^-1.154)*testage^-0.203)*0.742 if sex==1 &prx_testvalue_i2165!=.&testage!=.
+label var egfr_amdrd "Estimated glomerular filtration rate- abbreviated MDRD method"
+//CKD aMDRD categorical variable
+gen ckd_amdrd= egfr_amdrd
+recode ckd_amdrd (min/15=0) (15/30=1) (30/60=2) (60/90=3) (90/max=4) (.=5)
+//create value labels for ckd 1-5
+label define ckd_amdrd_labels 5 "Unknown" 4 ">=90" 3 "60-89"  2 "30-59" 1 "15-29" 0 "<15"
+label values ckd_amdrd ckd_amdrd_labels
+
+//MEDICATIONS//
+gen ace_arb_renin_i=0
+replace ace_arb_renin_i=1 if acei_i==1|renini_i==1|angiotensin2recepant_i
+gen diuretics_all_i=0
+replace diuretics_all_i=1 if (thiazdiur_i==1|loopdiur_i==1|potsparediur_aldos_i==1|potsparediur_other_i==1)
+
 //Univariate Analysis
 ///////////////////////////////////////All Cause Mortality /////////////////////////////////////////
 gen allcausemort = 0
@@ -91,6 +110,7 @@ stcox gender
 matrix a=r(table)
 putexcel A11=("Gender") B11=(a[1,1]) C11=(a[2,1]) D11=(a[4,1]) E11=(a[5,1]) F11=(a[6,1]) using Univariate, sheet("ACM") modify
 //SES
+recode imd2010_5 (1=0) (2=1) (3=2) (4=3) (5=4) (9=9)
 stcox imd2010_5
 matrix a=r(table)
 putexcel A12=("SES") B12=(a[1,1]) C12=(a[2,1]) D12=(a[4,1]) E12=(a[5,1]) F12=(a[6,1]) using Univariate, sheet("ACM") modify
@@ -107,92 +127,152 @@ stcox prx_covvalue_g_i5
 matrix a=r(table)
 putexcel A15=("Alcohol Status") B15=(a[1,1]) C15=(a[2,1]) D15=(a[4,1]) E15=(a[5,1]) F15=(a[6,1]) using Univariate, sheet("ACM") modify
 //Physician Visits
-stcox totservs_g_i
+gen phys_vis=0
+replace phys_vis=totservs_g_i if totservs_g_i!=.
+stcox phys_vis
 matrix a=r(table)
 putexcel A16=("Physician Visits") B16=(a[1,1]) C16=(a[2,1]) D16=(a[4,1]) E16=(a[5,1]) F16=(a[6,1]) using Univariate, sheet("ACM") modify
 //Charlson Comorbidity Score
-stcox prx_ccivalue_g_i
+stcox prx_ccivalue_g_i2
 matrix a=r(table)
 putexcel A17=("CCI") B17=(a[1,1]) C17=(a[2,1]) D17=(a[4,1]) E17=(a[5,1]) F17=(a[6,1]) using Univariate, sheet("ACM") modify
 //MI
-stcox prx_covvalue_g_i6
+gen mi_i =0
+replace mi_i= 1 if prx_covvalue_g_i6==1|prx_covvalue_i6==1
+stcox mi_i
 matrix a=r(table)
 putexcel A18=("MI") B18=(a[1,1]) C18=(a[2,1]) D18=(a[4,1]) E18=(a[5,1]) F18=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i6
+cs allcausemort mi_i
 putexcel G1=("RR") H1=("LL") I1=("UL") J1=("RD") K1=("LL") L1=("UL") M1=("p-val") G18=(r(rr)) H18=(r(lb_rr)) I18=(r(ub_rr)) J18=(r(rd)) K18=(r(lb_rd)) L18=(r(ub_rd)) M18=(r(p)) using Univariate, sheet("ACM") modify
 //Stroke
-stcox prx_covvalue_g_i7
+gen stroke_i =0
+replace stroke_i= 1 if prx_covvalue_g_i7==1|prx_covvalue_i7==1
+stcox stroke_i
 matrix a=r(table)
 putexcel A19=("Stroke") B19=(a[1,1]) C19=(a[2,1]) D19=(a[4,1]) E19=(a[5,1]) F19=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort stroke_i
 putexcel G19=(r(rr)) H19=(r(lb_rr)) I19=(r(ub_rr)) J19=(r(rd)) K19=(r(lb_rd)) L19=(r(ub_rd)) M19=(r(p)) using Univariate, sheet("ACM") modify
 //HF
-stcox prx_covvalue_g_i8
+gen hf_i =0
+replace hf_i= 1 if prx_covvalue_g_i8==1|prx_covvalue_i8==1
+stcox hf_i
 matrix a=r(table)
 putexcel A20=("HF") B20=(a[1,1]) C20=(a[2,1]) D20=(a[4,1]) E20=(a[5,1]) F20=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort hf_i
 putexcel G20=(r(rr)) H20=(r(lb_rr)) I20=(r(ub_rr)) J20=(r(rd)) K20=(r(lb_rd)) L20=(r(ub_rd)) M20=(r(p)) using Univariate, sheet("ACM") modify
 //Arrhythmia
-stcox prx_covvalue_g_i9
+gen arr_i =0
+replace arr_i= 1 if prx_covvalue_g_i9==1|prx_covvalue_i9==1
+stcox arr_i
 matrix a=r(table)
 putexcel A21=("Arrhythmia") B21=(a[1,1]) C21=(a[2,1]) D21=(a[4,1]) E21=(a[5,1]) F21=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort arr_i
 putexcel G21=(r(rr)) H21=(r(lb_rr)) I21=(r(ub_rr)) J21=(r(rd)) K21=(r(lb_rd)) L21=(r(ub_rd)) M21=(r(p)) using Univariate, sheet("ACM") modify
 //Angina
-stcox prx_covvalue_g_i10
+gen ang_i =0
+replace ang_i= 1 if prx_covvalue_g_i10==1|prx_covvalue_i10==1
+stcox ang_i
 matrix a=r(table)
 putexcel A22=("Angina") B22=(a[1,1]) C22=(a[2,1]) D22=(a[4,1]) E22=(a[5,1]) F22=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort ang_i
 putexcel G22=(r(rr)) H22=(r(lb_rr)) I22=(r(ub_rr)) J22=(r(rd)) K22=(r(lb_rd)) L22=(r(ub_rd)) M22=(r(p)) using Univariate, sheet("ACM") modify
 //Revascularization
-stcox prx_covvalue_g_i11
+gen urg_revasc_i =0
+replace urg_revasc_i= 1 if prx_covvalue_g_i11==1|prx_covvalue_i11==1
+stcox urg_revasc_i
 matrix a=r(table)
 putexcel A23=("Urgent Revasc") B23=(a[1,1]) C23=(a[2,1]) D23=(a[4,1]) E23=(a[5,1]) F23=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort urg_revasc_i
 putexcel G23=(r(rr)) H23=(r(lb_rr)) I23=(r(ub_rr)) J23=(r(rd)) K23=(r(lb_rd)) L23=(r(ub_rd)) M23=(r(p)) using Univariate, sheet("ACM") modify
 //HTN
-stcox prx_covvalue_g_i12
+gen htn_i =0
+replace htn_i= 1 if prx_covvalue_g_i12==1|prx_covvalue_i12==1
+stcox htn_i
 matrix a=r(table)
 putexcel A24=("HTN") B24=(a[1,1]) C24=(a[2,1]) D24=(a[4,1]) E24=(a[5,1]) F24=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort htn_i
 putexcel G24=(r(rr)) H24=(r(lb_rr)) I24=(r(ub_rr)) J24=(r(rd)) K24=(r(lb_rd)) L24=(r(ub_rd)) M24=(r(p)) using Univariate, sheet("ACM") modify
 //Atrial Fibrillation
-stcox prx_covvalue_g_i13
+gen afib_i =0
+replace afib_i= 1 if prx_covvalue_g_i13==1|prx_covvalue_i13==1
+stcox afib_i
 matrix a=r(table)
 putexcel A25=("AFib") B25=(a[1,1]) C25=(a[2,1]) D25=(a[4,1]) E25=(a[5,1]) F25=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort afib_i
 putexcel G25=(r(rr)) H25=(r(lb_rr)) I25=(r(ub_rr)) J25=(r(rd)) K25=(r(lb_rd)) L25=(r(ub_rd)) M25=(r(p)) using Univariate, sheet("ACM") modify
 //Peripheral Vascular Disease
-stcox prx_covvalue_g_i14
+gen pvd_i =0
+replace pvd_i= 1 if prx_covvalue_g_i14==1|prx_covvalue_i14==1
+stcox pvd_i
 matrix a=r(table)
 putexcel A26=("PVD") B26=(a[1,1]) C26=(a[2,1]) D26=(a[4,1]) E26=(a[5,1]) F26=(a[6,1]) using Univariate, sheet("ACM") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort pvd_i
 putexcel G26=(r(rr)) H26=(r(lb_rr)) I26=(r(ub_rr)) J26=(r(rd)) K26=(r(lb_rd)) L26=(r(ub_rd)) M26=(r(p)) using Univariate, sheet("ACM") modify
+//CKD
+stcox ckd_amdrd
+matrix a=r(table)
+putexcel A27=("CKDaMDRD") B27=(a[1,1]) C27=(a[2,1]) D27=(a[4,1]) E27=(a[5,1]) F27=(a[6,1]) using Univariate, sheet("ACM") modify
+//MEDICATIONS
+//Statins
+stcox statin_i
+matrix a=r(table)
+putexcel A28=("Statins") B28=(a[1,1]) C28=(a[2,1]) D28=(a[4,1]) E28=(a[5,1]) F28=(a[6,1]) using Univariate, sheet("ACM") modify
+cs allcausemort statin_i
+putexcel G28=(r(rr)) H28=(r(lb_rr)) I28=(r(ub_rr)) J28=(r(rd)) K28=(r(lb_rd)) L28=(r(ub_rd)) M28=(r(p)) using Univariate, sheet("ACM") modify
+//Calcium Channel Blockers
+stcox calchan_i
+matrix a=r(table)
+putexcel A29=("CCBs") B29=(a[1,1]) C29=(a[2,1]) D29=(a[4,1]) E29=(a[5,1]) F29=(a[6,1]) using Univariate, sheet("ACM") modify
+cs allcausemort calchan_i
+putexcel G29=(r(rr)) H29=(r(lb_rr)) I29=(r(ub_rr)) J29=(r(rd)) K29=(r(lb_rd)) L29=(r(ub_rd)) M29=(r(p)) using Univariate, sheet("ACM") modify
+//Beta Blockers
+stcox betablock_i
+matrix a=r(table)
+putexcel A30=("BBs") B30=(a[1,1]) C30=(a[2,1]) D30=(a[4,1]) E30=(a[5,1]) F30=(a[6,1]) using Univariate, sheet("ACM") modify
+cs allcausemort betablock_i
+putexcel G30=(r(rr)) H30=(r(lb_rr)) I30=(r(ub_rr)) J30=(r(rd)) K30=(r(lb_rd)) L30=(r(ub_rd)) M30=(r(p)) using Univariate, sheet("ACM") modify
+//Anticoagulants
+stcox anticoag_oral_i
+matrix a=r(table)
+putexcel A31=("Anticoags") B31=(a[1,1]) C31=(a[2,1]) D31=(a[4,1]) E31=(a[5,1]) F31=(a[6,1]) using Univariate, sheet("ACM") modify
+cs allcausemort anticoag_oral_i
+putexcel G31=(r(rr)) H31=(r(lb_rr)) I31=(r(ub_rr)) J31=(r(rd)) K31=(r(lb_rd)) L31=(r(ub_rd)) M31=(r(p)) using Univariate, sheet("ACM") modify
+//Antiplatelets
+stcox antiplat_i
+matrix a=r(table)
+putexcel A32=("Antiplats") B32=(a[1,1]) C32=(a[2,1]) D32=(a[4,1]) E32=(a[5,1]) F32=(a[6,1]) using Univariate, sheet("ACM") modify
+cs allcausemort antiplat_i
+putexcel G32=(r(rr)) H32=(r(lb_rr)) I32=(r(ub_rr)) J32=(r(rd)) K32=(r(lb_rd)) L32=(r(ub_rd)) M32=(r(p)) using Univariate, sheet("ACM") modify
+//Angio-Renin System Drugs
+stcox ace_arb_renin_i
+matrix a=r(table)
+putexcel A33=("AngioRenins") B33=(a[1,1]) C33=(a[2,1]) D33=(a[4,1]) E33=(a[5,1]) F33=(a[6,1]) using Univariate, sheet("ACM") modify
+cs allcausemort ace_arb_renin_i
+putexcel G33=(r(rr)) H33=(r(lb_rr)) I33=(r(ub_rr)) J33=(r(rd)) K33=(r(lb_rd)) L33=(r(ub_rd)) M33=(r(p)) using Univariate, sheet("ACM") modify
+//Diuretics
+stcox diuretics_all_i
+matrix a=r(table)
+putexcel A34=("Diuretics") B34=(a[1,1]) C34=(a[2,1]) D34=(a[4,1]) E34=(a[5,1]) F34=(a[6,1]) using Univariate, sheet("ACM") modify
+cs allcausemort diuretics_all_i
+putexcel G34=(r(rr)) H34=(r(lb_rr)) I34=(r(ub_rr)) J34=(r(rd)) K34=(r(lb_rd)) L34=(r(ub_rd)) M34=(r(p)) using Univariate, sheet("ACM") modify
+//Unqrx
+stcox unqrxi
+matrix a=r(table)
+putexcel A35=("Unique Rx") B35=(a[1,1]) C35=(a[2,1]) D35=(a[4,1]) E35=(a[5,1]) F35=(a[6,1]) using Univariate, sheet("ACM") modify
 
-//Multivariate analysis
-//16 in common with MCV
-stcox age_indexdate prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 totservs_g_i prx_servvalue2_h_i i.unqrx i.marital i.gender i.prx_covvalue_g_i4 i.prx_ccivalue_g_i i.prx_covvalue_g_i7 i.prx_covvalue_g_i8 i.prx_covvalue_g_i10 i.prx_covvalue_g_i13 i.prx_covvalue_g_i14, nohr
+
+//Multivariate analysis (ACM)
+stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
+stcox age_indexdate i.imd2010_5 prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 prx_testvalue_i2202 prx_covvalue_g_i3 phys_vis prx_servvalue2_h_i unqrxi i.unqrx i.gender i.prx_covvalue_g_i4 i.prx_ccivalue_g_i2 i.mi_i i.stroke_i i.hf_i i.arr_i i.ang_i i.urg_revasc_i i.htn_i i.afib_i i.pvd_i i.ckd_amdrd i.statin_i i.calchan_i i.betablock_i i.anticoag_oral_i i.antiplat_i i.ace_arb_renin_i i.diuretics_all_i
 matrix b=r(table)
 matrix c=b'
 matrix list c
-matrix rownames c = Age HbA1c Totchol HDL DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0stroke 1stroke 0HF 1HF 0angina 1angina 0Afib 1Afib 0PVD 1PVD
-local matrownames "Age HbA1c Totchol HDL DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0stroke 1stroke 0HF 1HF 0angina 1angina 0Afib 1Afib 0PVD 1PVD"
-forval i=1/43{
+matrix rownames c = Age 0SES 1SES 2SES 3SES 4SES 9SES HbA1c TotChol HDL TG sysBP DocVisits Hospitalizations unqrxi 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0mi 1mi 0stroke 1stroke 0HF 1HF 0Arr 1Arr 0angina 1angina 0revasc 1revasc 0HTN 1HTN 0Afib 1Afib 0PVD 1PVD 0CKD 1CKD 2CKD 3CKD 4CKD 5CKD 0Statin 1Statin 0CCB 1CCB 0BB 1BB 0Anticoag 1Anticoag 0Antiplat 1Antiplat 0AngioRenin 1AngioRenin 0Diur 1Diur
+local matrownames "Age 0SES 1SES 2SES 3SES 4SES 9SES HbA1c TotChol HDL TG sysBP DocVisits Hospitalizations unqrxi 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0mi 1mi 0stroke 1stroke 0HF 1HF 0Arr 1Arr 0angina 1angina 0revasc 1revasc 0HTN 1HTN 0Afib 1Afib 0PVD 1PVD 0CKD 1CKD 2CKD 3CKD 4CKD 5CKD 0Statin 1Statin 0CCB 1CCB 0BB 1BB 0Anticoag 1Anticoag 0Antiplat 1Antiplat 0AngioRenin 1AngioRenin 0Diur 1Diur"
+forval i=1/69{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("ACM16") modify
-}
-//19 distinct variables for ACM
-stcox age_indexdate prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 prx_testvalue_i2202 totservs_g_i prx_servvalue2_h_i i.unqrx i.marital i.gender i.prx_covvalue_g_i4 i.prx_ccivalue_g_i i.prx_covvalue_g_i6 i.prx_covvalue_g_i7 i.prx_covvalue_g_i8 i.prx_covvalue_g_i9 i.prx_covvalue_g_i10 i.prx_covvalue_g_i13 i.prx_covvalue_g_i14, nohr
-matrix b=r(table)
-matrix c=b'
-matrix list c
-matrix rownames c = Age HbA1c Totchol HDL TG DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0MI 1MI 0stroke 1stroke 0HF 1HF 0arr 1arr 0angina 1angina 0Afib 1Afib 0PVD 1PVD
-local matrownames "Age HbA1c Totchol HDL TG DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0MI 1MI 0stroke 1stroke 0HF 1HF 0arr 1arr 0angina 1angina 0Afib 1Afib 0PVD 1PVD"
-forval i=1/48{
-local x=`i'+1
-local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("ACM19") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using Multivariate, sheet("ACM_full") modify
 }
 
 ///////////////////////////////////////Major CV Event /////////////////////////////////////////
@@ -268,92 +348,131 @@ stcox prx_covvalue_g_i5
 matrix a=r(table)
 putexcel A15=("Alcohol Status") B15=(a[1,1]) C15=(a[2,1]) D15=(a[4,1]) E15=(a[5,1]) F15=(a[6,1]) using Univariate, sheet("MCV") modify
 //Physician Visits
-stcox totservs_g_i
+stcox phys_vis
 matrix a=r(table)
 putexcel A16=("Physician Visits") B16=(a[1,1]) C16=(a[2,1]) D16=(a[4,1]) E16=(a[5,1]) F16=(a[6,1]) using Univariate, sheet("MCV") modify
 //Charlson Comorbidity Score
-stcox prx_ccivalue_g_i
+stcox prx_ccivalue_g_i2
 matrix a=r(table)
 putexcel A17=("CCI") B17=(a[1,1]) C17=(a[2,1]) D17=(a[4,1]) E17=(a[5,1]) F17=(a[6,1]) using Univariate, sheet("MCV") modify
 //MI
-stcox prx_covvalue_g_i6
+stcox mi_i
 matrix a=r(table)
 putexcel A18=("MI") B18=(a[1,1]) C18=(a[2,1]) D18=(a[4,1]) E18=(a[5,1]) F18=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i6
+cs allcausemort mi_i
 putexcel G1=("RR") H1=("LL") I1=("UL") J1=("RD") K1=("LL") L1=("UL") M1=("p-val") G18=(r(rr)) H18=(r(lb_rr)) I18=(r(ub_rr)) J18=(r(rd)) K18=(r(lb_rd)) L18=(r(ub_rd)) M18=(r(p)) using Univariate, sheet("MCV") modify
 //Stroke
-stcox prx_covvalue_g_i7
+stcox stroke_i
 matrix a=r(table)
 putexcel A19=("Stroke") B19=(a[1,1]) C19=(a[2,1]) D19=(a[4,1]) E19=(a[5,1]) F19=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort stroke_i
 putexcel G19=(r(rr)) H19=(r(lb_rr)) I19=(r(ub_rr)) J19=(r(rd)) K19=(r(lb_rd)) L19=(r(ub_rd)) M19=(r(p)) using Univariate, sheet("MCV") modify
 //HF
-stcox prx_covvalue_g_i8
+stcox hf_i
 matrix a=r(table)
 putexcel A20=("HF") B20=(a[1,1]) C20=(a[2,1]) D20=(a[4,1]) E20=(a[5,1]) F20=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort hf_i
 putexcel G20=(r(rr)) H20=(r(lb_rr)) I20=(r(ub_rr)) J20=(r(rd)) K20=(r(lb_rd)) L20=(r(ub_rd)) M20=(r(p)) using Univariate, sheet("MCV") modify
 //Arrhythmia
-stcox prx_covvalue_g_i9
+stcox arr_i
 matrix a=r(table)
 putexcel A21=("Arrhythmia") B21=(a[1,1]) C21=(a[2,1]) D21=(a[4,1]) E21=(a[5,1]) F21=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort arr_i
 putexcel G21=(r(rr)) H21=(r(lb_rr)) I21=(r(ub_rr)) J21=(r(rd)) K21=(r(lb_rd)) L21=(r(ub_rd)) M21=(r(p)) using Univariate, sheet("MCV") modify
 //Angina
-stcox prx_covvalue_g_i10
+stcox ang_i
 matrix a=r(table)
 putexcel A22=("Angina") B22=(a[1,1]) C22=(a[2,1]) D22=(a[4,1]) E22=(a[5,1]) F22=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort ang_i
 putexcel G22=(r(rr)) H22=(r(lb_rr)) I22=(r(ub_rr)) J22=(r(rd)) K22=(r(lb_rd)) L22=(r(ub_rd)) M22=(r(p)) using Univariate, sheet("MCV") modify
 //Revascularization
-stcox prx_covvalue_g_i11
+stcox urg_revasc_i
 matrix a=r(table)
 putexcel A23=("Urgent Revasc") B23=(a[1,1]) C23=(a[2,1]) D23=(a[4,1]) E23=(a[5,1]) F23=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort urg_revasc_i
 putexcel G23=(r(rr)) H23=(r(lb_rr)) I23=(r(ub_rr)) J23=(r(rd)) K23=(r(lb_rd)) L23=(r(ub_rd)) M23=(r(p)) using Univariate, sheet("MCV") modify
 //HTN
-stcox prx_covvalue_g_i12
+stcox htn_i
 matrix a=r(table)
 putexcel A24=("HTN") B24=(a[1,1]) C24=(a[2,1]) D24=(a[4,1]) E24=(a[5,1]) F24=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort htn_i
 putexcel G24=(r(rr)) H24=(r(lb_rr)) I24=(r(ub_rr)) J24=(r(rd)) K24=(r(lb_rd)) L24=(r(ub_rd)) M24=(r(p)) using Univariate, sheet("MCV") modify
 //Atrial Fibrillation
-stcox prx_covvalue_g_i13
+stcox afib_i
 matrix a=r(table)
 putexcel A25=("AFib") B25=(a[1,1]) C25=(a[2,1]) D25=(a[4,1]) E25=(a[5,1]) F25=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort afib_i
 putexcel G25=(r(rr)) H25=(r(lb_rr)) I25=(r(ub_rr)) J25=(r(rd)) K25=(r(lb_rd)) L25=(r(ub_rd)) M25=(r(p)) using Univariate, sheet("MCV") modify
 //Peripheral Vascular Disease
-stcox prx_covvalue_g_i14
+stcox pvd_i
 matrix a=r(table)
 putexcel A26=("PVD") B26=(a[1,1]) C26=(a[2,1]) D26=(a[4,1]) E26=(a[5,1]) F26=(a[6,1]) using Univariate, sheet("MCV") modify
-cs allcausemort prx_covvalue_g_i7
+cs allcausemort pvd_i
 putexcel G26=(r(rr)) H26=(r(lb_rr)) I26=(r(ub_rr)) J26=(r(rd)) K26=(r(lb_rd)) L26=(r(ub_rd)) M26=(r(p)) using Univariate, sheet("MCV") modify
+//CKD
+stcox ckd_amdrd
+matrix a=r(table)
+putexcel A27=("CKDaMDRD") B27=(a[1,1]) C27=(a[2,1]) D27=(a[4,1]) E27=(a[5,1]) F27=(a[6,1]) using Univariate, sheet("MCV") modify
+//MEDICATIONS
+//Statins
+stcox statin_i
+matrix a=r(table)
+putexcel A28=("Statins") B28=(a[1,1]) C28=(a[2,1]) D28=(a[4,1]) E28=(a[5,1]) F28=(a[6,1]) using Univariate, sheet("MCV") modify
+cs allcausemort statin_i
+putexcel G28=(r(rr)) H28=(r(lb_rr)) I28=(r(ub_rr)) J28=(r(rd)) K28=(r(lb_rd)) L28=(r(ub_rd)) M28=(r(p)) using Univariate, sheet("MCV") modify
+//Calcium Channel Blockers
+stcox calchan_i
+matrix a=r(table)
+putexcel A29=("CCBs") B29=(a[1,1]) C29=(a[2,1]) D29=(a[4,1]) E29=(a[5,1]) F29=(a[6,1]) using Univariate, sheet("MCV") modify
+cs allcausemort calchan_i
+putexcel G29=(r(rr)) H29=(r(lb_rr)) I29=(r(ub_rr)) J29=(r(rd)) K29=(r(lb_rd)) L29=(r(ub_rd)) M29=(r(p)) using Univariate, sheet("MCV") modify
+//Beta Blockers
+stcox betablock_i
+matrix a=r(table)
+putexcel A30=("BBs") B30=(a[1,1]) C30=(a[2,1]) D30=(a[4,1]) E30=(a[5,1]) F30=(a[6,1]) using Univariate, sheet("MCV") modify
+cs allcausemort betablock_i
+putexcel G30=(r(rr)) H30=(r(lb_rr)) I30=(r(ub_rr)) J30=(r(rd)) K30=(r(lb_rd)) L30=(r(ub_rd)) M30=(r(p)) using Univariate, sheet("MCV") modify
+//Anticoagulants
+stcox anticoag_oral_i
+matrix a=r(table)
+putexcel A31=("Anticoags") B31=(a[1,1]) C31=(a[2,1]) D31=(a[4,1]) E31=(a[5,1]) F31=(a[6,1]) using Univariate, sheet("MCV") modify
+cs allcausemort anticoag_oral_i
+putexcel G31=(r(rr)) H31=(r(lb_rr)) I31=(r(ub_rr)) J31=(r(rd)) K31=(r(lb_rd)) L31=(r(ub_rd)) M31=(r(p)) using Univariate, sheet("MCV") modify
+//Antiplatelets
+stcox antiplat_i
+matrix a=r(table)
+putexcel A32=("Antiplats") B32=(a[1,1]) C32=(a[2,1]) D32=(a[4,1]) E32=(a[5,1]) F32=(a[6,1]) using Univariate, sheet("MCV") modify
+cs allcausemort antiplat_i
+putexcel G32=(r(rr)) H32=(r(lb_rr)) I32=(r(ub_rr)) J32=(r(rd)) K32=(r(lb_rd)) L32=(r(ub_rd)) M32=(r(p)) using Univariate, sheet("MCV") modify
+//Angio-Renin System Drugs
+stcox ace_arb_renin_i
+matrix a=r(table)
+putexcel A33=("AngioRenins") B33=(a[1,1]) C33=(a[2,1]) D33=(a[4,1]) E33=(a[5,1]) F33=(a[6,1]) using Univariate, sheet("MCV") modify
+cs allcausemort ace_arb_renin_i
+putexcel G33=(r(rr)) H33=(r(lb_rr)) I33=(r(ub_rr)) J33=(r(rd)) K33=(r(lb_rd)) L33=(r(ub_rd)) M33=(r(p)) using Univariate, sheet("MCV") modify
+//Diuretics
+stcox diuretics_all_i
+matrix a=r(table)
+putexcel A34=("Diuretics") B34=(a[1,1]) C34=(a[2,1]) D34=(a[4,1]) E34=(a[5,1]) F34=(a[6,1]) using Univariate, sheet("MCV") modify
+cs allcausemort diuretics_all_i
+putexcel G34=(r(rr)) H34=(r(lb_rr)) I34=(r(ub_rr)) J34=(r(rd)) K34=(r(lb_rd)) L34=(r(ub_rd)) M34=(r(p)) using Univariate, sheet("MCV") modify
+//Unqrx
+stcox unqrxi
+matrix a=r(table)
+putexcel A35=("Unique Rx") B35=(a[1,1]) C35=(a[2,1]) D35=(a[4,1]) E35=(a[5,1]) F35=(a[6,1]) using Univariate, sheet("MCV") modify
 
 //Multivariate analysis
-//16 in common with ACM and MCV
-stcox age_indexdate prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 totservs_g_i prx_servvalue2_h_i i.unqrx i.marital i.gender i.prx_covvalue_g_i4 i.prx_ccivalue_g_i i.prx_covvalue_g_i7 i.prx_covvalue_g_i8 i.prx_covvalue_g_i10 i.prx_covvalue_g_i13 i.prx_covvalue_g_i14, nohr
+stset cvmajor_exit, fail(cvmajor) id(patid) origin(seconddate) scale(365.35)
+stcox age_indexdate i.imd2010_5 prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 prx_testvalue_i2202 prx_covvalue_g_i3 phys_vis prx_servvalue2_h_i unqrxi i.unqrx i.gender i.prx_covvalue_g_i4 i.prx_ccivalue_g_i2 i.mi_i i.stroke_i i.hf_i i.arr_i i.ang_i i.urg_revasc_i i.htn_i i.afib_i i.pvd_i i.ckd_amdrd i.statin_i i.calchan_i i.betablock_i i.anticoag_oral_i i.antiplat_i i.ace_arb_renin_i i.diuretics_all_i
 matrix b=r(table)
 matrix c=b'
 matrix list c
-matrix rownames c = Age HbA1c Totchol HDL DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0stroke 1stroke 0HF 1HF 0angina 1angina 0Afib 1Afib 0PVD 1PVD
-local matrownames "Age HbA1c Totchol HDL DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0stroke 1stroke 0HF 1HF 0angina 1angina 0Afib 1Afib 0PVD 1PVD"
-forval i=1/43{
+matrix rownames c = Age 0SES 1SES 2SES 3SES 4SES 9SES HbA1c TotChol HDL TG sysBP DocVisits Hospitalizations unqrxi 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0mi 1mi 0stroke 1stroke 0HF 1HF 0Arr 1Arr 0angina 1angina 0revasc 1revasc 0HTN 1HTN 0Afib 1Afib 0PVD 1PVD 0CKD 1CKD 2CKD 3CKD 4CKD 5CKD 0Statin 1Statin 0CCB 1CCB 0BB 1BB 0Anticoag 1Anticoag 0Antiplat 1Antiplat 0AngioRenin 1AngioRenin 0Diur 1Diur
+local matrownames "Age 0SES 1SES 2SES 3SES 4SES 9SES HbA1c TotChol HDL TG sysBP DocVisits Hospitalizations unqrxi 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 1gender 2gender 0smoking 1smoking 2smoking 3smoking 1cci 2cci 3cci 4cci 0mi 1mi 0stroke 1stroke 0HF 1HF 0Arr 1Arr 0angina 1angina 0revasc 1revasc 0HTN 1HTN 0Afib 1Afib 0PVD 1PVD 0CKD 1CKD 2CKD 3CKD 4CKD 5CKD 0Statin 1Statin 0CCB 1CCB 0BB 1BB 0Anticoag 1Anticoag 0Antiplat 1Antiplat 0AngioRenin 1AngioRenin 0Diur 1Diur"
+forval i=1/69{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("MCV16") modify
-}
-//19 distinct variables for MCV
-stcox age_indexdate prx_testvalue_i275 prx_testvalue_i2163 prx_testvalue_i2175 prx_covvalue_g_i3 totservs_g_i prx_servvalue2_h_i i.unqrx i.imd2010_5 i.marital i.gender i.prx_covvalue_g_i4 i.prx_covvalue_g_i5 i.prx_ccivalue_g_i i.prx_covvalue_g_i7 i.prx_covvalue_g_i8 i.prx_covvalue_g_i10 i.prx_covvalue_g_i13 i.prx_covvalue_g_i14, nohr
-matrix b=r(table)
-matrix c=b'
-matrix list c
-matrix rownames c = Age HbA1c Totchol HDL SysBP DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 1SES 2SES 3SES 4SES 5SES 9SES 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 0alc 1alc 2alc 3alc 1cci 2cci 3cci 4cci 0stroke 1stroke 0HF 1HF 0angina 1angina 0Afib 1Afib 0PVD 1PVD
-local matrownames "Age HbA1c Totchol HDL SysBP DocVisits Hospitalizations 2unqrx 3unqrx 4unqrx 5ungrx 6unqrx 7unqrx 1SES 2SES 3SES 4SES 5SES 9SES 0marital 1marital 2marital 3marital 4marital 5marital 6marital 7marital 8marital 9marital 10marital 1gender 2gender 0smoking 1smoking 2smoking 3smoking 0alc 1alc 2alc 3alc 1cci 2cci 3cci 4cci 0stroke 1stroke 0HF 1HF 0angina 1angina 0Afib 1Afib 0PVD 1PVD"
-forval i=1/54{
-local x=`i'+1
-local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("p-value") A`x'=("`rowname'") B`x'=(c[`i',4])using Multivariate, sheet("MCV19") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using Multivariate, sheet("MCV_full") modify
 }
 
 ///////////////////////////////////CORRELATION MATRICES//////////////////////////////////////////
