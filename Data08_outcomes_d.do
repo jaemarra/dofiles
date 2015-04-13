@@ -114,12 +114,12 @@ label variable revasc_date_s "Date of first revasc (all) after study entry"
 
 gen cvprim_comp_date_i = min(cvprim_comp_g_date_i, cvprim_comp_h_date_i, cvprim_comp_o_date_i)
 label variable cvprim_comp_date_i "Date of first primary CV composite outcome (all) after index date"
-gen cvprim_comp_i = (cvprim_comp_date_i==.)
+gen cvprim_comp_i = (cvprim_comp_date_i!=.)
 label variable cvprim_comp_i "CV composite primary outcome (all) after index: 1=event 0=no event"
 
 gen cvprim_comp_date_s = min(cvprim_comp_g_date_s, cvprim_comp_h_date_s, cvprim_comp_o_date_s)
 label variable cvprim_comp_date_s "Date of first primary CV composite outcome (gold) after study entry"
-gen cvprim_comp_s = (cvprim_comp_date_s==.)
+gen cvprim_comp_s = (cvprim_comp_date_s!=.)
 label variable cvprim_comp_s "CV composite primary outcome(gold) after study entry: 1=event 0=no event"
 
 compress

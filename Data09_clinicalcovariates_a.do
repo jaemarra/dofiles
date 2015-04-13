@@ -17,7 +17,6 @@ foreach file in Clinical001_2 Clinical002_2 Clinical003_2 Clinical004_2 Clinical
 use `file', clear
 sort patid
 merge m:1 patid using Dates, keep(match) nogen
-keep if eventdate2>studyentrydate_cprd2-365
 sort patid
 joinby patid adid using Additional, unmatched(master) _merge(Additional_merge)
 merge m:1 patid using Patient, keep(match) nogen
@@ -168,7 +167,7 @@ replace covtype=6 if myoinfarct_covar_g==1
 // ICD-10 source for cerebrovascular disease: Quan, Med Care, 2005 (Table 1), modified to include only hemmorage or infarction -- CPRD Diagnostic Codes.xlsx
 //CPRD GOLD
 gen stroke_covar_g = 0
-replace stroke_covar_g = 1 if regexm(readcode, "I11.0|I21.?|I22.?|I23.?|I24.?|I25.?|I26.?|I40.?|I42.?|I44.?|I45.?|I46.?|I46.1|I47.?|I48.?|I49.?|I50.?|I60.?|I61.?|I62.?|I63.?|I64.?|I65.?|I66.?|I67.0|I67.6|I67.7|I69.?|I70.0|I81|I82.0|I82.3|I82.4x|I82.60|I82.62|I82.A1x|I82.B1x|I82.C1x|I82.890|I82.90")
+replace stroke_covar_g = 1 if regexm(readcode, "G61..00|G61..11|G61..12|G610.00|G611.00|G612.00|G613.00|G614.00|G615.00|G616.00|G617.00|G618.00|G61X.00|G61X000|G61X100|G61z.00|G63..11|G631.12|G63y000|G64..11|G64..12|G64..13|G640.00|G640000|G64z.00|G64z200|G64z300|G66..00|G66..11|G66..12|G66..13|G667.00|G668.00|G6W..00|G6X..00|Gyu6200|Gyu6300|Gyu6400|Gyu6500|Gyu6600|Gyu6E00|Gyu6F00|Gyu6G00|G31y.00")
 label variable stroke_covar_g "Stroke (covar) (gold) 1=event 0=noevent"
 //gen covtype
 replace covtype=7 if stroke_covar_g ==1
@@ -457,6 +456,72 @@ save Clinical_Covariates_s, replace
 }
 }
 clear
+
+//ANYTIME PRIOR TO INDEX
+foreach file in Clinical001_2b_cov Clinical002_2b_cov Clinical003_2b_cov Clinical004_2b_cov Clinical005_2b_cov Clinical006_2b_cov Clinical007_2b_cov Clinical008_2b_cov Clinical009_2b_cov Clinical010_2b_cov Clinical011_2b_cov Clinical012_2b_cov Clinical013_2b_cov {
+use `file', clear
+//pull out covariate date of interest
+bysort patid covtype : egen prx_covdate_g_ai = max(eltestdate2) if eltestdate2<indexdate
+format prx_covdate_g_ai %td
+gen prx_cov_g_ai_b = 1 if !missing(prx_covdate_g_ai)
+//pull out covariate value of interest
+bysort patid covtype : gen prx_covvalue_g_ai = nr_data if prx_covdate_g_ai==eltestdate2
+
+//create counts
+tempvar cov_num_un_ai_temp
+sort patid covtype eltestdate2
+by patid covtype: generate cov_num = _n
+label var cov_num "Number of each type of covtpe per patid (_n)"
+by patid: egen cov_num_un = count(covtype) if cov_num==1
+by patid: egen `cov_num_un_ai_temp' = count(covtype) if cov_num==1 & eltestdate2<indexdate
+by patid: egen cov_num_un_ai = min(`cov_num_un_ai_temp')
+label var cov_num_un_ai "Identifies most recent entry for each covtype in the index window"
+
+//only keep the observations relevant to the current window
+drop if prx_covvalue_g_ai >=.
+
+//Check for duplicates again- no duplicates found then continue
+bysort patid covtype: gen dupa = cond(_N==1,0,_n)
+drop if dupa>1
+drop dupa
+
+//Rectangularize data
+fillin patid covtype
+
+//Fillin the total number of labs in the window of interest
+bysort patid: egen totcovs_g_ai = total(cov_num_un_ai)
+
+//Drop all fields that aren't wanted in the final dta file
+keep patid totcovs_g_ai covtype prx_covvalue_g_ai prx_cov_g_ai_b
+
+//Reshape
+reshape wide prx_covvalue_g_ai prx_cov_g_ai_b, i(patid) j(covtype)
+
+//Label and replace missing values with "0" for covvalues
+forval i = 4/14	{
+replace prx_covvalue_g_ai`i' = 0 if prx_covvalue_g_ai`i'==.
+}
+local x=0
+local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
+forval i=1/14{
+local x=`x'+1
+local next:word `x' of `names'
+label var prx_covvalue_g_ai`i' "Most recent covariate value for: `next' (index window)"
+label var prx_cov_g_ai_b`i' "Bin indicator for `next' (index window): 1=covariate; 0=not covariate"
+}
+label var totcovs_g_ai "Number of total clinical covariates (index window) (gold)"
+
+//Save and append
+if "`file'"=="Clinical001_2b_cov" {
+save Clinical_Covariates_ai, replace
+}
+else {
+append using Clinical_Covariates_ai
+save Clinical_Covariates_ai, replace
+}
+}
+clear
+
 
 ////////////////////////////////////CHARLSON ONLY WINDOWS- INDEXDATE, COHORTENTRYDATE, STUDYENTRYDATE_CPRD/////////////////////////////
 //INDEXDATE

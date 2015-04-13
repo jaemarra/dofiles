@@ -186,6 +186,64 @@ save hesCovariates_i, replace
 
 clear
 
+//INDEXDATE  - anytime
+use hes_cov, clear
+//pull out covariate date of interest
+bysort patid covtype : egen prx_covdate_ai = max(eltestdate2) if eltestdate2<indexdate
+format prx_covdate_ai %td
+gen prx_cov_ai_b = 1 if !missing(prx_covdate_ai)
+//pull out covariate value of interest
+bysort patid covtype : gen prx_covvalue_ai = nr_data if prx_covdate_ai==eltestdate2
+
+//create counts
+sort patid covtype eltestdate2
+by patid covtype: generate cov_num = _n
+by patid: egen cov_num_un = count(covtype) if cov_num==1
+by patid: egen `cov_num_un_i_temp' = count(covtype) if cov_num==1 & eltestdate2<indexdate
+by patid: egen cov_num_un_ai = min(`cov_num_un_i_temp')
+
+//only keep the observations relevant to the current window
+drop if prx_covvalue_ai >=.
+
+//duplicates report
+duplicates report patid covtype
+
+//Rectangularize data
+fillin patid covtype
+
+//Fillin the total number of labs in the window of interest
+bysort patid: egen totcovs = total(cov_num_un_ai)
+
+//Drop all fields that aren't wanted in the final dta file
+keep patid totcovs covtype prx_covvalue_ai prx_cov_ai_b
+
+//Reshape
+reshape wide prx_covvalue_ai prx_cov_ai_b, i(patid) j(covtype)
+
+//Label
+label var totcovs "Number of total clinical covariates with information (HES_i)"
+label variable prx_covvalue_ai6 "Myocardial infarction (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b6 "Myocardial infarction (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai7 "Stroke (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b7 "Stroke (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai8 "Heart failure (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b8 "Heart failure (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai9 "Cardiac arrhythmia (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b9 "Cardiac arrhythmia (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai10 "Angina (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b10 "Angina (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai11 "Urgent revascularization (procedure) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b11 "Urgent revascularization (procedure) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai12 "Hypertension (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b12 "Hypertension (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai13 "Atrial Fibrillation (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b13 "Atrial Fibrillation (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai14 "Peripheral Vascular Disease (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b14 "Peripheral Vascular Disease (covar) (hes) 1=information 0=no information"
+save hesCovariates_ai, replace
+
+clear
+
 //COHORTENTRY DATE
 use hes_cov
 //pull out covariate date of interest
