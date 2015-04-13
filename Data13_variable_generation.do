@@ -412,7 +412,8 @@ label values ckd_ce ckd_ce_labels
 gen allcausemort = (death_date!=.)
 label var allcausemort "All-cause mortality"
 clonevar acm = allcausemort
-egen acm_exit = rowmin(tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+*egen acm_exit = rowmin(tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+egen acm_exit = rowmin(tod2 death_date lcd2)
 format acm_exit %td
 label var acm_exit "Exit date for all-cause mortality analysis - final rx time"
 egen acm_exit2 = rowmin(tod2 death_date lcd2 exposuret10 exposuret11 exposuret12 exposuret13 exposuret14 exposuret15)
@@ -422,21 +423,21 @@ label var acm_exit2 "Exit date for all-cause mortality analysis - last continuou
 //MACE
 gen mace = (cvprim_comp_g_i==1)
 label var mace "Indicator for first major cv event (mi, stroke, cvdeath) 1=event, 0=no event"
-egen mace_exit = rowmin( cvprim_comp_g_date_i tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+egen mace_exit = rowmin(cvprim_comp_g_date_i tod2 death_date lcd2)
 format mace_exit %td
 label var mace_exit "Exit date for major cardiovascular event (MI, stroke, or CV death)"
 
 //Myocardial infarction
 gen mi = myoinfarct_g
 label var mi "Indicator for first MI 1=event, 0=no event"
-egen mi_exit = rowmin(myoinfarct_g_date_i tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+egen mi_exit = rowmin(myoinfarct_g_date_i tod2 death_date lcd2)
 format mi_exit %td
 label var mi_exit "Exit date for myocardial infarction"
 
 //Stroke
 gen stroke = stroke_g
 label var stroke "Indicator for first stroke after indexdate 1=event, 0=no event"
-egen stroke_exit = rowmin(stroke_g_date_i tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+egen stroke_exit = rowmin(stroke_g_date_i tod2 death_date lcd2)
 format stroke_exit %td
 label var stroke_exit "Exit date for stroke"
 
@@ -446,30 +447,68 @@ label var stroke_exit "Exit date for stroke"
 gen heartfail = heartfail_g
 label var heartfail "Indicator for heart failure after indexdate 1=event, 0=no event"
 clonevar hf = heartfail
-egen hf_exit = rowmin(heartfail_g_date_i tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+egen hf_exit = rowmin(heartfail_g_date_i tod2 death_date lcd2)
 format hf_exit %td
 label var hf_exit "Exit date for heart failure"
 
 //Cardiac Arrhythmia: use arrhythmia_g arrhythmia_g_date_i
 gen arr = arrhythmia_g
 label var arr "Indicator for heart failure after indexdate 1=event, 0=no event"
-egen arr_exit = rowmin(arrhythmia_g_date_i tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+egen arr_exit = rowmin(arrhythmia_g_date_i tod2 death_date lcd2)
 format arr_exit %td
 label var arr_exit "Exit date for cardiac arrhythmia"
 
 //Unstable Angina: use angina_g angina_g_date_i
 gen ang =angina_g
 label var ang "Indicator for unstable angina after indexdate 1=event, 0=no event"
-egen ang_exit = rowmin(angina_g_date_i tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+egen ang_exit = rowmin(angina_g_date_i tod2 death_date lcd2)
 format ang_exit %td
 label var ang_exit "Exit date for unstable angina"
 
 //Urgent revascularization: use revasc_g revasc_g_date_i
 gen revasc = revasc_g
 label var revasc "Indicator for heart failure after indexdate 1=event, 0=no event"
-egen revasc_exit = rowmin(revasc_g_date_i tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
+egen revasc_exit = rowmin(revasc_g_date_i tod2 death_date lcd2)
 format revasc_exit %td
 label var revasc_exit "Exit date for urgent revascularization"
+
+// Labeling
+
+label var age_index "Age at index date"
+label var age_cat "Age"
+label var gender "Sex"
+label var maritalstatus "Marital Status"
+label var imd2010_5 "Measure of Deprivation"
+label var dmdur "Duration of treated diabetes"
+label var prx_covvalue_g_i4 "Smoking Status"
+label var prx_covvalue_g_i5 "Alcoholism"
+label var bmi_i_cats "BMI"
+label var physician_vis "No. of Physician Visits"
+label var prx_ccivalue_g_i2 "Charlson Comorbidity Index"
+label var ang_i "Angina"
+label var arr_i "Arryhthmia"
+label var afib_i "Atrial Fibrillation"
+label var hf_i "Heart Failure"
+label var htn_i "Hypertension"
+label var mi_i "Myocardial Infarction"
+label var pvd_i "Peripheral Vascular Disease"
+label var stroke_i "Stroke"
+label var revasc_i "Revascularization Procedure"
+label var hba1c_i "HbA1c continuous"
+label var hba1c_cats_i "HbA1c categories"
+label var prx_covvalue_g_i3 "Systolic Blood Pressure"
+label var sbp_i_cats2 "Systolic Blood Pressure categories"
+label var ckd_amdrd "eGFR categories"
+label var egfr_amdrd "eGFR"
+label var unique_cov_drugs "No unique drugs"
+label var statin_i "Statins"
+label var calchan_i "Calcium Channel Blockers"
+label var betablock_i "Beta-Blockers"
+label var anticoag_oral_i "Anticoagulants"
+label var antiplat_i "Antiplatelets"
+label var ace_arb_renin_i "ACE/ARB/Renin"
+label var diuretics_all_i "Diuretics"
+label var unqrx "No unique antidiabetic agents"
 
 timer off 1
 log close
