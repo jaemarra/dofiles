@@ -147,6 +147,9 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted") modify
 }
 
+// Multiple imputation
+
+
 //Testing PH Assumption
 
 *stphplot if indextype==1 | indextype==0 | indextype==2, by(indextype)
@@ -277,6 +280,8 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted2") modify
 }
 
+// Multiple imputation
+
 
 // #2 Third-line therapy
 use Analytic_Dataset_Master, clear
@@ -366,6 +371,9 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted3") modify
 }
 
+// Multiple imputation
+
+
 // #3 Fourth-line Therapy
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
@@ -444,6 +452,8 @@ local x=`i'+1
 local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted4") modify
 }
+
+// Multiple imputation
 
 // # 4 Any exposure after metformin monotherapy
 use Analytic_Dataset_Master, clear
@@ -540,6 +550,8 @@ foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
 	}
 	
 stcox *_post age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 i.mi_i i.stroke_i i.hf_i i.arr_i i.ang_i i.revasc_i i.htn_i i.afib_i i.pvd_i i.ckd_amdrd i.statin_i i.calchan_i i.betablock_i i.anticoag_oral_i i.antiplat_i i.ace_arb_renin_i i.diuretics_all_i, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+
+// Multiple imputation
 
 /*
 replace su_post=0 if regexm(secondadmrx, "SU")
