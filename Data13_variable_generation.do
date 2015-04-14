@@ -7,7 +7,7 @@
 clear
 capture log close
 set more off
-log using Data13.smcl, replace
+log using Data13.smcl, name(Data13) replace
 timer on 1
 
 use Analytic_Dataset_Master
@@ -511,5 +511,5 @@ label var diuretics_all_i "Diuretics"
 label var unqrx "No unique antidiabetic agents"
 
 timer off 1
-log close
+log close Data13
 

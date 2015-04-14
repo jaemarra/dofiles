@@ -7,7 +7,7 @@
 clear all
 capture log close
 set more off
-log using Stat_acm.smcl, replace
+log using Stat_acm.smcl, name(stat_acm) replace
 timer on 1
 
 use Analytic_Dataset_Master
@@ -24,13 +24,12 @@ count if tx<=seconddate
 count if seconddate<17167
 count if seconddate>=17167 & cohort_b==1 & exclude==0
 
-keep if exclude==0
-
+keep if exclude==0 // apply exclusion criteria
+drop if seconddate<17167 // restrict to jan 1, 2007
 
 //Create table1 
 
 table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1.xls, replace)
-table1 if seconddate>=17167, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1b.xls, replace)
 
 // 2x2 tables with exposure and outcomes
 
@@ -43,13 +42,9 @@ tab indextype3 acm, row
 label var indextype3 "Fourth-line Agent"
 tab indextype4 acm, row
 
-//restrict to January 1, 2007
-tab indextype acm if seconddate>=17167, row
-tab indextype3 acm if seconddate>=17167, row
-tab indextype4 acm if seconddate>=17167, row
-tab indextype5 acm if seconddate>=17167, row
-tab indextype6 acm if seconddate>=17167, row
-tab indextype7 acm if seconddate>=17167, row
+tab indextype5 acm, row
+tab indextype6 acm, row
+tab indextype7 acm, row
 
 ***COX PROPORTIONAL HAZARDS REGRESSION***
 
@@ -108,10 +103,6 @@ label var indextype "Exposure"
 stptime, by(indextype) per(1000)
 stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
-*sts graph, by(indextype) 
-*sts graph if seconddate>=17167, by(indextype) 
-*stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5)
-
 stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadjusted") modify
 forval i=0/5{
@@ -128,28 +119,6 @@ matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadjusted") modify
 }
 
-// restrict to jan 1, 2007
-
-stptime if seconddate>=17167, by(indextype) per(1000)
-stcox i.indextype if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-
-stptime if seconddate>=17167, by(indextype) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2b, sheet("Unadjusted") modify
-forval i=0/5{
-local row=`i'+2
-stptime if indextype==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2b, sheet("Unadjusted") modify
-}
-forval i=1/5 {
-local row=`i'+2
-local matrow=`i'+1
-stcox i.indextype if seconddate>=17167
-matrix b=r(table)
-matrix a= b'
-putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2b, sheet("Unadjusted") modify
-}
-
-
 //Multivariable analysis 
 // note: missing indicator approach used
 *stcox i.indextype age_index gender, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
@@ -164,9 +133,6 @@ stcox ib2.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_cov
 stcox ib3.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox ib4.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
-*stphplot if indextype==1 | indextype==0 | indextype==2, by(indextype)
-*stphplot if seconddate>=17167 & (indextype==1 | indextype==0 | indextype==2), by(indextype)
-*estat phtest
 
 
 stcox i.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
@@ -181,25 +147,42 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted") modify
 }
 
+//Testing PH Assumption
 
-// restrict to jan 1, 2007
-stcox i.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib2.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib3.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib4.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+*stphplot if indextype==1 | indextype==0 | indextype==2, by(indextype)
+*stphplot if seconddate>=17167 & (indextype==1 | indextype==0 | indextype==2), by(indextype)
+*estat phtest
+
+// Testing collinearity
 
 
-stcox i.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Unknown Current Non_Drinker Former Unknown Current Non_Smoker Former HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
-forval i=1/69{
-local x=`i'+1
-local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2b, sheet("Adjusted") modify
-}
+
+//KM and survival curves
+*sts graph, by(indextype) 
+*sts graph if seconddate>=17167, by(indextype) 
+*stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5)
+
+***SUBGROUP ANALYSIS***
+
+//#1. Clinical subgroups
+
+//#2. Effect Modifiers
+// Age
+
+
+// Sex
+
+
+// Duration of Metformin Monotherapy
+
+
+// HbA1c
+
+
+// BMI
+
+
+// IMD
 
 
 ***SENSITIVITY ANALYSIS***
@@ -207,7 +190,8 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 // #1. CENSOR EXPSOURE AT FIRST GAP
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-keep if exclude==0
+keep if exclude==0 // apply exclusion criteria
+drop if seconddate<17167 // restrict to jan 1, 2007
 
 // update censor times for last continuous exposure to second-line agent (indextype)
 
@@ -264,10 +248,6 @@ label var indextype "Exposure"
 stptime, by(indextype) per(1000)
 stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
-*sts graph, by(indextype) 
-*sts graph if seconddate>=17167, by(indextype) 
-*stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5)
-
 stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadjusted2") modify
 forval i=0/5{
@@ -284,28 +264,6 @@ matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadjusted2") modify
 }
 
-// restrict to jan 1, 2007
-
-stptime if seconddate>=17167, by(indextype) per(1000)
-stcox i.indextype if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-
-stptime if seconddate>=17167, by(indextype) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2b, sheet("Unadjusted2") modify
-forval i=0/5{
-local row=`i'+2
-stptime if indextype==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2b, sheet("Unadjusted2") modify
-}
-forval i=1/5 {
-local row=`i'+2
-local matrow=`i'+1
-stcox i.indextype if seconddate>=17167
-matrix b=r(table)
-matrix a= b'
-putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2b, sheet("Unadjusted2") modify
-}
-
-
 //Multivariable analysis 
 stcox i.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 i.mi_i i.stroke_i i.hf_i i.arr_i i.ang_i i.revasc_i i.htn_i i.afib_i i.pvd_i i.ckd_amdrd i.statin_i i.calchan_i i.betablock_i i.anticoag_oral_i i.antiplat_i i.ace_arb_renin_i i.diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
@@ -319,24 +277,12 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted2") modify
 }
 
-// restrict to jan 1, 2007
-
-stcox i.indextype age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Unknown Current Non_Drinker Former Unknown Current Non_Smoker Former HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
-forval i=1/69{
-local x=`i'+1
-local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2b, sheet("Adjusted2") modify
-}
 
 // #2 Third-line therapy
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-keep if exclude==0
+keep if exclude==0 // apply exclusion criteria
+drop if seconddate<17167 // restrict to jan 1, 2007
 
 // update censor times for final exposure to third-line agent (indextype3)
 
@@ -402,26 +348,6 @@ matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadjusted3") modify
 }
 
-// restrict to jan 1, 2007
-
-stptime if seconddate>=17167, by(indextype3) per(1000)
-stcox i.indextype3 if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-
-stptime if seconddate>=17167, by(indextype3) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2b, sheet("Unadjusted3") modify
-forval i=0/5{
-local row=`i'+2
-stptime if indextype3==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2b, sheet("Unadjusted3") modify
-}
-forval i=1/5 {
-local row=`i'+2
-local matrow=`i'+1
-stcox i.indextype3 if seconddate>=17167
-matrix b=r(table)
-matrix a= b'
-putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2b, sheet("Unadjusted3") modify
-}
 
 //Multivariable analysis 
 // note: missing indicator approach used
@@ -440,25 +366,11 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted3") modify
 }
 
-
-// restrict to jan 1, 2007
-
-stcox i.indextype3 age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post i.indextype if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Unknown Current Non_Drinker Former Unknown Current Non_Smoker Former HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
-forval i=1/69{
-local x=`i'+1
-local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2b, sheet("Adjusted3") modify
-}
-
 // #3 Fourth-line Therapy
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-keep if exclude==0
+keep if exclude==0 // apply exclusion criteria
+drop if seconddate<17167 // restrict to jan 1, 2007
 
 // update censor times for final exposure to fourth-line agent (indextype4)
 
@@ -500,10 +412,6 @@ label var indextype "Exposure"
 stptime, by(indextype4) per(1000)
 stcox i.indextype4, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
-*sts graph, by(indextype) 
-*sts graph if seconddate>=17167, by(indextype) 
-*stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5)
-
 stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadjusted4") modify
 forval i=0/5{
@@ -520,35 +428,10 @@ matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadjusted4") modify
 }
 
-// restrict to jan 1, 2007
-
-stptime if seconddate>=17167, by(indextype4) per(1000)
-stcox i.indextype4 if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-
-stptime if seconddate>=17167, by(indextype4) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2b, sheet("Unadjusted4") modify
-forval i=0/5{
-local row=`i'+2
-stptime if indextype4==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2b, sheet("Unadjusted4") modify
-}
-forval i=1/5 {
-local row=`i'+2
-local matrow=`i'+1
-stcox i.indextype4 if seconddate>=17167
-matrix b=r(table)
-matrix a= b'
-putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2b, sheet("Unadjusted4") modify
-}
-
 //Multivariable analysis 
 // note: missing indicator approach used
 
 stcox i.indextype4 age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post i.indextype i.indextype3, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-
-*stphplot if indextype==1 | indextype==0 | indextype==2, by(indextype)
-*stphplot if seconddate>=17167 & (indextype==1 | indextype==0 | indextype==2), by(indextype)
-*estat phtest
 
 stcox i.indextype4 age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post i.indextype i.indextype3, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
@@ -562,25 +445,11 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted4") modify
 }
 
-
-// restrict to jan 1, 2007
-
-stcox i.indextype4 age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post i.indextype i.indextype3 if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Unknown Current Non_Drinker Former Unknown Current Non_Smoker Former HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
-forval i=1/69{
-local x=`i'+1
-local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2b, sheet("Adjusted4") modify
-}
-
 // # 4 Any exposure after metformin monotherapy
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-keep if exclude==0
+keep if exclude==0 // apply exclusion criteria
+drop if seconddate<17167 // restrict to jan 1, 2007
 
 // declare survival analysis - final exposure as last exposure date 
 stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
@@ -643,15 +512,6 @@ foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
 	
 stcox *_post age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 i.mi_i i.stroke_i i.hf_i i.arr_i i.ang_i i.revasc_i i.htn_i i.afib_i i.pvd_i i.ckd_amdrd i.statin_i i.calchan_i i.betablock_i i.anticoag_oral_i i.antiplat_i i.ace_arb_renin_i i.diuretics_all_i, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
-// restrict to jan 1, 2007
-
-foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
-	stptime if seconddate>=17167, by(`var'_post) per(1000)
-	stcox `var'_post if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-	}
-
-stcox *_post age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 i.mi_i i.stroke_i i.hf_i i.arr_i i.ang_i i.revasc_i i.htn_i i.afib_i i.pvd_i i.ckd_amdrd i.statin_i i.calchan_i i.betablock_i i.anticoag_oral_i i.antiplat_i i.ace_arb_renin_i i.diuretics_all_i if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-
 // any use [time-varying]
 
 stsplit stop0, at(0(1)max) after(exposuretf0)
@@ -681,16 +541,6 @@ foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
 	
 stcox *_post age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 i.mi_i i.stroke_i i.hf_i i.arr_i i.ang_i i.revasc_i i.htn_i i.afib_i i.pvd_i i.ckd_amdrd i.statin_i i.calchan_i i.betablock_i i.anticoag_oral_i i.antiplat_i i.ace_arb_renin_i i.diuretics_all_i, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
-// restrict to jan 1, 2007
-
-foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
-	stptime if seconddate>=17167, by(`var'_post) per(1000)
-	stcox `var'_post if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-	}
-
-stcox *_post age_indexdate gender dmdur ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 i.mi_i i.stroke_i i.hf_i i.arr_i i.ang_i i.revasc_i i.htn_i i.afib_i i.pvd_i i.ckd_amdrd i.statin_i i.calchan_i i.betablock_i i.anticoag_oral_i i.antiplat_i i.ace_arb_renin_i i.diuretics_all_i if seconddate>=17167, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-
-
 /*
 replace su_post=0 if regexm(secondadmrx, "SU")
 replace su_post=0 if regexm(thirdadmrx, "SU")
@@ -701,4 +551,4 @@ replace su_post=0 if regexm(seventhadmrx, "SU")
 */
 
 timer off 1
-log close
+log close stat_acm
