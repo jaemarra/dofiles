@@ -412,13 +412,9 @@ label values ckd_ce ckd_ce_labels
 gen allcausemort = (death_date!=.)
 label var allcausemort "All-cause mortality"
 clonevar acm = allcausemort
-*egen acm_exit = rowmin(tod2 death_date lcd2 exposuretf0 exposuretf1 exposuretf2 exposuretf3 exposuretf4 exposuretf5)
 egen acm_exit = rowmin(tod2 death_date lcd2)
 format acm_exit %td
-label var acm_exit "Exit date for all-cause mortality analysis - final rx time"
-egen acm_exit2 = rowmin(tod2 death_date lcd2 exposuret10 exposuret11 exposuret12 exposuret13 exposuret14 exposuret15)
-format acm_exit2 %td
-label var acm_exit2 "Exit date for all-cause mortality analysis - last continuous rx time"
+label var acm_exit "Exit date for all-cause mortality analysis"
 
 //MACE
 gen mace = (cvprim_comp_g_i==1)

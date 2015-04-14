@@ -203,7 +203,7 @@ forval i=0/5 {
 }
 
 // declare survival analysis - last continuous exposure as last exposure date 
-stset acm_exit2, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
+stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
 // spit data to integrate time-varying covariates for diabetes meds.
 
 stsplit adm3, at(0(1)max) after(thirddate)
