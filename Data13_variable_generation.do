@@ -4,7 +4,7 @@
 //  author:     JM \ Mar2015  
 //				
 
-clear all
+clear
 capture log close
 set more off
 log using Data13.smcl, replace
@@ -39,7 +39,7 @@ replace indextype3=1 if thirdadmrx=="DPP"
 replace indextype3=2 if thirdadmrx=="GLP"
 replace indextype3=3 if thirdadmrx=="insulin"
 replace indextype3=4 if thirdadmrx=="TZD"
-replace indextype3=5 if thirdadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="DPPTZD"|secondadmrx=="DPPinsulin"|secondadmrx=="DPPother"|secondadmrx=="GLPTZD"|secondadmrx=="GLPinsulin"|secondadmrx=="GLPother"|secondadmrx=="SUDPP"|secondadmrx=="SUGLP"|secondadmrx=="SUTZD"|secondadmrx=="SUinsulin"|secondadmrx=="SUother"|secondadmrx=="TZDother"|secondadmrx=="insulinTZD"|secondadmrx=="insulinother"
+replace indextype3=5 if thirdadmrx=="other"|thirdadmrx=="DPPGLP"|thirdadmrx=="DPPTZD"|thirdadmrx=="DPPinsulin"|thirdadmrx=="DPPother"|thirdadmrx=="GLPTZD"|thirdadmrx=="GLPinsulin"|thirdadmrx=="GLPother"|thirdadmrx=="SUDPP"|thirdadmrx=="SUGLP"|thirdadmrx=="SUTZD"|thirdadmrx=="SUinsulin"|thirdadmrx=="SUother"|thirdadmrx=="TZDother"|thirdadmrx=="insulinTZD"|thirdadmrx=="insulinother"
 replace indextype3=6 if thirdadmrx=="metformin"
 label value indextype3 exposure
 
@@ -49,7 +49,7 @@ replace indextype4=1 if fourthadmrx=="DPP"
 replace indextype4=2 if fourthadmrx=="GLP"
 replace indextype4=3 if fourthadmrx=="insulin"
 replace indextype4=4 if fourthadmrx=="TZD"
-replace indextype4=5 if fourthadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="DPPTZD"|secondadmrx=="DPPinsulin"|secondadmrx=="DPPother"|secondadmrx=="GLPTZD"|secondadmrx=="GLPinsulin"|secondadmrx=="GLPother"|secondadmrx=="SUDPP"|secondadmrx=="SUGLP"|secondadmrx=="SUTZD"|secondadmrx=="SUinsulin"|secondadmrx=="SUother"|secondadmrx=="TZDother"|secondadmrx=="insulinTZD"|secondadmrx=="insulinother"
+replace indextype4=5 if fourthadmrx=="other"|fourthadmrx=="DPPGLP"|fourthadmrx=="DPPTZD"|fourthadmrx=="DPPinsulin"|fourthadmrx=="DPPother"|fourthadmrx=="GLPTZD"|fourthadmrx=="GLPinsulin"|fourthadmrx=="GLPother"|fourthadmrx=="SUDPP"|fourthadmrx=="SUGLP"|fourthadmrx=="SUTZD"|fourthadmrx=="SUinsulin"|fourthadmrx=="SUother"|fourthadmrx=="TZDother"|fourthadmrx=="insulinTZD"|fourthadmrx=="insulinother"
 replace indextype4=6 if fourthadmrx=="metformin"
 label value indextype4 exposure
 
@@ -59,7 +59,7 @@ replace indextype5=1 if fifthadmrx=="DPP"
 replace indextype5=2 if fifthadmrx=="GLP"
 replace indextype5=3 if fifthadmrx=="insulin"
 replace indextype5=4 if fifthadmrx=="TZD"
-replace indextype5=5 if fifthadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="DPPTZD"|secondadmrx=="DPPinsulin"|secondadmrx=="DPPother"|secondadmrx=="GLPTZD"|secondadmrx=="GLPinsulin"|secondadmrx=="GLPother"|secondadmrx=="SUDPP"|secondadmrx=="SUGLP"|secondadmrx=="SUTZD"|secondadmrx=="SUinsulin"|secondadmrx=="SUother"|secondadmrx=="TZDother"|secondadmrx=="insulinTZD"|secondadmrx=="insulinother"
+replace indextype5=5 if fifthadmrx=="other"|fifthadmrx=="DPPGLP"|fifthadmrx=="DPPTZD"|fifthadmrx=="DPPinsulin"|fifthadmrx=="DPPother"|fifthadmrx=="GLPTZD"|fifthadmrx=="GLPinsulin"|fifthadmrx=="GLPother"|fifthadmrx=="SUDPP"|fifthadmrx=="SUGLP"|fifthadmrx=="SUTZD"|fifthadmrx=="SUinsulin"|fifthadmrx=="SUother"|fifthadmrx=="TZDother"|fifthadmrx=="insulinTZD"|fifthadmrx=="insulinother"
 replace indextype5=6 if fifthadmrx=="metformin"
 label value indextype5 exposure
 
@@ -69,7 +69,7 @@ replace indextype6=1 if sixthadmrx=="DPP"
 replace indextype6=2 if sixthadmrx=="GLP"
 replace indextype6=3 if sixthadmrx=="insulin"
 replace indextype6=4 if sixthadmrx=="TZD"
-replace indextype6=5 if sixthadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="DPPTZD"|secondadmrx=="DPPinsulin"|secondadmrx=="DPPother"|secondadmrx=="GLPTZD"|secondadmrx=="GLPinsulin"|secondadmrx=="GLPother"|secondadmrx=="SUDPP"|secondadmrx=="SUGLP"|secondadmrx=="SUTZD"|secondadmrx=="SUinsulin"|secondadmrx=="SUother"|secondadmrx=="TZDother"|secondadmrx=="insulinTZD"|secondadmrx=="insulinother"
+replace indextype6=5 if sixthadmrx=="other"|sixthadmrx=="DPPGLP"|sixthadmrx=="DPPTZD"|sixthadmrx=="DPPinsulin"|sixthadmrx=="DPPother"|sixthadmrx=="GLPTZD"|sixthadmrx=="GLPinsulin"|sixthadmrx=="GLPother"|sixthadmrx=="SUDPP"|sixthadmrx=="SUGLP"|sixthadmrx=="SUTZD"|sixthadmrx=="SUinsulin"|sixthadmrx=="SUother"|sixthadmrx=="TZDother"|sixthadmrx=="insulinTZD"|sixthadmrx=="insulinother"
 replace indextype6=6 if sixthadmrx=="metformin"
 label value indextype6 exposure
 
@@ -79,7 +79,7 @@ replace indextype7=1 if seventhadmrx=="DPP"
 replace indextype7=2 if seventhadmrx=="GLP"
 replace indextype7=3 if seventhadmrx=="insulin"
 replace indextype7=4 if seventhadmrx=="TZD"
-replace indextype7=5 if seventhadmrx=="other"|secondadmrx=="DPPGLP"|secondadmrx=="DPPTZD"|secondadmrx=="DPPinsulin"|secondadmrx=="DPPother"|secondadmrx=="GLPTZD"|secondadmrx=="GLPinsulin"|secondadmrx=="GLPother"|secondadmrx=="SUDPP"|secondadmrx=="SUGLP"|secondadmrx=="SUTZD"|secondadmrx=="SUinsulin"|secondadmrx=="SUother"|secondadmrx=="TZDother"|secondadmrx=="insulinTZD"|secondadmrx=="insulinother"
+replace indextype7=5 if seventhadmrx=="other"|seventhadmrx=="DPPGLP"|seventhadmrx=="DPPTZD"|seventhadmrx=="DPPinsulin"|seventhadmrx=="DPPother"|seventhadmrx=="GLPTZD"|seventhadmrx=="GLPinsulin"|seventhadmrx=="GLPother"|seventhadmrx=="SUDPP"|seventhadmrx=="SUGLP"|seventhadmrx=="SUTZD"|seventhadmrx=="SUinsulin"|seventhadmrx=="SUother"|seventhadmrx=="TZDother"|seventhadmrx=="insulinTZD"|seventhadmrx=="insulinother"
 replace indextype7=6 if seventhadmrx=="metformin"
 label value indextype7 exposure
 
