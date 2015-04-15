@@ -291,17 +291,15 @@ gen tg_i = 1 if prx_test_i_b202==1
 replace tg_i=0 if tg_i!=1
 
 //Height
-gen height_i = prx_covvalue_g_i1
-gen heightsq_i = prx_covvalue_g_i1*prx_covvalue_g_i1
+gen height_i = prx_covvalue_g_ai1
+gen heightsq_i = prx_covvalue_g_ai1*prx_covvalue_g_ai1
 gen height_bin = 1 if height_i!=.
 replace height_bin=0 if height_i==.
-recode height_bin (0=1) (1=0) 
 
 //Weight
-gen weight_i = prx_covvalue_g_i2
+gen weight_i = prx_covvalue_g_ai2
 gen weight_bin = 1 if weight_i!=.
 replace weight_bin=0 if weight_i==.
-recode weight_bin (0=1) (1=0) 
  
 //BMI
 gen bmi_i = weight_i/heightsq_i if weight_i!=.&heightsq_i!=.
