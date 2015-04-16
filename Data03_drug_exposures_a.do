@@ -274,6 +274,7 @@ sort patid second
 bysort patid second: gen flag=_n if second==1
 egen secondadmrx=concat(crx6 crx0 crx1 crx2 crx3 crx4 crx5) if flag==1
 gen seconddate=indexdate
+format seconddate %td
 drop crx* flag rxtype_i
 
 //generate an indicator for WHOLE BASE COHORT (165292) patients with a third antidiabetic exposure
