@@ -50,7 +50,7 @@ gen bmi=.
 replace bmi=data3 if enttype==13
 label variable bmi "BMI (kg/m^2)"
 //restrict
-replace bmi =. if bmi<=15|bmi>70
+replace bmi =. if bmi<15|bmi>70
 //eliminate redundancy
 bysort patid eventdate2: egen nr_bmi=mean(bmi) if bmi<.
 tempvar dup_bmi
