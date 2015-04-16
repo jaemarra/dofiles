@@ -421,54 +421,54 @@ format acm_exit %td
 label var acm_exit "Exit date for all-cause mortality analysis"
 
 //MACE
-gen mace = (cvprim_comp_g_i==1)
+gen mace = (cvprim_comp_o_i==1)
 label var mace "Indicator for first major cv event (mi, stroke, cvdeath) 1=event, 0=no event"
-egen mace_exit = rowmin(cvprim_comp_g_date_i tod2 death_date lcd2)
+egen mace_exit = rowmin(cvprim_comp_o_date_i tod2 death_date lcd2)
 format mace_exit %td
 label var mace_exit "Exit date for major cardiovascular event (MI, stroke, or CV death)"
 
 //Myocardial infarction
-gen mi = myoinfarct_g
+gen mi = myoinfarct_date_i!=.
 label var mi "Indicator for first MI 1=event, 0=no event"
-egen mi_exit = rowmin(myoinfarct_g_date_i tod2 death_date lcd2)
+egen mi_exit = rowmin(myoinfarct_date_i tod2 death_date lcd2)
 format mi_exit %td
 label var mi_exit "Exit date for myocardial infarction"
 
 //Stroke
-gen stroke = stroke_g
+gen stroke = stroke_date_i!=.
 label var stroke "Indicator for first stroke after indexdate 1=event, 0=no event"
-egen stroke_exit = rowmin(stroke_g_date_i tod2 death_date lcd2)
+egen stroke_exit = rowmin(stroke_date_i tod2 death_date lcd2)
 format stroke_exit %td
 label var stroke_exit "Exit date for stroke"
 
 //CV death
 
 //Heart Failure
-gen heartfail = heartfail_g
+gen heartfail = heartfail_date_i!=.
 label var heartfail "Indicator for heart failure after indexdate 1=event, 0=no event"
 clonevar hf = heartfail
-egen hf_exit = rowmin(heartfail_g_date_i tod2 death_date lcd2)
+egen hf_exit = rowmin(heartfail_date_i tod2 death_date lcd2)
 format hf_exit %td
 label var hf_exit "Exit date for heart failure"
 
 //Cardiac Arrhythmia: use arrhythmia_g arrhythmia_g_date_i
-gen arr = arrhythmia_g
+gen arr = arrhythmia_date_i!=.
 label var arr "Indicator for heart failure after indexdate 1=event, 0=no event"
-egen arr_exit = rowmin(arrhythmia_g_date_i tod2 death_date lcd2)
+egen arr_exit = rowmin(arrhythmia_date_i tod2 death_date lcd2)
 format arr_exit %td
 label var arr_exit "Exit date for cardiac arrhythmia"
 
 //Unstable Angina: use angina_g angina_g_date_i
-gen ang =angina_g
+gen ang =angina_date_i!=.
 label var ang "Indicator for unstable angina after indexdate 1=event, 0=no event"
-egen ang_exit = rowmin(angina_g_date_i tod2 death_date lcd2)
+egen ang_exit = rowmin(angina_date_i tod2 death_date lcd2)
 format ang_exit %td
 label var ang_exit "Exit date for unstable angina"
 
 //Urgent revascularization: use revasc_g revasc_g_date_i
-gen revasc = revasc_g
+gen revasc = revasc_date_i!=.
 label var revasc "Indicator for heart failure after indexdate 1=event, 0=no event"
-egen revasc_exit = rowmin(revasc_g_date_i tod2 death_date lcd2)
+egen revasc_exit = rowmin(revasc_date_i tod2 death_date lcd2)
 format revasc_exit %td
 label var revasc_exit "Exit date for urgent revascularization"
 
