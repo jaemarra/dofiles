@@ -15,6 +15,7 @@ use Clinical_Covariates_i
 merge 1:1 patid using hesCovariates_i, keep(match master) nogen
 merge 1:1 patid using Clinical_cci_i, keep(match master) nogen
 merge 1:1 patid using hes_cci_i, keep(match master) nogen
+merge 1:1 patid using Fixed_variables, keep (match master) nogen
 save ClinicalCovariates_merged_i, replace
 clear
 
