@@ -30,7 +30,7 @@ timer list 2
 //Use Clinical files merged with Dates, Additional, and Patient for all subsequent work
 foreach file in Clinical001_2b Clinical002_2b Clinical003_2b Clinical004_2b Clinical005_2b Clinical006_2b Clinical007_2b Clinical008_2b Clinical009_2b Clinical010_2b Clinical011_2b Clinical012_2b Clinical013_2b {
 use `file', clear
-keep patid enttype eventdate2 indexdate data3
+keep patid enttype eventdate2 indexdate data3 data1
 sort patid
 keep if enttype==13|enttype==14
 //save and append
