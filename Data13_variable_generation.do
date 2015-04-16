@@ -5,7 +5,7 @@
 //				
 
 clear
-capture log close
+capture log close Data13
 set more off
 log using Data13.smcl, name(Data13) replace
 timer on 1
