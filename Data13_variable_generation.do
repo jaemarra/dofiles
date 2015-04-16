@@ -253,14 +253,12 @@ label value prx_ccivalue_g_i2 cci
 //PHYSIOLOGICS
 //HbA1c
 gen hba1c_i2 = prx_testvalue_i2275 if prx_testvalue_i2275>=2& prx_testvalue_i2275<=25
-tab hba1c_i2 if exclude==0
 gen hba1c_cats_i2=round(hba1c_i2)
 recode hba1c_cats_i2 (.=5) (min/7=0) (7/8=1) (8/9=2) (9/10=3) (10/max=4)
 label define hba1c_cats 5 "Unknown" 0 "<7.0%" 1 "7.0-8.0%" 2 "8.0-9.0%" 3 "9.0-10.0%" 4 ">10%"
 label values hba1c_cats_i2 hba1c_cats
 
 //SBP
-tab prx_covvalue_g_i3 if exclude==0
 gen sbp_i = 1 if (prx_cov_g_i_b3==1)
 replace sbp_i=0 if sbp_i!=1
 gen sbp_i_cats=prx_covvalue_g_i3
@@ -306,7 +304,6 @@ recode weight_bin (0=1) (1=0)
 //BMI
 //Using the height and weight closest to the indexdate to calculate bmi
 gen bmi_calcd = weight_i/heightsq_i if weight_i!=.&heightsq_i!=.
-sum bmi_calcd if exclude==0, detail
 gen bmi_calcd_cats=bmi_calcd
 recode bmi_calcd_cats (min/20=0) (20/25=1) (25/30=2) (30/35=3) (35/40=4) (40/max=5) (.=9)
 label define bmi 0 "<20" 1 "20 to 24" 2 "25 to 29" 3 "30 to 34" 4 "35 to 40" 5 "40+" 9 "unknown"
