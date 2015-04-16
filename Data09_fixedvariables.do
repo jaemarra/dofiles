@@ -1,4 +1,4 @@
-//  program:    Data09_height.do
+//  program:    Data09_fixedvariables.do
 //  task:       Generate a variable to capture anytime height to avoid missingness in a fixed variables
 //  project:    Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     MA \ May 2014 modified by JM \ Jan 2015
@@ -38,7 +38,7 @@ if "`file'"=="Clinical001_2b" {
 save Clinical_Covariates_bmi, replace
 }
 else {
-append using Clinical_Covariates_height
+append using Clinical_Covariates_bmi
 save Clinical_Covariates_bmi, replace
 }
 }
