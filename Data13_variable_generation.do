@@ -291,22 +291,31 @@ gen tg_i = 1 if prx_test_i_b202==1
 replace tg_i=0 if tg_i!=1
 
 //Height
-gen height_i = prx_covvalue_g_ai1
-gen heightsq_i = prx_covvalue_g_ai1*prx_covvalue_g_ai1
+gen height_i = prx_covvalue_g_ai1_closest
+gen heightsq_i = prx_covvalue_g_ai1_closest*prx_covvalue_g_ai1_closest
 gen height_bin = 1 if height_i!=.
 replace height_bin=0 if height_i==.
+recode height_bin (0=1) (1=0) 
 
 //Weight
-gen weight_i = prx_covvalue_g_ai2
+gen weight_i = prx_covvalue_g_ai2_closest
 gen weight_bin = 1 if weight_i!=.
 replace weight_bin=0 if weight_i==.
+recode weight_bin (0=1) (1=0) 
  
 //BMI
-gen bmi_i = weight_i/heightsq_i if weight_i!=.&heightsq_i!=.
-sum bmi_i if exclude==1, detail
+//Using the height and weight closest to the indexdate to calculate bmi
+gen bmi_calcd = weight_i/heightsq_i if weight_i!=.&heightsq_i!=.
+sum bmi_calcd if exclude==0, detail
+gen bmi_calcd_cats=bmi_calcd
+recode bmi_calcd_cats (min/20=0) (20/25=1) (25/30=2) (30/35=3) (35/40=4) (40/max=5) (.=9)
+label define bmi 0 "<20" 1 "20 to 24" 2 "25 to 29" 3 "30 to 34" 4 "35 to 40" 5 "40+" 9 "unknown"
+label value bmi_calcd_cats bmi
+//Using the closest (before or after) indexdate method to extract bmi from the weight enttype data3
+gen bmi_i = prx_covvalue_g_ai15_closest
+replace bmi_i=bmi_calcd if bmi_i==.
 gen bmi_i_cats=bmi_i
 recode bmi_i_cats (min/20=0) (20/25=1) (25/30=2) (30/35=3) (35/40=4) (40/max=5) (.=9)
-label define bmi 0 "<20" 1 "20 to 24" 2 "25 to 29" 3 "30 to 34" 4 "35 to 40" 5 "40+" 9 "unknown"
 label value bmi_i_cats bmi
 
 //MEDICATIONS//
