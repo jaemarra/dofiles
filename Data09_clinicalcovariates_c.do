@@ -12,6 +12,7 @@ timer on 1
 
 //INDEXDATE: merge Clinical covariate file with HES covariate file and Charlson Comorbidity Index file 
 use Clinical_Covariates_i
+merge 1:1 patid using Dates, nogen
 merge 1:1 patid using hesCovariates_i, keep(match master) nogen
 merge 1:1 patid using Clinical_cci_i, keep(match master) nogen
 merge 1:1 patid using hes_cci_i, keep(match master) nogen
