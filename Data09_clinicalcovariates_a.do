@@ -245,13 +245,13 @@ replace covtype=14 if pervascdis_g ==1
 
 //Hypoglycemia
 gen hypo_g = 0
-replace hypo_g=1 if regexm(readcode, "E15.?|E16.?")
+replace hypo_g=1 if regexm(readcode, "C109D12|Cyu3000|C11y100|C10EE12|C109D11|66A7000|C112100|C10FD11|66A7100|C10FD00|C116.00|C110z00|C112z00|C108E00|C116000|C112000|C112.00|C109D00|C10EE00|66Ad.00|C108E12|C110.00")
 label var hypo_g "Hypoglycemia (gold) 1=event 0=no event"
 replace covtype = 15 if hypo_g==1
 
 //End Stage Renal Disease
 gen esrd_g = 0
-replace esrd_g = 1 if regexm(readcode, "T81.502?|T81.512?|T81.592?|T81.522?|T81.532?|T86.19?|T86.10?|T86.11?|T86.12?|T86.13?|T86.9?|E09.22|E09.29|E08.22|E08.29|E10.22|E10.29|E11.22|E11.29|E13.22|E13.29|Z94.0|Z49.0|Z49.01|T82.|Z99.2|N18.6|Z98.85|R88.0|T82.?|E870.2|E871.2|E874.2|Y83.0")
+replace esrd_g = 1 if regexm(readcode, "SP08300|7B00211|7B00400|7L1A000|7L1A.11|Kyu2100|K0D..00|K05..12|14V2.00|K05..00|ZV56011|TB00111|K050.00")
 label var esrd_g "End stage renal disease (gold) 1=event 0=no event"
 replace covtype = 16 if esrd_g==1
 
