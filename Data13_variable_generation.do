@@ -32,6 +32,7 @@ label var indextype "Antidiabetic class at index (switch from or add to metformi
 label define exposure 0 "SU" 1 "DPP4i" 2 "GLP1RA" 3 "INS" 4 "TZD" 5 "OTH" 6 "MET"
 label value indextype exposure 
 clonevar exposure=indextype
+tabulate indextype, gen(indextype_)
 
 gen indextype3=.
 replace indextype3=0 if thirdadmrx=="SU"
@@ -42,6 +43,7 @@ replace indextype3=4 if thirdadmrx=="TZD"
 replace indextype3=5 if thirdadmrx=="other"|thirdadmrx=="DPPGLP"|thirdadmrx=="DPPTZD"|thirdadmrx=="DPPinsulin"|thirdadmrx=="DPPother"|thirdadmrx=="GLPTZD"|thirdadmrx=="GLPinsulin"|thirdadmrx=="GLPother"|thirdadmrx=="SUDPP"|thirdadmrx=="SUGLP"|thirdadmrx=="SUTZD"|thirdadmrx=="SUinsulin"|thirdadmrx=="SUother"|thirdadmrx=="TZDother"|thirdadmrx=="insulinTZD"|thirdadmrx=="insulinother"
 replace indextype3=6 if thirdadmrx=="metformin"
 label value indextype3 exposure
+tabulate indextype3, gen(indextype3_)
 
 gen indextype4=.
 replace indextype4=0 if fourthadmrx=="SU"
@@ -52,6 +54,7 @@ replace indextype4=4 if fourthadmrx=="TZD"
 replace indextype4=5 if fourthadmrx=="other"|fourthadmrx=="DPPGLP"|fourthadmrx=="DPPTZD"|fourthadmrx=="DPPinsulin"|fourthadmrx=="DPPother"|fourthadmrx=="GLPTZD"|fourthadmrx=="GLPinsulin"|fourthadmrx=="GLPother"|fourthadmrx=="SUDPP"|fourthadmrx=="SUGLP"|fourthadmrx=="SUTZD"|fourthadmrx=="SUinsulin"|fourthadmrx=="SUother"|fourthadmrx=="TZDother"|fourthadmrx=="insulinTZD"|fourthadmrx=="insulinother"
 replace indextype4=6 if fourthadmrx=="metformin"
 label value indextype4 exposure
+tabulate indextype4, gen(indextype4_)
 
 gen indextype5=.
 replace indextype5=0 if fifthadmrx=="SU"
@@ -62,6 +65,7 @@ replace indextype5=4 if fifthadmrx=="TZD"
 replace indextype5=5 if fifthadmrx=="other"|fifthadmrx=="DPPGLP"|fifthadmrx=="DPPTZD"|fifthadmrx=="DPPinsulin"|fifthadmrx=="DPPother"|fifthadmrx=="GLPTZD"|fifthadmrx=="GLPinsulin"|fifthadmrx=="GLPother"|fifthadmrx=="SUDPP"|fifthadmrx=="SUGLP"|fifthadmrx=="SUTZD"|fifthadmrx=="SUinsulin"|fifthadmrx=="SUother"|fifthadmrx=="TZDother"|fifthadmrx=="insulinTZD"|fifthadmrx=="insulinother"
 replace indextype5=6 if fifthadmrx=="metformin"
 label value indextype5 exposure
+tabulate indextype5, gen(indextype5_)
 
 gen indextype6=.
 replace indextype6=0 if sixthadmrx=="SU"
@@ -72,6 +76,7 @@ replace indextype6=4 if sixthadmrx=="TZD"
 replace indextype6=5 if sixthadmrx=="other"|sixthadmrx=="DPPGLP"|sixthadmrx=="DPPTZD"|sixthadmrx=="DPPinsulin"|sixthadmrx=="DPPother"|sixthadmrx=="GLPTZD"|sixthadmrx=="GLPinsulin"|sixthadmrx=="GLPother"|sixthadmrx=="SUDPP"|sixthadmrx=="SUGLP"|sixthadmrx=="SUTZD"|sixthadmrx=="SUinsulin"|sixthadmrx=="SUother"|sixthadmrx=="TZDother"|sixthadmrx=="insulinTZD"|sixthadmrx=="insulinother"
 replace indextype6=6 if sixthadmrx=="metformin"
 label value indextype6 exposure
+tabulate indextype6, gen(indextype6_)
 
 gen indextype7=.
 replace indextype7=0 if seventhadmrx=="SU"
@@ -82,6 +87,7 @@ replace indextype7=4 if seventhadmrx=="TZD"
 replace indextype7=5 if seventhadmrx=="other"|seventhadmrx=="DPPGLP"|seventhadmrx=="DPPTZD"|seventhadmrx=="DPPinsulin"|seventhadmrx=="DPPother"|seventhadmrx=="GLPTZD"|seventhadmrx=="GLPinsulin"|seventhadmrx=="GLPother"|seventhadmrx=="SUDPP"|seventhadmrx=="SUGLP"|seventhadmrx=="SUTZD"|seventhadmrx=="SUinsulin"|seventhadmrx=="SUother"|seventhadmrx=="TZDother"|seventhadmrx=="insulinTZD"|seventhadmrx=="insulinother"
 replace indextype7=6 if seventhadmrx=="metformin"
 label value indextype7 exposure
+tabulate indextype7, gen(indextype7_)
 
 
 //Create post-index exposure numbers for cohort schematic
@@ -136,6 +142,7 @@ summ age_indexdate
 recode age_cat (min/29=0) (30/39=1) (40/49=2) (50/59=3) (60/69=4) (70/79=5) (80/89=6) (89/max=7)
 label define age_cats 0 "under 30" 1 "30-39" 2 "40-49" 3 "50-59" 4 "60-69" 5 "70-79" 6 "80-89" 7 "90+"
 label values age_cat age_cats
+recode age_indexdate (min/65=0) (65/max=1), gen(age_65)
 
 //Gender
 recode gender (1=1) (2=0)
@@ -155,11 +162,13 @@ label values imd2010_5 ses_cats
 replace prx_covvalue_g_i4=0 if prx_covvalue_g_i4==.
 label define smoking_cats 0 "Unknown" 1 "Current" 2 "Non" 3 "Former"
 label values prx_covvalue_g_i4 smoking_cats
+tabulate prx_covvalue_g_i4, gen(smokestatus)
 
 //Alcohol abuse
 replace prx_covvalue_g_i5=0 if prx_covvalue_g_i5==.
 label define alcohol_cats 0 "Unknown" 1 "Current" 2 "Non" 3 "Former"
 label values prx_covvalue_g_i5 alcohol_cats
+tabulate prx_covvalue_g_i5, gen(drinkstatus)
 
 //HEALTH SERVICES UTILIZATON
 //Physician Visits
@@ -171,6 +180,7 @@ gen physician_vis2 = physician_vis
 recode physician_vis2 (4/5=3)
 label define visits_cats2 0 "None" 1 "1 to 12" 2 "13 to 24" 3 "24 or more"  6 "Unknown"
 label values physician_vis2 visits_cats2
+tabulate physician_vis2, gen(mdvisits)
 
 //Number of hospitalizations ONLY FOR LINKED
 gen hospitalizations=prx_servvalue2_h_i
@@ -196,6 +206,7 @@ gen unique_cov_drugs = unqrxi
 recode unique_cov_drugs (.=0) (0/5=1) (6/10=2) (11/15=3) (16/20=4) (21/max=5)
 label define unique_cov_drugs_cats 0 "Unknown" 1 "0-5" 2 "6-10" 3 "11-15" 4 "16-20" 5 "More than 20"
 label values unique_cov_drugs unique_cov_drugs_cats
+tabulate unique_cov_drugs, gen(ndrugs)
 
 //Number of unique antidiabetic drug classes
 label define unqrx_cats 0 "None" 1 "One" 2 "Two" 3 "Three" 4 "Four" 5 "Five" 6 "Six" 7 "More than six"
@@ -248,7 +259,7 @@ replace  prx_ccivalue_g_i2=1 if prx_ccivalue_g_i2==.
 replace  prx_ccivalue_g_i2=3 if prx_ccivalue_g_i2==4
 label define cci 1 "1" 2 "2" 3 "3+"
 label value prx_ccivalue_g_i2 cci
-
+tabulate prx_ccivalue_g_i2, gen(cci)
 
 //PHYSIOLOGICS
 //HbA1c
@@ -257,8 +268,10 @@ gen hba1c_cats_i2=round(hba1c_i2)
 recode hba1c_cats_i2 (.=5) (min/7=0) (7/8=1) (8/9=2) (9/10=3) (10/max=4)
 label define hba1c_cats 5 "Unknown" 0 "<7.0%" 1 "7.0-8.0%" 2 "8.0-9.0%" 3 "9.0-10.0%" 4 ">10%"
 label values hba1c_cats_i2 hba1c_cats
+tabulate hba1c_cats_i2, gen(a1ccat)
 
 //SBP
+clonevar sbp = prx_covvalue_g_i3
 gen sbp_i = 1 if (prx_cov_g_i_b3==1)
 replace sbp_i=0 if sbp_i!=1
 gen sbp_i_cats=prx_covvalue_g_i3
@@ -267,6 +280,7 @@ clonevar sbp_i_cats2 = prx_covvalue_g_i3
 recode sbp_i_cats2 (min/120=0) (120/130=1) (130/140=2) (140/150=3) (150/160=4) (160/max=5) (.=8)
 label define sbp 0 "<120" 1 "120 to 129" 2 "130 to 139" 3 "140 to 149" 4 "150 to 159" 5 "160+" 8 "missing"
 label value sbp_i_cats2 sbp
+tabulate sbp_i_cats2, gen(sbpcat)
 
 //Total Cholesterol
 summ prx_testvalue_i163 if exclude==0, detail
@@ -305,21 +319,30 @@ recode weight_bin (0=1) (1=0)
 //Using the height and weight closest to the indexdate to calculate bmi
 gen bmi_calcd = weight_i/heightsq_i if weight_i!=.&heightsq_i!=.
 gen bmi_calcd_cats=bmi_calcd
-recode bmi_calcd_cats (min/20=0) (20/25=1) (25/30=2) (30/35=3) (35/40=4) (40/max=5) (.=9)
-label define bmi 0 "<20" 1 "20 to 24" 2 "25 to 29" 3 "30 to 34" 4 "35 to 40" 5 "40+" 9 "unknown"
+recode bmi_calcd_cats (min/18.5=0) (18.5/25=1) (25/30=2) (30/35=3) (35/40=4) (40/max=5) (.=9)
+label define bmi 0 "<18.5" 1 "18.5 to 24" 2 "25 to 29" 3 "30 to 34" 4 "35 to 40" 5 "40+" 9 "unknown"
 label value bmi_calcd_cats bmi
 //Using the closest (before or after) indexdate method to extract bmi from the weight enttype data3
 gen bmi_i = prx_covvalue_g_ai15_closest
 replace bmi_i=bmi_calcd if bmi_i==.
 gen bmi_i_cats=bmi_i
-recode bmi_i_cats (min/20=0) (20/25=1) (25/30=2) (30/35=3) (35/40=4) (40/max=5) (.=9)
+recode bmi_i_cats (min/18.5=0) (18.5/25=1) (25/30=2) (30/35=3) (35/40=4) (40/max=5) (.=9)
 label value bmi_i_cats bmi
+tabulate bmi_i_cats, gen(bmicat)
+recode bmi_i (min/30=0) (30/max=1), gen(bmi_30)
 
 //MEDICATIONS//
 gen ace_arb_renin_i=(acei_i==1|renini_i==1|angiotensin2recepant_i==1)
 gen diuretics_all_i=(thiazdiur_i==1|loopdiur_i==1|potsparediur_aldos_i==1|potsparediur_other_i==1)
 gen dmdur = (seconddate-firstadmrxdate)/365.25
 label var dmdur "duration of treated diabetes"
+recode dmdur (min/2=0) (2/5=1) (5/max=2), gen(dmdur_cat)
+recode dmdur (min/2=0) (2/max=1), gen(dmdur_2)
+label var dmdur_cat "0=<2yrs; 1=2to5yrs; 2=5+yrs"
+label var dmdur_2 ">=2 yrs of treated diabetes" 
+
+gen metoverlap = exposuretf6-seconddate
+label var metoverlap "Metformin overlap duration"
 
 ***ESTIMATE GLOMERULAR FILTRATION RATE***
 //Serum Creatinine
@@ -398,6 +421,8 @@ replace ckd_amdrd=9 if ckd_amdrd==.
 //create value labels for ckd 1-5
 label define ckd_amdrd_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15" 9 "missing"
 label values ckd_amdrd ckd_amdrd_labels
+tabulate ckd_amdrd, gen(ckdcat)
+recode egfr_amdrd (min/60=1) (60/max=0), gen(ckd_60)
 
 // generate the categorical variable for the CKD-EPI eGFR
 gen ckd_ce= .
@@ -440,6 +465,9 @@ label var stroke "Indicator for first stroke after indexdate 1=event, 0=no event
 egen stroke_exit = rowmin(stroke_date_i tod2 death_date lcd2)
 format stroke_exit %td
 label var stroke_exit "Exit date for stroke"
+
+gen mi_stroke=(mi_i==1 | stroke_i==1)
+label var mi_stroke "MI or stroke prior to index"
 
 //CV death
 
