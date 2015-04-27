@@ -243,8 +243,20 @@ label variable pervascdis_g "Peripheral Vascular Disease (gold) 1=event 0=no eve
 //gen covtype
 replace covtype=14 if pervascdis_g ==1
 
+//Hypoglycemia
+gen hypo_g = 0
+replace hypo_g=1 if regexm(readcode, "E15.?|E16.?")
+label var hypo_g "Hypoglycemia (gold) 1=event 0=no event"
+replace covtype = 15 if hypo_g==1
+
+//End Stage Renal Disease
+gen esrd_g = 0
+replace esrd_g = 1 if regexm(readcode, "T81.502?|T81.512?|T81.592?|T81.522?|T81.532?|T86.19?|T86.10?|T86.11?|T86.12?|T86.13?|T86.9?|E09.22|E09.29|E08.22|E08.29|E10.22|E10.29|E11.22|E11.29|E13.22|E13.29|Z94.0|Z49.0|Z49.01|T82.|Z99.2|N18.6|Z98.85|R88.0|T82.?|E870.2|E871.2|E874.2|Y83.0")
+label var esrd_g "End stage renal disease (gold) 1=event 0=no event"
+replace covtype = 16 if esrd_g==1
+
 //populate nr_data with co-morbidity binaries
-foreach num of numlist 6/14{
+foreach num of numlist 6/16{
 replace nr_data=1 if covtype==`num'
 }
 
@@ -304,12 +316,12 @@ keep patid totcovs_g_i covtype prx_covvalue_g_i prx_cov_g_i_b
 reshape wide prx_covvalue_g_i prx_cov_g_i_b, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
-forval i = 4/14	{
+forval i = 4/16	{
 replace prx_covvalue_g_i`i' = 0 if prx_covvalue_g_i`i'==.
 }
 local x=0
-local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
-forval i=1/14{
+local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD Hypoglycemia ESRD"
+forval i=1/16{
 local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_g_i`i' "Most recent covariate value for: `next' (index window)"
@@ -369,12 +381,12 @@ keep patid totcovs_g_c covtype prx_covvalue_g_c prx_cov_g_c_b
 reshape wide prx_covvalue_g_c prx_cov_g_c_b, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
-forval i = 4/14	{
+forval i = 4/16	{
 replace prx_covvalue_g_c`i' = 0 if prx_covvalue_g_c`i'==.
 }
 local x=0
-local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
-forval i=1/14{
+local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD Hypoglycemia ESRD"
+forval i=1/16{
 local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_g_c`i' "Most recent covariate value for: `next' (cohortent window)"
@@ -433,12 +445,12 @@ keep patid totcovs_g_s covtype prx_covvalue_g_s prx_cov_g_s_b
 reshape wide prx_covvalue_g_s prx_cov_g_s_b, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
-forval i = 4/14	{
+forval i = 4/16	{
 replace prx_covvalue_g_s`i' = 0 if prx_covvalue_g_s`i'==.
 }
 local x=0
 local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
-forval i=1/14{
+forval i=1/16{
 local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_g_s`i' "Most recent covariate value for: `next' (studyentry window)"
@@ -498,12 +510,12 @@ keep patid totcovs_g_ai covtype prx_covvalue_g_ai prx_cov_g_ai_b
 reshape wide prx_covvalue_g_ai prx_cov_g_ai_b, i(patid) j(covtype)
 
 //Label and replace missing values with "0" for covvalues
-forval i = 4/14	{
+forval i = 4/16	{
 replace prx_covvalue_g_ai`i' = 0 if prx_covvalue_g_ai`i'==.
 }
 local x=0
 local names "Height Weight BP-systolic Status-smoking Status-alcohol MI Stroke HF Arrhythmia Angina Revascularization-urgent Hypertension AFibrillation PVD"
-forval i=1/14{
+forval i=1/16{
 local x=`x'+1
 local next:word `x' of `names'
 label var prx_covvalue_g_ai`i' "Most recent covariate value for: `next' (index window)"
