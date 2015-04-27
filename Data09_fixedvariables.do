@@ -63,40 +63,40 @@ format eltestdate2 %td
 replace eltestdate2=. if `dup_bmi'>1 & nr_bmi<.
 drop `dup_bmi'
 //pull out bmi dates of interest (last before and first after index)
-bysort patid: egen prx_covdate_g_ai15_preindex = max(eltestdate2) if eltestdate2<indexdate
-xfill prx_covdate_g_ai15_preindex, i(patid)
-bysort patid: egen prx_covdate_g_ai15_postindex = min(eltestdate2) if eltestdate2>=indexdate
-xfill prx_covdate_g_ai15_postindex, i(patid)
+bysort patid: egen prx_covdate_g_ai17_preindex = max(eltestdate2) if eltestdate2<indexdate
+xfill prx_covdate_g_ai17_preindex, i(patid)
+bysort patid: egen prx_covdate_g_ai17_postindex = min(eltestdate2) if eltestdate2>=indexdate
+xfill prx_covdate_g_ai17_postindex, i(patid)
 //generate any before index date
-bysort patid: gen prx_covdate_g_ai15_any=.
-bysort patid: replace prx_covdate_g_ai15_any=prx_covdate_g_ai15_preindex
-format prx_covdate_g_ai15_preindex prx_covdate_g_ai15_postindex prx_covdate_g_ai15_any %td
+bysort patid: gen prx_covdate_g_ai17_any=.
+bysort patid: replace prx_covdate_g_ai17_any=prx_covdate_g_ai17_preindex
+format prx_covdate_g_ai17_preindex prx_covdate_g_ai17_postindex prx_covdate_g_ai17_any %td
 //determine whether last before or first after is closest to the indexdate
-gen before_closest = indexdate-prx_covdate_g_ai15_preindex
-gen after_closest = prx_covdate_g_ai15_postindex-indexdate
+gen before_closest = indexdate-prx_covdate_g_ai17_preindex
+gen after_closest = prx_covdate_g_ai17_postindex-indexdate
 gen closest=.
-replace closest=after_closest if prx_covdate_g_ai15_postindex!=.
-replace closest=before_closest if prx_covdate_g_ai15_preindex!=.
+replace closest=after_closest if prx_covdate_g_ai17_postindex!=.
+replace closest=before_closest if prx_covdate_g_ai17_preindex!=.
 gen closest_b=.
 //generate an indicator for the closest date to the index
 replace closest_b=0 if closest==.
 replace closest_b=1 if closest==before_closest&closest!=.
 replace closest_b=2 if closest==after_closest&closest!=.
 //pull out closest date to indexdate chosing the last before if it is equidistant compared to first after
-gen prx_covdate_g_ai15_closest=.
-replace prx_covdate_g_ai15_closest=prx_covdate_g_ai15_preindex if closest_b==1
-replace prx_covdate_g_ai15_closest=prx_covdate_g_ai15_postindex if closest_b==2
+gen prx_covdate_g_ai17_closest=.
+replace prx_covdate_g_ai17_closest=prx_covdate_g_ai17_preindex if closest_b==1
+replace prx_covdate_g_ai17_closest=prx_covdate_g_ai17_postindex if closest_b==2
 drop before_closest after_closest
 //pull out covariate value of interest
-bysort patid: gen prx_covvalue_g_ai15_any = nr_bmi if prx_covdate_g_ai15_any==eltestdate2
-gen prx_covvalue_g_ai15_closest =nr_bmi if prx_covdate_g_ai15_closest==eltestdate2
-replace prx_covvalue_g_ai15_closest= prx_covvalue_g_ai15_any if indexdate==.
-format prx_covdate_g_ai15_closest %td
-drop prx_covdate_g_ai15_preindex prx_covdate_g_ai15_postindex closest closest_b eltestdate2 bmi nr_bmi
-xfill prx_covdate_g_ai15_any, i(patid)
-xfill prx_covdate_g_ai15_closest, i(patid)
-xfill prx_covvalue_g_ai15_any, i(patid)
-xfill prx_covvalue_g_ai15_closest, i(patid)
+bysort patid: gen prx_covvalue_g_ai17_any = nr_bmi if prx_covdate_g_ai17_any==eltestdate2
+gen prx_covvalue_g_ai17_closest =nr_bmi if prx_covdate_g_ai17_closest==eltestdate2
+replace prx_covvalue_g_ai17_closest= prx_covvalue_g_ai17_any if indexdate==.
+format prx_covdate_g_ai17_closest %td
+drop prx_covdate_g_ai17_preindex prx_covdate_g_ai17_postindex closest closest_b eltestdate2 bmi nr_bmi
+xfill prx_covdate_g_ai17_any, i(patid)
+xfill prx_covdate_g_ai17_closest, i(patid)
+xfill prx_covvalue_g_ai17_any, i(patid)
+xfill prx_covvalue_g_ai17_closest, i(patid)
 
 //HEIGHT
 //gen continuous
