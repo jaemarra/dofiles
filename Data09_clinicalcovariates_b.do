@@ -111,7 +111,19 @@ label variable pervascdis_h "Peripheral Vascular Disease (hes) 1=event 0=no even
 //gen covtype
 replace covtype=14 if pervascdis_h ==1
 
-forval i=6/14 {
+//Hypoglycemia
+gen hypo_g = 0
+replace hypo_g=1 if regexm(icd, "E15.?|E16.?")
+label var hypo_g "Hypoglycemia (gold) 1=event 0=no event"
+replace covtype = 15 if hypo_g==1
+
+//End Stage Renal Disease
+gen esrd_g = 0
+replace esrd_g = 1 if regexm(icd, "T81.502?|T81.512?|T81.592?|T81.522?|T81.532?|T86.19?|T86.10?|T86.11?|T86.12?|T86.13?|T86.9?|E09.22|E09.29|E08.22|E08.29|E10.22|E10.29|E11.22|E11.29|E13.22|E13.29|Z94.0|Z49.0|Z49.01|T82.|Z99.2|N18.6|Z98.85|R88.0|T82.?|E870.2|E871.2|E874.2|Y83.0")
+label var esrd_g "End stage renal disease (gold) 1=event 0=no event"
+replace covtype = 16 if esrd_g==1
+
+forval i=6/16 {
 replace nr_data=1 if covtype==`i'
 }
 
@@ -182,6 +194,11 @@ label variable prx_covvalue_i13 "Atrial Fibrillation (covar) (hes) 1=event 0=no 
 label variable prx_cov_i_b13 "Atrial Fibrillation (covar) (hes) 1=information 0=no information"
 label variable prx_covvalue_i14 "Peripheral Vascular Disease (covar) (hes) 1=event 0=no event"
 label variable prx_cov_i_b14 "Peripheral Vascular Disease (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i15 "Hypoglycemia (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b15 "Hypoglycemia (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_i16 "End Stage Renal Disease (covar) (hes) 1=event 0=no event"
+label variable prx_cov_i_b16 "End Stage Renal Disease (covar) (hes) 1=information 0=no information"
+
 save hesCovariates_i, replace
 
 clear
@@ -240,6 +257,10 @@ label variable prx_covvalue_ai13 "Atrial Fibrillation (covar) (hes) 1=event 0=no
 label variable prx_cov_ai_b13 "Atrial Fibrillation (covar) (hes) 1=information 0=no information"
 label variable prx_covvalue_ai14 "Peripheral Vascular Disease (covar) (hes) 1=event 0=no event"
 label variable prx_cov_ai_b14 "Peripheral Vascular Disease (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai15 "Hypoglycemia (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b15 "Hypoglycemia (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_ai16 "End Stage Renal Disease (covar) (hes) 1=event 0=no event"
+label variable prx_cov_ai_b16 "End Stage Renal Disease (covar) (hes) 1=information 0=no information"
 save hesCovariates_ai, replace
 
 clear
@@ -298,6 +319,10 @@ label variable prx_covvalue_c13 "Atrial Fibrillation (covar) (hes) 1=event 0=no 
 label variable prx_cov_c_b13 "Atrial Fibrillation (covar) (hes) 1=information 0=no information"
 label variable prx_covvalue_c14 "Peripheral Vascular Disease (covar) (hes) 1=event 0=no event"
 label variable prx_cov_c_b14 "Peripheral Vascular Disease (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c15 "Hypoglycemia (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b15 "Hypoglycemia (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_c16 "End Stage Renal Disease (covar) (hes) 1=event 0=no event"
+label variable prx_cov_c_b16 "End Stage Renal Disease (covar) (hes) 1=information 0=no information"
 save hesCovariates_c, replace
 clear
 
@@ -355,6 +380,10 @@ label variable prx_covvalue_s13 "Atrial Fibrillation (covar) (hes) 1=event 0=no 
 label variable prx_cov_s_b13 "Atrial Fibrillation (covar) (hes) 1=information 0=no information"
 label variable prx_covvalue_s14 "Peripheral Vascular Disease (covar) (hes) 1=event 0=no event"
 label variable prx_cov_s_b14 "Peripheral Vascular Disease (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s15 "Hypoglycemia (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b15 "Hypoglycemia (covar) (hes) 1=information 0=no information"
+label variable prx_covvalue_s16 "End Stage Renal Disease (covar) (hes) 1=event 0=no event"
+label variable prx_cov_s_b16 "End Stage Renal Disease (covar) (hes) 1=information 0=no information"
 save hesCovariates_s, replace
 clear
 
