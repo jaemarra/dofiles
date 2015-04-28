@@ -292,12 +292,26 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 }
 
 // Multiple imputation
-
+//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
 mi set mlong
+save acm_mlong, replace
+//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
 mi register imputed bmi_i sbp
+//describe and learn about the missing values in the data
+mi describe 
+mi misstable summarize
+mi misstable nested
+//set the seed so that results are reproducible
 set seed 1979
-mi impute mvn bmi_i sbp = acm age_index gender, add(10)
-mi estimate, hr: stcox i.indextype age_index gender dmdur metoverlap bmi_i sbp
+//impute (10 iterations) for wach missing value in the registered variables
+mi impute mvn bmi_i sbp = acm age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i, add(20) by(indextype)
+//verify that all missing values are filled in
+mi describe
+//look at summary statistics in each of the imputation datasets
+mi xeq: summarize
+//fit the model separately on each of the 10 imputed datasets and combine results
+mi estimate, hr: stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp
+mi describe
 
 //KM and survival curves
 sts graph, by(indextype) saving(kmplot, replace) 
