@@ -207,7 +207,7 @@ xfill prx_covdate_g_ai2_closest, i(patid)
 xfill prx_covvalue_g_ai2_any, i(patid)
 xfill prx_covvalue_g_ai2_closest, i(patid)
 
-collapse (first) prx_covdate_g_ai15_any prx_covdate_g_ai15_closest prx_covvalue_g_ai15_any prx_covvalue_g_ai15_closest prx_covdate_g_ai1_any prx_covdate_g_ai1_closest prx_covvalue_g_ai1_any prx_covvalue_g_ai1_closest prx_covdate_g_ai2_any prx_covdate_g_ai2_closest prx_covvalue_g_ai2_any prx_covvalue_g_ai2_closest, by(patid)
+collapse (first) prx_covdate_g_ai17_any prx_covdate_g_ai17_closest prx_covvalue_g_ai17_any prx_covvalue_g_ai17_closest prx_covdate_g_ai1_any prx_covdate_g_ai1_closest prx_covvalue_g_ai1_any prx_covvalue_g_ai1_closest prx_covdate_g_ai2_any prx_covdate_g_ai2_closest prx_covvalue_g_ai2_any prx_covvalue_g_ai2_closest, by(patid)
 save Fixed_variables, replace
 
 clear
