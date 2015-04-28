@@ -269,6 +269,7 @@ recode hba1c_cats_i2 (.=5) (min/7=0) (7/8=1) (8/9=2) (9/10=3) (10/max=4)
 label define hba1c_cats 5 "Unknown" 0 "<7.0%" 1 "7.0-8.0%" 2 "8.0-9.0%" 3 "9.0-10.0%" 4 ">10%"
 label values hba1c_cats_i2 hba1c_cats
 tabulate hba1c_cats_i2, gen(a1ccat)
+recode hba1c_i2 (min/8=0)(8/max=1), gen(hba1c_8)
 
 //SBP
 clonevar sbp = prx_covvalue_g_i3
