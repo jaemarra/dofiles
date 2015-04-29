@@ -27,15 +27,21 @@ count if seconddate>=17167 & cohort_b==1 & exclude==0
 keep if exclude==0 // apply exclusion criteria
 drop if seconddate<17167 // restrict to jan 1, 2007
 
+//Create macros
+local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
+local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
+local meds = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_*"
+local meds2 = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
+local meds3 = "i.unique_cov_drugs dmdur statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
+local clin = "ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 ib1.bmi_i_cats"
+local clin2 = "ib1.hba1c_cats_i2 i.ckd_amdrd"
+local covariate = "`demo' `comorb' `meds' `clin'"
+
 //Create table1 
-
 table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1.xls, replace)
-
 table1 if linked_b==1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1_linked.xls, replace)
 
-
 // 2x2 tables with exposure and outcome (death)
-
 label var indextype "2nd-line Agent"
 tab indextype acm, row
 
@@ -49,7 +55,6 @@ tab indextype6 acm, row
 tab indextype7 acm, row
 
 // 2x2 tables with exposure and death, by baseline covariates
-
 foreach var of varlist gender dmdur_cat prx_covvalue_g_i4 prx_covvalue_g_i5 bmi_i_cats hba1c_cats_i2 sbp_i_cats2 ///
 	ckd_amdrd physician_vis2 unique_cov_drugs prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i ///
 	htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i ///
@@ -59,9 +64,7 @@ table indextype `var', contents(n acm mean acm) format(%6.2f) center col
 	}
 	
 ***COX PROPORTIONAL HAZARDS REGRESSION***
-
 // update censor times for final exposure to second-line agent (indextype)
-
 forval i=0/5 {
 	replace acm_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
 }
@@ -173,7 +176,6 @@ graph export sbp_death_lowess.pdf, replace
 */
 
 // spit data to integrate time-varying covariates for diabetes meds.
-
 stsplit adm3, after(thirddate) at(0)
 *stsplit adm3, at(0(1)max) after(thirddate)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -269,17 +271,15 @@ putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) us
 // note: missing indicator approach used
 stcox i.indextype age_index gender dmdur, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-
-stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 mdvisits4 ndrugs2 ndrugs3 ndrugs4 ndrugs5 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // change reference groups
-stcox ib2.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib3.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib4.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-
-stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.bmi_i_cats ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox ib2.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox ib3.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox ib4.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
@@ -303,14 +303,14 @@ mi misstable summarize
 mi misstable nested
 //set the seed so that results are reproducible
 set seed 1979
-//impute (10 iterations) for wach missing value in the registered variables
-mi impute mvn bmi_i sbp = acm age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i, add(20) by(indextype)
+//impute (10 iterations) for each missing value in the registered variables
+mi impute mvn bmi_i sbp = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
 //verify that all missing values are filled in
 mi describe
 //look at summary statistics in each of the imputation datasets
 mi xeq: summarize
 //fit the model separately on each of the 10 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp
+mi estimate, hr: stcox i.indextype `demo' `comorb' `meds3' `clin2'
 mi describe
 
 //KM and survival curves
@@ -346,40 +346,33 @@ collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate
 ***SUBGROUP ANALYSIS / EFFECT MODIFIERS***
 
 // Age
-
 stcox i.indextype if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##i.age_65, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##c.age_index, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-
-stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype `covariate' if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype `covariate' if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype##i.age_65 gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox i.indextype##c.age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype##c.age_index gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // Sex
-
 stcox i.indextype if gender==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if gender==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##i.gender, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-
-stcox i.indextype age_index dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if gender==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox i.indextype age_index dmdur  metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post if gender==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype `covariate' if gender==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype `covariate' if gender==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype##i.gender age_index dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // Duration of Metformin Monotherapy
-
 stcox i.indextype if dmdur_2==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if dmdur_2==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##c.dmdur, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-
 stcox i.indextype##c.dmdur age_indexdate gender metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // HbA1c
 stcox i.indextype if hba1c_i2>8, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if hba1c_i2<=8, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##c.hba1c_i2, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-
 stcox i.indextype##ib2.hba1c_cats_i2 age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype##c.hba1c_i age_indexdate gender dmdur  metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
@@ -387,38 +380,30 @@ stcox i.indextype##c.hba1c_i age_indexdate gender dmdur  metoverlap ib2.prx_covv
 stcox i.indextype if bmi_30==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if bmi_30==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##i.bmi_30, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-
 stcox i.indextype##ib1.bmi_i_cats age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib2.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i  statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype##c.bmi_i age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib2.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i  statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype##i.bmi_30 age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib2.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i  statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-
 
 // IMD
 * too many missing values in CPRD cohort
 
 // renal impairment
-
 stcox i.indextype if ckd_60==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if ckd_60==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##i.ckd_60, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-
 stcox i.indextype##i.ckd_60 age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib2.hba1c_cats_i2 ib1.sbp_i_cats2 i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i  statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype##c.egfr_amdrd age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib2.hba1c_cats_i2 ib1.sbp_i_cats2 i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i  statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // heart failure
-
 stcox i.indextype if hf_i==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if hf_i==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##i.hf_i, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-
 stcox i.indextype##i.hf_i age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib2.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i arr_i ang_i revasc_i htn_i afib_i pvd_i  statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // prior mi or stroke
-
 stcox i.indextype if mi_stroke==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if mi_stroke==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##i.mi_stroke, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-
 stcox i.indextype##i.mi_stroke age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib2.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i  statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 //Label variables for subgroup graphs
@@ -432,8 +417,9 @@ stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
 //DDP4i subgroup graph
 //ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) forest(nonull boxscale(0) xlabel(0(0.05)0.2, force)) : stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_* 
 //ipdmetan, hr over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) forest(nonull boxscale(0) xlabel(0(0.05)0.2, force)): stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i _post* 
-ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) hr forest(nonull boxscale(0) xlabel(0.5(0.5)2, force)) : stcox indextype_1 age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i _post*
-
+//ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) hr forest(nonull boxscale(0) xlabel(0.5(0.5)2, force)) : stcox indextype_1 age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i _post*
+ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) hr forest(nonull nooverall boxscale(0) xlabel(0.2(0.5)2, force)) : stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_*
+ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) hr forest(nonull nooverall boxscale(0) xlabel(0.2(0.5)2, force)) : stcox i.indextype `demo' `clin' `meds2' `comorb'
 //GLP1RA subgroup graph
 ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_3) forest(nonull boxscale(0) xlabel(0(0.05)0.55, force)) : mean allcausemort
 
