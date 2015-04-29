@@ -418,7 +418,7 @@ replace ckd_amdrd=1 if egfr_amdrd < .  & egfr_amdrd >= 90
 replace ckd_amdrd=2 if egfr_amdrd < 90 & egfr_amdrd >= 60
 replace ckd_amdrd=3 if egfr_amdrd < 60 & egfr_amdrd >= 30
 replace ckd_amdrd=4 if egfr_amdrd < 30 & egfr_amdrd >= 15
-replace ckd_amdrd=5 if egfr_amdrd < 15 //do we have a marker for dialysis???
+replace ckd_amdrd=5 if egfr_amdrd < 15 | prx_covvalue_g_i16==1 //note this includes marker for ESRD
 replace ckd_amdrd=9 if ckd_amdrd==.
 //create value labels for ckd 1-5
 label define ckd_amdrd_labels 1 ">=90" 2 "60-89"  3 "30-59" 4 "15-29" 5 "<15" 9 "missing"
