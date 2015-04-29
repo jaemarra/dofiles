@@ -421,6 +421,21 @@ stcox i.indextype##i.mi_stroke, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nol
 
 stcox i.indextype##i.mi_stroke age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib2.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i  statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
+//Label variables for subgroup graphs
+label var age_65 "Age at start of second antidiabetic"
+label define age_65_cats 0 "Under 65" 1 "65 or older"
+label values age_65 age_65_cats
+
+//setup for subgroup analysis
+stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
+
+//DDP4i subgroup graph
+//ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) forest(nonull boxscale(0) xlabel(0(0.05)0.2, force)) : stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_* 
+//ipdmetan, hr over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) forest(nonull boxscale(0) xlabel(0(0.05)0.2, force)): stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i _post* 
+ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) hr forest(nonull boxscale(0) xlabel(0.5(0.5)2, force)) : stcox indextype_1 age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i _post*
+
+//GLP1RA subgroup graph
+ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_3) forest(nonull boxscale(0) xlabel(0(0.05)0.55, force)) : mean allcausemort
 
 ***SENSITIVITY ANALYSIS***
 
