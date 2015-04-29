@@ -17,7 +17,7 @@ log using getcodes_cov.txt, replace
 //prepare product.dta
 use product
 replace productname=lower(productname)
-replace drugsubstance= lower( drugsubstance)
+replace drugsubstance= lower(drugsubstance)
 save product, replace
 clear
 

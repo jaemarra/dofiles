@@ -92,7 +92,7 @@ replace rxtype=3 if inlist(insulin, 1)
 replace rxtype=4 if inlist(tzd, 1)
 replace rxtype=5 if inlist(otherantidiab, 1)
 replace rxtype=6 if inlist(metformin, 1)
-label var rxtype "Antidiabetic prescription type: 0=SU, 1=DPP, 2=GLP, 3=insulin, =tzd, 5=other, 6=met, 99=combo"
+label var rxtype "Antidiabetic prescription type: 0=SU, 1=DPP, 2=GLP, 3=insulin, 4=tzd, 5=other, 6=met, 99=combo"
 label define rxtypelabels 0 "SU" 1 "DPP" 2 "GLP" 3 "insulin" 4 "TZD" 5 "other" 6 "metformin" 7 "mdcombo" 8 "mtcombo" 99 "combination"
 label values rxtype rxtypelabels
 

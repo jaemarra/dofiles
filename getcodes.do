@@ -14,24 +14,6 @@ set more off
 
 log using getcodes.log, replace
 
-
-// Opioid analgesics
-use product.dta
-rename productname productname_1
-rename drugsubstance drugsubstance_1
-gen opioid2 = 0
-replace opioid2 = 1 if regexm(prod_bnfcode, "15010403")
-replace opioid2 = 1 if regexm(drugsubstance_1, "(repifen|sublimaze|ultiva)")
-replace opioid2 = 1 if regexm(drugsubstance_1, "(alfentanil|fentanyl|remifentanil)")
-replace opioid2 = 1 if regexm(productname_1, "(repifen|sublimaze|ultiva)")
-replace opioid2 = 1 if regexm(productname_1, "(alfentanil|fentanyl|remifentanil)")
-label variable opioid2 "Opioid analgesic (anaes) exposure: 0=no exp, 1=exp"
-keep if opioid2==1
-drop opioid2
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("opioid2") sheetmodify firstrow(variables)
-
-
-
 // Metformin
 use product.dta, clear
 rename productname productname_1
@@ -45,7 +27,7 @@ replace metformin = 1 if regexm(productname_1, "(metformin)")
 label variable metformin "Metformin"
 keep if metformin==1
 drop metformin
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("Metformin") sheetmodify
+export excel prodcode gemscriptcode productname using drugcodes.xls, sheet("Metformin") sheetmodify
 
 // SU
 use product.dta, clear
@@ -126,7 +108,7 @@ replace insulins_intlong = 1 if regexm(productname_1, "(insulin degludec|insulin
 label variable insulins_intlong "Intermediate- and long-acting insulins"
 keep if insulins_intlong==1
 drop insulins_intlong
-export excel prodcode gemscriptcode productname using drugcodes.xls, sheet("Ins-int/long") sheetmodify
+export excel prodcode gemscriptcode productname using drugcodes.xls, sheet("Ins-int_long") sheetmodify
 
 // TZD
 use product.dta, clear
@@ -162,7 +144,7 @@ replace otherantidiab = 1 if regexm(productname_1, "(glucobay|forxiga|starlix|tr
 label variable otherantidiab "Other antidiabetics"
 keep if otherantidiab==1
 drop otherantidiab
-export excel prodcode gemscriptcode productname using drugcodes.xls, sheet("Other"") sheetmodify
+export excel prodcode gemscriptcode productname using drugcodes.xls, sheet("Other") sheetmodify
 
 // #4. In Excel, for each event type, convert the list of codes (each in an individual cell) into one cell with | between codes, 
 // 			so they can be dropped into OutcomeEvents.do and Covariates.do.

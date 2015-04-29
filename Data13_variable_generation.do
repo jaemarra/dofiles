@@ -325,7 +325,7 @@ recode bmi_calcd_cats (min/18.5=0) (18.5/25=1) (25/30=2) (30/35=3) (35/40=4) (40
 label define bmi 0 "<18.5" 1 "18.5 to 24" 2 "25 to 29" 3 "30 to 34" 4 "35 to 40" 5 "40+" 9 "unknown"
 label value bmi_calcd_cats bmi
 //Using the closest (before or after) indexdate method to extract bmi from the weight enttype data3
-gen bmi_i = prx_covvalue_g_ai15_closest
+gen bmi_i = prx_covvalue_g_ai17_closest
 replace bmi_i=bmi_calcd if bmi_i==.
 gen bmi_i_cats=bmi_i
 recode bmi_i_cats (min/18.5=0) (18.5/25=1) (25/30=2) (30/35=3) (35/40=4) (40/max=5) (.=9)
