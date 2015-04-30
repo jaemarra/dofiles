@@ -36,7 +36,7 @@ replace h2recep = 1 if regexm(productname_1, "(cimetidine|famotidine|nizatidine|
 label variable h2recep "H2 receptor antagonist exposure: 0=no exp, 1=exp"
 keep if h2recep==1
 drop h2recep
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("h2recep") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("h2recep") sheetmodify firstrow(variables)
 
 //Proton-pump inhibitors
 use product.dta, clear
@@ -51,7 +51,7 @@ replace ppi = 1 if regexm(productname_1, "(esomeprazole|lansoprazole|omeprazole|
 label variable ppi "Proton pump inhibitor exposure: 0=no exp, 1=exp"
 keep if ppi==1
 drop ppi
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("ppi") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("ppi") sheetmodify firstrow(variables)
 
 //Corticosteroids (GI)
 use product.dta, clear
@@ -66,7 +66,7 @@ replace cortico_gi = 1 if regexm(productname_1, "(beclometasone|budesonide|hydro
 label variable cortico_gi "Corticosteroid (GI) exposure:0=no exp, 1=exp"
 keep if cortico_gi==1
 drop cortico_gi
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("cortico_gi") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("cortico_gi") sheetmodify firstrow(variables)
 
 //Thiazide and related diuretics
 use product.dta, clear
@@ -81,7 +81,7 @@ replace thiazdiur = 1 if regexm(productname_1, "(bendroflumethazide|bendrofluazi
 label variable thiazdiur "thiazide and related diuretic exposure: 0=no exp, 1=exp"
 keep if thiazdiur==1
 drop thiazdiur
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("thiazdiur") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname  drugsubstance using cov_drugcodes.xls, sheet("thiazdiur") sheetmodify firstrow(variables)
 
 //Loop diuretics
 use product.dta, clear
@@ -96,7 +96,7 @@ replace loopdiur = 1 if regexm(productname_1, "(bumetanide|furosemide|frusemide|
 label variable loopdiur "loop diuretic exposure: 0=no exp, 1=exp"
 keep if loopdiur==1
 drop loopdiur
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("loopdiur") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("loopdiur") sheetmodify firstrow(variables)
 
 //// Potassium-sparing diuretics and aldosterone antagonists
 use product.dta, clear
@@ -111,7 +111,7 @@ replace potsparediur_aldos = 1 if regexm(productname_1, "(amiloride|triamterene|
 label variable potsparediur_aldos "Potassium-sparing diuretic and aldosterone antagonist exposure: 0=no exp, 1=exp"
 keep if potsparediur_aldos==1
 drop potsparediur_aldos
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("potsparediur_aldos") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("potsparediur_aldos") sheetmodify firstrow(variables)
 
 //Potassium-sparing diuretics with other diuretics
 use product.dta, clear
@@ -126,7 +126,7 @@ replace potsparediur_other = 1 if regexm(productname_1, "(amilozide|amilofruse|t
 label variable potsparediur_other "Potassium-sparing diuretic with other diuretic exposure: 0=no exp, 1=exp"
 keep if potsparediur_other==1
 drop potsparediur_other
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("potsparediur_other") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("potsparediur_other") sheetmodify firstrow(variables)
 
 //Antiarrhythmic
 use product.dta, clear
@@ -141,7 +141,7 @@ replace antiarrhythmic = 1 if regexm(productname_1, "(adenosine|dronedarone|amio
 label variable antiarrhythmic "antiarrhythmic exposure: 0=no exp, 1=exp"
 keep if antiarrhythmic==1
 drop antiarrhythmic
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antiarrhythmic") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antiarrhythmic") sheetmodify firstrow(variables)
 
 //Beta-blockers
 use product.dta, clear
@@ -156,7 +156,7 @@ replace betablock = 1 if regexm(productname_1, "(propranolol|acebutolol|atenolol
 label variable betablock "beta-blocker exposure: 0=no exp, 1=exp"
 keep if betablock==1
 drop betablock
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("betablock") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("betablock") sheetmodify firstrow(variables)
 
 //ACE inhibitors
 use product.dta, clear
@@ -171,7 +171,7 @@ replace acei = 1 if regexm(productname_1, "(captopril|cilazapril|enalapril|fosin
 label variable acei "ACE inhibitor exposure: 0=no exp, 1=exp"
 keep if acei==1
 drop acei
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("acei") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("acei") sheetmodify firstrow(variables)
 
 //Angiotensin II receptor antagonists
 use product.dta, clear
@@ -186,7 +186,7 @@ replace angiotensin2recepant = 1 if regexm(productname_1, "(azilsartan medoxomil
 label variable angiotensin2recepant "Angiotensin II receptor antagonist exposure: 0=no exp, 1=exp"
 keep if angiotensin2recepant==1
 drop angiotensin2recepant
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("angiotensin2recepant") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("angiotensin2recepant") sheetmodify firstrow(variables)
 
 // Renin Inhibitors
 use product.dta, clear
@@ -201,7 +201,7 @@ replace renini = 1 if regexm(productname_1, "(aliskiren)")
 label variable renini "Renin inhibitor exposure: 0=no exp, 1=exp"
 keep if renini==1
 drop renini
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("renini") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("renini") sheetmodify firstrow(variables)
 
 //Nitrates
 use product.dta, clear
@@ -216,7 +216,7 @@ replace nitrates = 1 if regexm(productname_1, "(glyceral trinitrate|isosorbide d
 label variable nitrates "nitrates exposure: 0=no exp, 1=exp"
 keep if nitrates==1
 drop nitrates
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("nitrates") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("nitrates") sheetmodify firstrow(variables)
 
 //Calcium Channel Blockers
 use product.dta, clear
@@ -231,7 +231,7 @@ replace calchan = 1 if regexm(productname_1, "(amlodipine|diltiazem|felodipine|i
 label variable calchan "calcium channel blocker exposure: 0=no exp, 1=exp"
 keep if calchan==1
 drop calchan
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("calchan") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("calchan") sheetmodify firstrow(variables)
 
 //Anticoagulants (oral)
 use product.dta, clear
@@ -246,7 +246,7 @@ replace anticoag_oral = 1 if regexm(productname_1, "(warfarin|acenocoumarol|phen
 label variable anticoag_oral "Oral anticoagulant exposure: 0=no exp, 1=exp"
 keep if anticoag_oral==1
 drop anticoag_oral
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("anticoag_oral") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("anticoag_oral") sheetmodify firstrow(variables)
 
 //Antiplatelets
 use product.dta, clear
@@ -261,7 +261,7 @@ replace antiplat = 1 if regexm(productname_1, "(abciximab|aspirin|acetylsalicyli
 label variable antiplat "antiplatelet exposure: 0=no exp, 1=exp"
 keep if antiplat==1
 drop antiplat
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antiplat") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antiplat") sheetmodify firstrow(variables)
 
 //Statins
 use product.dta, clear
@@ -276,7 +276,7 @@ replace statin = 1 if regexm(productname_1, "(atorvastatin|fluvastatin|pravastat
 label variable statin "statin exposure: 0=no exp, 1=exp"
 keep if statin==1
 drop statin
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("statin") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("statin") sheetmodify firstrow(variables)
 
 //Fibrates
 use product.dta, clear
@@ -291,7 +291,7 @@ replace fibrates = 1 if regexm(productname_1, "(bezafibrate|ciprofibrate|fenofib
 label variable fibrates "fibrates exposure: 0=no exp, 1=exp"
 keep if fibrates==1
 drop fibrates
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("fibrates") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("fibrates") sheetmodify firstrow(variables)
 
 //Ezetimibe
 use product.dta, clear
@@ -306,7 +306,7 @@ replace ezetimibe = 1 if regexm(productname_1, "(ezetimibe)")
 label variable ezetimibe "ezetimibe exposure: 0=no exp, 1=exp"
 keep if ezetimibe==1
 drop ezetimibe
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("ezetimibe") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("ezetimibe") sheetmodify firstrow(variables)
 
 //Bile acid sequestrants
 use product.dta, clear
@@ -319,7 +319,7 @@ replace bileacidseq = 1 if regexm(drugsubstance_1, "(colesevelam|colestyramine|c
 label variable bileacidseq "Bile acid sequestrants exposure: 0=no exp, 1=exp"
 keep if bileacidseq==1
 drop bileacidseq
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("bileacidseq") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("bileacidseq") sheetmodify firstrow(variables)
 
 //Bronchodilators
 use product.dta, clear
@@ -334,7 +334,7 @@ replace bronchodil = 1 if regexm(productname_1, "(bambuterol|formoterol fumarate
 label variable bronchodil "Bronchodilator exposure:0=no exp, 1=exp"
 keep if bronchodil==1
 drop bronchodil
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("bronchodil") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("bronchodil") sheetmodify firstrow(variables)
 
 //Corticosteroids (inhaled)
 use product.dta, clear
@@ -349,7 +349,7 @@ replace cortico_inh = 1 if regexm(productname_1, "(beclometasone|beclomethasone|
 label variable cortico_inh "Inhaled corticosteroid exposure:0=no exp, 1=exp"
 keep if cortico_inh==1
 drop cortico_inh
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("cortico_inh") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("cortico_inh") sheetmodify firstrow(variables)
 
 //Leukotriene receptor antagonists
 use product.dta, clear
@@ -364,7 +364,7 @@ replace leukotri = 1 if regexm(productname_1, "(montelukast|zafirlukast)")
 label variable leukotri "Leukotriene receptor antagonist exposure:0=no exp, 1=exp"
 keep if leukotri==1
 drop leukotri
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("leukotri") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("leukotri") sheetmodify firstrow(variables)
 
 //Antihistamines
 use product.dta, clear
@@ -379,7 +379,7 @@ replace antihist = 1 if regexm(productname_1, "(acrivastine|bilastine|cetirizine
 label variable antihist "Antihistamine exposure:0=no exp, 1=exp"
 keep if antihist==1
 drop antihist
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antihist") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antihist") sheetmodify firstrow(variables)
 
 //Hypnotics and anxiolytics
 use product.dta, clear
@@ -394,7 +394,7 @@ replace hyp_anx = 1 if regexm(productname_1, "(nitrazepam|flurazepam|loprazolam|
 label variable hyp_anx "Hypnotic/Anxiolytic exposure:0=no exp, 1=exp"
 keep if hyp_anx==1
 drop hyp_anx
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("hyp_anx") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("hyp_anx") sheetmodify firstrow(variables)
 
 //Drugs used for psychoses and related disorders
 use product.dta, clear
@@ -409,7 +409,7 @@ replace psychoses = 1 if regexm(productname_1, "(benperidol|chlorpromazine|flupe
 label variable psychoses "Drugs used in psychoses and related disorders exposure:0=no exp, 1=exp"
 keep if psychoses==1
 drop psychoses
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("psychoses") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("psychoses") sheetmodify firstrow(variables)
 
 //Antidepressants
 use product.dta, clear
@@ -424,7 +424,7 @@ replace antidepress = 1 if regexm(productname_1, "(amitriptyline|clomipramine|do
 label variable antidepress "Antidepressant exposure:0=no exp, 1=exp"
 keep if antidepress==1
 drop antidepress
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antidepress") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antidepress") sheetmodify firstrow(variables)
 
 //Antiobesity
 use product.dta, clear
@@ -439,7 +439,7 @@ replace antiobes = 1 if regexm(productname_1, "(orlistat)")
 label variable antiobes "Antiobesity drug exposure:0=no exp, 1=exp"
 keep if antiobes==1
 drop antiobes
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antiobes") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antiobes") sheetmodify firstrow(variables)
 
 //Opioid analgesics (CNS)
 use product.dta, clear
@@ -454,7 +454,7 @@ replace opioid1 = 1 if regexm(productname_1, "(buprenorphine|codeine|diamorphine
 label variable opioid1 "Opioid analgesic (CNS) exposure:0=no exp, 1=exp"
 keep if opioid1==1
 drop opioid1
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("opioid1") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("opioid1") sheetmodify firstrow(variables)
 
 //Antiepileptics
 use product.dta, clear
@@ -469,7 +469,7 @@ replace antiepilep = 1 if regexm(productname_1, "(carbamazepine|eslicarbazepine|
 label variable antiepilep "Antiepileptic exposure:0=no exp, 1=exp"
 keep if antiepilep==1
 drop antiepilep
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antiepilep") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antiepilep") sheetmodify firstrow(variables)
 
 //Antiparkinsons, dopaminergic
 use product.dta, clear
@@ -484,7 +484,7 @@ replace antipark_dop = 1 if regexm(productname_1, "(apomorphine|bromocriptine|ca
 label variable antipark_dop "Antiparkison's dopaminergic drug exposure:0=no exp, 1=exp"
 keep if antipark_dop==1
 drop antipark_dop
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antipark_dop") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antipark_dop") sheetmodify firstrow(variables)
 
 //Penicillin
 use product.dta, clear
@@ -499,7 +499,7 @@ replace penicillin = 1 if regexm(productname_1, "(benzylpenicillin|penicillin g|
 label variable penicillin "Penicillin exposure: 0=no exp, 1=exp"
 keep if penicillin==1
 drop penicillin
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("penicillin") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("penicillin") sheetmodify firstrow(variables)
 
 // Cephalosporins, carbapenems and other beta-lactams
 use product.dta, clear
@@ -514,7 +514,7 @@ replace ceph_carb_betalac = 1 if regexm(productname_1, "(cefaclor|cefadroxil|cef
 label variable ceph_carb_betalac "Cephalosporins, carbapenems and other beta-lactams exposure: 0=no exp, 1=exp"
 keep if ceph_carb_betalac==1
 drop ceph_carb_betalac
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("ceph_carb_betalac") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("ceph_carb_betalac") sheetmodify firstrow(variables)
 
 //Tetracyclines
 use product.dta, clear
@@ -529,7 +529,7 @@ replace tetracyc = 1 if regexm(productname_1, "(tetracycline|demeclocycline|doxy
 label variable tetracyc "Tetracycline exposure: 0=no exp, 1=exp"
 keep if tetracyc==1
 drop tetracyc
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("tetracyc") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("tetracyc") sheetmodify firstrow(variables)
 
 //Aminoglycosides
 use product.dta, clear
@@ -544,7 +544,7 @@ replace aminoglyc = 1 if regexm(productname_1, "(gentamicin|amikacin|neomycin|to
 label variable aminoglyc "Aminoglycoside exposure: 0=no exp, 1=exp"
 keep if aminoglyc==1
 drop aminoglyc
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("aminoglyc") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("aminoglyc") sheetmodify firstrow(variables)
 
 //Macrolides
 use product.dta, clear
@@ -559,7 +559,7 @@ replace macrolide = 1 if regexm(productname_1, "(azithromycin|clarithromycin|ery
 label variable macrolide "Macrolide exposure: 0=no exp, 1=exp"
 keep if macrolide==1
 drop macrolide
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("macrolide") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("macrolide") sheetmodify firstrow(variables)
 
 //Clindamycin
 use product.dta, clear
@@ -574,7 +574,7 @@ replace clinda = 1 if regexm(productname_1, "(clindamycin)")
 label variable clinda "Clindamycin exposure: 0=no exp, 1=exp"
 keep if clinda==1
 drop clinda
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("clinda") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("clinda") sheetmodify firstrow(variables)
 
 //Some other antibiotics
 use product.dta, clear
@@ -589,7 +589,7 @@ replace otherantibiot = 1 if regexm(productname_1, "(chloramphenicol|sodium fusi
 label variable otherantibiot "Other antibiotic exposure: 0=no exp, 1=exp"
 keep if otherantibiot==1
 drop otherantibiot
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("otherantibiot") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("otherantibiot") sheetmodify firstrow(variables)
 
 // Sulfonamides and trimethoprim
 use product.dta, clear
@@ -604,7 +604,7 @@ replace sulfo_trimeth = 1 if regexm(productname_1, "(co-trimoxazole|sulfadiazine
 label variable sulfo_trimeth "Sulfonamides and trimethoprim exposure: 0=no exp, 1=exp"
 keep if sulfo_trimeth==1 
 drop sulfo_trimeth
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("sulfo_trimeth") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("sulfo_trimeth") sheetmodify firstrow(variables)
 
 //Antituberculosis drugs
 use product.dta, clear
@@ -619,7 +619,7 @@ replace antituberc = 1 if regexm(productname_1, "(capreomycin|cycloserine|ethamb
 label variable antituberc "Antituberculosis drug exposure: 0=no exp, 1=exp"
 keep if antituberc==1
 drop antituberc
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antituberc") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antituberc") sheetmodify firstrow(variables)
 
 //Antileprotic drugs
 use product.dta, clear
@@ -632,7 +632,7 @@ replace antileprotic = 1 if regexm(productname_1, "(dapsone|clofazimine)")
 label variable antileprotic "Antileprotic drug exposure: 0=no exp, 1=exp"
 keep if antileprotic==1
 drop antileprotic
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antileprotic") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antileprotic") sheetmodify firstrow(variables)
 
 // Metronidazole and tinidazole 
 use product.dta, clear
@@ -647,7 +647,7 @@ replace metro_tinidazole = 1 if regexm(productname_1, "(metronidazole|tinidazole
 label variable metro_tinidazole "Metronidazole and tinidazole exposure: 0=no exp, 1=exp"
 keep if metro_tinidazole==1
 drop metro_tinidazole
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("metro_tinidazole") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("metro_tinidazole") sheetmodify firstrow(variables)
 
 //Quinolones
 use product.dta, clear
@@ -662,7 +662,7 @@ replace quinolone = 1 if regexm(productname_1, "(ciprofloxacin|levofloxacin|moxi
 label variable quinolone "Quinolone exposure: 0=no exp, 1=exp"
 keep if quinolone==1
 drop quinolone
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("quinolone") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("quinolone") sheetmodify firstrow(variables)
 
 //UTI drugs
 use product.dta, clear
@@ -677,7 +677,7 @@ replace uti_drugs = 1 if regexm(productname_1, "(nitrofurantoin|methenamine hipp
 label variable uti_drugs "UTI drug exposure: 0=no exp, 1=exp"
 keep if uti_drugs==1
 drop uti_drugs
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("uti_drugs") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("uti_drugs") sheetmodify firstrow(variables)
 
 //Antifungal drugs
 use product.dta, clear
@@ -692,7 +692,7 @@ replace antifungal = 1 if regexm(productname_1, "(fluconazole|itraconazole|posac
 label variable antifungal "Antifungal exposure:0=no exp, 1=exp"
 keep if antifungal==1
 drop antifungal
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antifungal") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antifungal") sheetmodify firstrow(variables)
 
 //Antiviral drugs
 use product.dta, clear
@@ -707,7 +707,7 @@ replace antiviral = 1 if regexm(productname_1, "(abacavir|didanosine|ddi|emtrici
 label variable antiviral "Antiviral exposure:0=no exp, 1=exp"
 keep if antiviral==1
 drop antiviral
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antiviral") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antiviral") sheetmodify firstrow(variables)
 
 //Antiprotozoal drugs
 use product.dta, clear
@@ -722,7 +722,7 @@ replace antiprotoz = 1 if regexm(productname_1, "(artemether with lumefantrine|c
 label variable antiprotoz "Antiprotozoal exposure:0=no exp, 1=exp"
 keep if antiprotoz==1
 drop antiprotoz
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antiprotoz") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antiprotoz") sheetmodify firstrow(variables)
 
 //Antihelminthics
 use product.dta, clear
@@ -737,7 +737,7 @@ replace anthelmintic = 1 if regexm(productname_1, "(mebendazole|piperazine)")
 label variable anthelmintic "Anthelmintic exposure:0=no exp, 1=exp"
 keep if anthelmintic==1
 drop anthelmintic
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("anthelmintic") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("anthelmintic") sheetmodify firstrow(variables)
 
 //Thyroid hormones
 use product.dta, clear
@@ -752,7 +752,7 @@ replace thyroidhorm = 1 if regexm(productname_1, "(levothyroxine|liothyronine)")
 label variable thyroidhorm "Thyroid hormone exposure: 0=no exp, 1=exp"
 keep if thyroidhorm==1
 drop thyroidhorm
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("thyroidhorm") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("thyroidhorm") sheetmodify firstrow(variables)
 
 //Corticosteroids (endocrine)
 use product.dta, clear
@@ -767,7 +767,7 @@ replace cortico_endocr = 1 if regexm(productname_1, "(betamethasone|deflazacort|
 label variable cortico_endocr "Corticosteroid (endocrine) exposure:0=no exp, 1=exp"
 keep if cortico_endocr==1
 drop cortico_endocr
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("cortico_endocr") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("cortico_endocr") sheetmodify firstrow(variables)
 
 //Estrogens and HRT
 use product.dta, clear
@@ -782,7 +782,7 @@ replace estro_hrt = 1 if regexm(productname_1, "(tibolone|ethinylestradiol|ethin
 label variable estro_hrt "Estrogen and HRT exposure: 0=no exp, 1=exp"
 keep if estro_hrt==1
 drop estro_hrt
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("estro_hrt") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("estro_hrt") sheetmodify firstrow(variables)
 
 //Bisphosphonates
 use product.dta, clear
@@ -800,7 +800,7 @@ replace bisphos = 1 if regexm(productname_1, "(alendronic acid|disodium etidrona
 label variable bisphos "Bisphosphonate drug exposure: 0=no exp, 1=exp"
 keep if bisphos==1
 drop bisphos
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("bisphos") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("bisphos") sheetmodify firstrow(variables)
 
 //Cytotoxic drugs
 use product.dta, clear
@@ -815,7 +815,7 @@ replace cytotoxic = 1 if regexm(productname_1, "(bendamustine|busulfan|busulphan
 label variable cytotoxic "Cytotoxic drug exposure:0=no exp, 1=exp"
 keep if cytotoxic==1
 drop cytotoxic
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("cytotoxic") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("cytotoxic") sheetmodify firstrow(variables)
 
 //Antiproliferative immunosuppressants
 use product.dta, clear
@@ -830,7 +830,7 @@ replace antiprolif = 1 if regexm(productname_1, "(azathioprine|mycophenolate mof
 label variable antiprolif "Antiproliferative immunosuppresant exposure:0=no exp, 1=exp"
 keep if antiprolif==1
 drop antiprolif
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antiprolif") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antiprolif") sheetmodify firstrow(variables)
 
 //Other immunosuppressants
 use product.dta, clear
@@ -845,7 +845,7 @@ replace otherimmunosuppress = 1 if regexm(productname_1, "(antithymocyte immunog
 label variable otherimmunosuppress "Corticosteroids and other immunosuppresant exposure:0=no exp, 1=exp"
 keep if otherimmunosuppress==1
 drop otherimmunosuppress
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("otherimmunosuppress") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("otherimmunosuppress") sheetmodify firstrow(variables)
 
 //Anti-lymphocyte monoclonal antibodies
 use product.dta, clear
@@ -860,7 +860,7 @@ replace antilymph_mab = 1 if regexm(productname_1, "(ofatumumab|rituximab)")
 label variable antilymph_mab "Antilymphocyte monoclonal antibody exposure:0=no exp, 1=exp"
 keep if antilymph_mab==1
 drop antilymph_mab
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antilymph_mab") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antilymph_mab") sheetmodify firstrow(variables)
 
 //Other immunomodulating drugs
 use product.dta, clear
@@ -875,7 +875,7 @@ replace otherimmunomodul = 1 if regexm(productname_1, "(interferon alfa|peginter
 label variable otherimmunomodul "Other immunomodulating drug exposure:0=no exp, 1=exp"
 keep if otherimmunomodul==1
 drop otherimmunomodul
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("otherimmunomodul") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("otherimmunomodul") sheetmodify firstrow(variables)
 
 //Oral iron
 use product.dta, clear
@@ -890,7 +890,7 @@ replace iron_oral = 1 if regexm(productname_1, "(ferrous sulfate|ferrous fumarat
 label variable iron_oral "Oral iron exposure: 0=no exp, 1=exp"
 keep if iron_oral==1
 drop iron_oral
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("iron_oral") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("iron_oral") sheetmodify firstrow(variables)
 
 //Parenteral iron
 use product.dta, clear
@@ -905,7 +905,7 @@ replace iron_parenteral = 1 if regexm(productname_1, "(ferric carboxymaltose|fer
 label variable iron_parenteral "Parenteral iron exposure: 0=no exp, 1=exp"
 keep if iron_parenteral==1
 drop iron_parenteral
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("iron_parenteral") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("iron_parenteral") sheetmodify firstrow(variables)
 
 //Oral potassium
 use product.dta, clear
@@ -920,7 +920,7 @@ replace potassium_oral = 1 if regexm(productname_1, "(potassium chloride|polysty
 label variable potassium_oral "Oral potassium exposure: 0=no exp, 1=exp"
 keep if potassium_oral==1
 drop potassium_oral
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("potassium_oral") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("potassium_oral") sheetmodify firstrow(variables)
 
 //Multivitamin preparations
 use product.dta, clear
@@ -933,7 +933,7 @@ replace multivit = 1 if regexm(productname_1, "(abidec|dalivit|forceval|ketovite
 label variable multivit "Multivitamin exposure: 0=no exp, 1=exp"
 keep if multivit==1
 drop multivit
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("multivit") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("multivit") sheetmodify firstrow(variables)
 
 //NSAIDs
 use product.dta, clear
@@ -948,7 +948,7 @@ replace nsaid = 1 if regexm(productname_1, "(aceclofenac|acemetacin|celecoxib|de
 label variable nsaid "NSAID exposure: 0=no exp, 1=exp"
 keep if nsaid==1
 drop nsaid
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("nsaid") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("nsaid") sheetmodify firstrow(variables)
 
 //Local corticosteroid injections
 use product.dta, clear
@@ -961,7 +961,7 @@ replace cortico_inject = 1 if regexm(productname_1, "(dexamethasone|hydrocortist
 label variable cortico_inject "Corticosteroid (local inj) exposure:0=no exp, 1=exp"
 keep if cortico_inject==1
 drop cortico_inject
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("cortico_inject") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("cortico_inject") sheetmodify firstrow(variables)
 
 //Antigout drugs
 use product.dta, clear
@@ -979,7 +979,7 @@ replace antigout = 1 if regexm(productname_1, "(colchicine|canakinumab|allopurin
 label variable antigout "Antigout drug exposure: 0=no exp, 1=exp"
 keep if antigout==1
 drop antigout
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antigout") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antigout") sheetmodify firstrow(variables)
 
 //Antirheumatic disease drugs
 use product.dta, clear
@@ -994,7 +994,7 @@ replace antirheum = 1 if regexm(productname_1, "(sodium aurothiomalate|penicilla
 label variable antirheum "Antirheumatic drug exposure: 0=no exp, 1=exp"
 keep if antirheum==1
 drop antirheum
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("antirheum") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("antirheum") sheetmodify firstrow(variables)
 
 // Benzodiazepine
 use product.dta, clear
@@ -1009,7 +1009,7 @@ replace benzo = 1 if regexm(productname_1, "(diazepam|lorazepam|midazolam|temaze
 label variable benzo "Benzodiazepine exposure: 0=no exp, 1=exp" 
 keep if benzo==1
 drop benzo
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("benzo") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("benzo") sheetmodify firstrow(variables)
 
 // Opioid analgesics
 use product.dta, clear
@@ -1024,7 +1024,7 @@ replace opioid2 = 1 if regexm(productname_1, "(alfentanil|fentanyl|remifentanil)
 label variable opioid2 "Opioid analgesic (anaes) exposure: 0=no exp, 1=exp"
 keep if opioid2==1
 drop opioid2
-export excel prodcode gemscriptcode productname using cov_drugcodes.xls, sheet("opioid2") sheetmodify firstrow(variables)
+export excel prodcode gemscriptcode productname drugsubstance using cov_drugcodes.xls, sheet("opioid2") sheetmodify firstrow(variables)
 
 
 // #4. In Excel, for each event type, convert the list of codes (each in an individual cell) into one cell with | between codes, 

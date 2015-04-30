@@ -349,10 +349,18 @@ collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate
 stcox i.indextype if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##i.age_65, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
+lincom 2.indextype + 2.indextype#0.age_65, hr
+lincom 2.indextype + 2.indextype#1.age_65, hr
+lincom 2.indextype + 2.indextype#0.age_65, hr
+lincom 2.indextype + 2.indextype#1.age_65, hr
+
 stcox i.indextype##c.age_index, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype `covariate' if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype `covariate' if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox i.indextype##i.age_65 gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype##i.age_65 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+lincom 2.indextype + 2.indextype#0.age_65, hr
+lincom 2.indextype + 2.indextype#1.age_65, hr
+
 stcox i.indextype##c.age_index gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // Sex
