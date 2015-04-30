@@ -90,6 +90,9 @@ replace insulins_short = 1 if regexm(drugsubstance_1, "(hypurin bovine neutral|h
 replace insulins_short = 1 if regexm(drugsubstance_1, "(insulin|insulin aspart|insulin glulisine|insulin lispro)") & ! regexm(prod_bnfcode, "(06010103|91020000)")
 replace insulins_short = 1 if regexm(productname_1, "(hypurin bovine neutral|hypurin porcine neutral|actrapid|humulin s|insuman rapid|novorapid|novomix|apidra|humalog|liprolog|actraphane|exubera|mixtard|monotard|protaphane|ultratard|velosulin|ryzodeg)")
 replace insulins_short = 1 if regexm(productname_1, "(insulin|insulin aspart|insulin glulisine|insulin lispro)") & ! regexm(prod_bnfcode, "(06010103|91020000)")
+replace insulins_short = 0 if regexm(drugsubstance_1, "(needle|fine|needles|hypodermic)")
+replace insulins_short = 0 if regexm(productname_1, "(needle|fine|needles|hypodermic)")
+
 label variable insulins_short "Short-acting insulins"
 keep if insulins_short==1
 drop insulins_short
@@ -105,6 +108,8 @@ replace insulins_intlong = 1 if regexm(drugsubstance_1, "(tresiba|levemir|lantus
 replace insulins_intlong = 1 if regexm(drugsubstance_1, "(insulin degludec|insulin detemir|insulin glargine|insulin zinc suspension|isophane insulin|protamine zinc insulin|biphasic insulin aspart|biphasic insulin lispro| biphasic isophane insulin)") & ! regexm(prod_bnfcode, "(06010103|91020000)")
 replace insulins_intlong = 1 if regexm(productname_1, "(tresiba|levemir|lantus|hypurin bovine lente|hypurin bovine isophane|hypurin porcine isophane|insulatard|humulin i|insuman basal|hypurin bovine protamine zinc|novomix 30|humalog mix25|humalog mix50|hypurin porcine 30/70 mix|humulin m3|insuman comb|optisulin|ryzodeg)")
 replace insulins_intlong = 1 if regexm(productname_1, "(insulin degludec|insulin detemir|insulin glargine|insulin zinc suspension|isophane insulin|protamine zinc insulin|biphasic insulin aspart|biphasic insulin lispro| biphasic isophane insulin)") & ! regexm(prod_bnfcode, "(06010103|91020000)")
+replace insulins_intlong = 0 if regexm(drugsubstance_1, "(needle|fine|needles|hypodermic)")
+replace insulins_intlong = 0 if regexm(productname_1, "(needle|fine|needles|hypodermic)")
 label variable insulins_intlong "Intermediate- and long-acting insulins"
 keep if insulins_intlong==1
 drop insulins_intlong
