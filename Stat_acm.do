@@ -310,7 +310,7 @@ mi describe
 //look at summary statistics in each of the imputation datasets
 mi xeq: summarize
 //fit the model separately on each of the 10 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype `demo' `comorb' `meds3' `clin2'
+mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp
 mi describe
 
 //KM and survival curves
