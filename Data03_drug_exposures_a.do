@@ -130,11 +130,13 @@ expand codesum, generate(integratedrx)
 label var integratedrx "Indicator for part of a combo pill: 1=orginially combo"
 replace rxtype= 7 if codesum==2&metformin==1&dpp==1
 replace rxtype= 8 if codesum==2&metformin==1&tzd==1
+replace rxtype=9 if codesum==2&sulfonylurea==1&tzd==1
 replace metformin=0 if integratedrx==1
+replace sulfonylurea=0 if codesum==2&integratedrx==1
 replace tzd=0 if codesum==2& integratedrx==0
 replace dpp=0 if codesum==2& integratedrx==0
 label drop rxtypelabels
-label define rxtypelabels 0 "SU" 1 "DPP" 2 "GLP" 3 "insulin" 4 "TZD" 5 "other" 6 "metformin" 7 "mdcombo" 8 "mtcombo" 99 "combination"
+label define rxtypelabels 0 "SU" 1 "DPP" 2 "GLP" 3 "insulin" 4 "TZD" 5 "other" 6 "metformin" 7 "mdcombo" 8 "mtcombo" 9 "stcombo" 99 "combination"
 label values rxtype rxtypelabels
 
 //#5 Generate count variables.
@@ -175,6 +177,8 @@ decode firstadmrxs if firstadmrxs!=., gen(rxtype_f)
 label var rxtype_f "String var of all prescriptions on earliest date (includes duplicates and combos)"
 drop firstadmrxs
 //return one of each rxtype if present anywhere in the patid's firsttype, then fill for the patid.
+bysort patid: gen frx9=regexs(0) if regexm(rxtype_f, "stcombo")
+xfill frx9, i(patid)
 bysort patid: gen frx8=regexs(0) if regexm(rxtype_f, "mtcombo")
 xfill frx8, i(patid)
 bysort patid: gen frx7=regexs(0) if regexm(rxtype_f, "mdcombo")
@@ -195,7 +199,7 @@ bysort patid: gen frx0=regexs(0) if regexm(rxtype_f, "SU")
 xfill frx0, i(patid)
 //return one copy of the concatenated "first" prescription for each patid.
 sort classexp
-egen firstadmrx=concat(frx6 frx0 frx1 frx2 frx3 frx4 frx5 frx7 frx8) if classexp==1
+egen firstadmrx=concat(frx6 frx0 frx1 frx2 frx3 frx4 frx5 frx7 frx8 frx9) if classexp==1
 label var firstadmrx "Exact first aDM prescription for each patid"
 gen firstadmrxdate=firstdate if firstadmrx!=""
 format firstadmrxdate %td
@@ -217,11 +221,13 @@ label var cohort_b "Binary indicator for metformin cohort: 1=metformin only firs
 //drop if metformin NOT the first antidiabetic agent or combination agent
 //replace the rxtype with individual components for combopills
 gen combomarker=.
-replace combomarker=1 if (rxtype==7|rxtype==8)
+replace combomarker=1 if (rxtype==7|rxtype==8|rxtype==9)
 replace rxtype=6 if rxtype==8& metformin==1
 replace rxtype=4 if rxtype==8& tzd==1
 replace rxtype=6 if rxtype==7& metformin==1
 replace rxtype=1 if rxtype==7& dpp==1
+replace rxtype=5 if rxtype==9& sulfonylurea==1
+drop if rxtype==9&tzd==1
 drop integratedrx
 //recast counts
 drop wirxtypeorder classexp exporder
