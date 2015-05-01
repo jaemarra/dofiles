@@ -37,6 +37,7 @@ datasignature set, reset
 save Analytic_Dataset_s, replace
 clear
 
+/*
 //COHORTENTRYDATE
 use raw_dataset, clear
 merge 1:1 patid using Drug_Covariates_c, nogen
@@ -46,6 +47,7 @@ merge 1:1 patid using ServicesCovariates_merged_c, nogen
 datasignature set, reset
 save Analytic_Dataset_c, replace
 clear
+*/
 
 //INDEXDATE
 use raw_dataset, clear
@@ -59,7 +61,7 @@ clear
 
 //MERGE FOR FINAL DATASET
 use Analytic_Dataset_s, clear
-merge 1:1 patid using Analytic_Dataset_c, generate(cohort_ind)
+*merge 1:1 patid using Analytic_Dataset_c, generate(cohort_ind)
 merge 1:1 patid using Analytic_Dataset_i, generate(index_ind)
 merge 1:1 patid using uts, nogen
 merge 1:1 patid using LabCovariates_i2, nogen
