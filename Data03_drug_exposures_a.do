@@ -803,7 +803,7 @@ label var exposuret1`i' "Last CONTINUOUS exposure to `next'"
 label var exposuretf`i' "Last ever exposure to `next'"
 }
 //merge with ALL analytic variables
-merge m:1 patid using Analytic_variables_a, keep(match master) nogen
+merge m:1 patid using Analytic_variables_a, gen(flag)
 label var tx "Censor date calculated as first of lcd, tod"
 label var cohort_b "Binary indicator; 1=metformin first only cohort; 0=not in cohort"
 label var unqrx "Number of unique antidiabetic medications"
