@@ -605,14 +605,14 @@ do Data13_variable_generation.do
 keep if exclude==0 // apply exclusion criteria
 drop if seconddate<17167 // restrict to jan 1, 2007
 
-// update censor times for last continuous exposure to second-line agent (indextype)
+// update censor times for single agent exposure to a thirddate
 
 forval i=0/5 {
 	replace acm_exit = exposuret0`i' if indextype3==`i' & exposuret0`i'!=.
 }
 
-// declare survival analysis - last continuous exposure as last exposure date 
-stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
+// declare survival analysis for single agent exposure to a thirddate
+stset acm_exit, fail(acm) id(patid) origin(thirddate) scale(365.35)
 // spit data to integrate time-varying covariates for diabetes meds.
 
 stsplit adm3, after(thirddate) at(0)
