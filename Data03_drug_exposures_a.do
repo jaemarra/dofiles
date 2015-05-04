@@ -758,7 +758,7 @@ label var `numb'admrx "The `numb' antidiabetic regimen"
 labe var `numb'date "The date associated with the `numb' antidiabetic regimen"
 }
 local x=0
-local names "sulfonylurea GLP-1RA DPP-4I insulin thiazolidinedione other-antidiabetic metformin"
+local names "sulfonylurea DPP-4I GLP-1RA insulin thiazolidinedione other-antidiabetic metformin"
 forval i=0/6	{
 local x= `x'+1
 local next:word `x' of `names'
@@ -803,7 +803,7 @@ label var exposuret1`i' "Last CONTINUOUS exposure to `next'"
 label var exposuretf`i' "Last ever exposure to `next'"
 }
 //merge with ALL analytic variables
-merge m:1 patid using Analytic_variables_a, keep(match master) nogen
+merge m:1 patid using Analytic_variables_a, nogen
 label var tx "Censor date calculated as first of lcd, tod"
 label var cohort_b "Binary indicator; 1=metformin first only cohort; 0=not in cohort"
 label var unqrx "Number of unique antidiabetic medications"
