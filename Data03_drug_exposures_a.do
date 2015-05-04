@@ -156,7 +156,7 @@ label var exporder "Order of exposure to antidiabetic classes, ties not broken"
 
 //pull out first antidiabetic prescription date ever
 bysort patid:egen firstdate = min(rxdate2) if rxtype<.
-format first %td
+format firstdate %td
 label var firstdate "Earliest date for any antidiabetic prescription (should=studyentrydate)"
 
 //generate an indicator for each prescription denoting whether it matches the earliest date or not
@@ -204,7 +204,14 @@ label var firstadmrx "Exact first aDM prescription for each patid"
 gen firstadmrxdate=firstdate if firstadmrx!=""
 format firstadmrxdate %td
 label var firstadmrxdate "Date associated with the first admrx exposure for each patid"
-drop frx* rxtype_f 
+drop frx* rxtype_f
+xfill firstadmrxdate, i(patid)
+bysort patid rxdate2 rxtype: gen dupb = cond(_N==1,0,_n) if firstadmrxdate==rxdate2
+bysort patid rxdate2 rxtype: gen qtysum = sum(qty) if dupb!=.&rxdate2==firstadmrxdate
+bysort patid rxdate2 rxtype:egen qtymax=max(qtysum) if dupb!=.&rxdate2==firstadmrxdate
+replace qty=qtymax if exporder!=.&rxdate2==firstadmrxdate
+drop if dupb!=.&exporder==.&firstadmrxdate==rxdate2
+drop dupb qtysum qtymax
 //create a flag for patid's with ineligible first prescriptions, combo first prescriptions (met+any), and simple met
 gen firstcat=3
 replace firstcat=1 if firstadmrx=="metformin"
