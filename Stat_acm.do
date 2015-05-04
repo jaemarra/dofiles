@@ -345,22 +345,67 @@ collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate
 
 ***SUBGROUP ANALYSIS / EFFECT MODIFIERS***
 
-// Age
+// Age  ipdover, nograph saving()
+tempfile tf1 tf2
 stcox i.indextype if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype##i.age_65, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-lincom 2.indextype + 2.indextype#0.age_65, hr
+
+//Generate the linear combination hr and ci for DPP4i&<65yo, export and store values
+preserve
+lincom 1.indextype+1.indextype#0.age_65, hr
+estimates store m1, title(Model1)
+estout m1
+parmest, norestore eform
+putexcel A1=("Variable") B1=("Estimate") C1=("p-value") D1=("LL") E1=("UL") A2=("uDPP4i<65yo") B2=(estimate[2]) C2=(p[2]) D2=(min95[2]) E2=(max95[2]) using subgroup.xls, sheet("DPP4i") modify
+restore
+//Generate the linear combination hr and ci for DPP4i&>65yo, export and store values
+preserve
+lincom 1.indextype + 1.indextype#1.age_65, hr
+parmest, norestore eform
+putexcel A3=("uDPP41>65yo") B3=(estimate[2]) C3=(p[2]) D3=(min95[2]) E3=(max95[2]) using subgroup.xls, sheet("DPP4i") modify
+restore
+//Generate the linear combination hr and ci for GLP1RA&<65yo, export and store values
+preserve
+lincom 2.indextype+2.indextype#0.age_65, hr
+parmest, norestore eform
+putexcel A1=("Variable") B1=("Estimate") C1=("p-value") D1=("LL") E1=("UL") A2=("uGLP1RA<65yo") B2=(estimate[2]) C2=(p[2]) D2=(min95[2]) E2=(max95[2]) using subgroup.xls, sheet("GLP1RA") modify
+restore
+//Generate the linear combination hr and ci for GLP1RA&<65yo, export and store values
+preserve
 lincom 2.indextype + 2.indextype#1.age_65, hr
-lincom 2.indextype + 2.indextype#0.age_65, hr
-lincom 2.indextype + 2.indextype#1.age_65, hr
+parmest, norestore eform
+putexcel A3=("uGLP1RA>65yo") B3=(estimate[2]) C3=(p[2]) D3=(min95[2]) E3=(max95[2]) using subgroup.xls, sheet("GLP1RA") modify
+restore
+
+
+ipdover, over(age_65) over(indextype_1) hr forest(nonull nooverall boxscale(0) xlabel(0.2(0.5)2, force)) : lincom 1.indextype + 1.indextype#0.age_65
+
 
 stcox i.indextype##c.age_index, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 stcox i.indextype `covariate' if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype `covariate' if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype##i.age_65 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+preserve
+lincom 1.indextype + 1.indextype#0.age_65, hr
+parmest, norestore eform
+putexcel A4=("aDPP41<65yo") B4=(estimate[2]) C4=(p[2]) D4=(min95[2]) E4=(max95[2]) using subgroup.xls, sheet("DPP4i") modify
+restore
+preserve
+lincom 1.indextype + 1.indextype#1.age_65, hr
+parmest, norestore eform
+putexcel A5=("aDPP41>65yo") B5=(estimate[2]) C5=(p[2]) D5=(min95[2]) E5=(max95[2]) using subgroup.xls, sheet("DPP4i") modify
+restore
+preserve
 lincom 2.indextype + 2.indextype#0.age_65, hr
+parmest, norestore eform
+putexcel A4=("aGLP1RA<65yo") B4=(estimate[2]) C4=(p[2]) D4=(min95[2]) E4=(max95[2]) using subgroup.xls, sheet("GLP1RA") modify
+restore
+preserve
 lincom 2.indextype + 2.indextype#1.age_65, hr
-
+parmest, norestore eform
+putexcel A5=("aGLP1RA>65yo") B5=(estimate[2]) C5=(p[2]) D5=(min95[2]) E5=(max95[2]) using subgroup.xls, sheet("GLP1RA") modify
+restore
 stcox i.indextype##c.age_index gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // Sex
@@ -420,7 +465,7 @@ label define age_65_cats 0 "Under 65" 1 "65 or older"
 label values age_65 age_65_cats
 
 //setup for subgroup analysis
-stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
+mi stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
 
 //DDP4i subgroup graph
 //ipdover, over(age_65 gender dmdur_2 hba1c_8 bmi_30 ckd_60 hf_i mi_stroke) over(indextype_2) forest(nonull boxscale(0) xlabel(0(0.05)0.2, force)) : stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_* 
@@ -554,8 +599,128 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 
 // Multiple imputation
 
+// #1b. CENSOR EXPSOURE AT EXPOSURE TO THIRD AGENT
+use Analytic_Dataset_Master, clear
+do Data13_variable_generation.do
+keep if exclude==0 // apply exclusion criteria
+drop if seconddate<17167 // restrict to jan 1, 2007
 
-// #2 Third-line therapy
+// update censor times for last continuous exposure to second-line agent (indextype)
+
+forval i=0/5 {
+	replace acm_exit = exposuret0`i' if indextype3==`i' & exposuret0`i'!=.
+}
+
+// declare survival analysis - last continuous exposure as last exposure date 
+stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.35)
+// spit data to integrate time-varying covariates for diabetes meds.
+
+stsplit adm3, after(thirddate) at(0)
+*stsplit adm3, at(0(1)max) after(thirddate)
+gen su_post=(indextype3==0 & adm3!=-1)
+gen dpp4i_post=(indextype3==1 & adm3!=-1)
+gen glp1ra_post=(indextype3==2 & adm3!=-1)
+gen ins_post=(indextype3==3  & adm3!=-1)
+gen tzd_post=(indextype3==4 & adm3!=-1)
+gen oth_post=(indextype3==5  & adm3!=-1)
+
+stsplit adm4, after(fourthdate) at(0)
+*stsplit adm4, at(0(1)max) after(fourthdate)
+replace su_post=1 if indextype4==0 & adm4!=-1
+replace dpp4i_post=1 if indextype4==1 & adm4!=-1
+replace glp1ra_post=1 if indextype4==2 & adm4!=-1
+replace ins_post=1 if indextype4==3 & adm4!=-1
+replace tzd_post=1 if indextype4==4 & adm4!=-1
+replace oth_post=1 if indextype4==5 & adm4!=-1
+
+stsplit adm5, after(fifthdate) at(0)
+*stsplit adm5, at(0(1)max) after(fifthdate)
+replace su_post=1 if indextype5==0 & adm5!=-1
+replace dpp4i_post=1 if indextype5==1 & adm5!=-1
+replace glp1ra_post=1 if indextype5==2 & adm5!=-1
+replace ins_post=1 if indextype5==3 & adm5!=-1
+replace tzd_post=1 if indextype5==4 & adm5!=-1
+replace oth_post=1 if indextype5==5 & adm5!=-1
+
+stsplit adm6, after(sixthdate) at(0)
+*stsplit adm6, at(0(1)max) after(sixthdate)
+replace su_post=1 if indextype6==0 & adm6!=-1
+replace dpp4i_post=1 if indextype6==1 & adm6!=-1
+replace glp1ra_post=1 if indextype6==2 & adm6!=-1
+replace ins_post=1 if indextype6==3 & adm6!=-1
+replace tzd_post=1 if indextype6==4 & adm6!=-1
+replace oth_post=1 if indextype6==5 & adm6!=-1
+
+stsplit adm7, after(seventhdate) at(0)
+*stsplit adm7, at(0(1)max) after(seventhdate)
+replace su_post=1 if indextype7==0 & adm7!=-1
+replace dpp4i_post=1 if indextype7==1 & adm7!=-1
+replace glp1ra_post=1 if indextype7==2 & adm7!=-1
+replace ins_post=1 if indextype7==3 & adm7!=-1
+replace tzd_post=1 if indextype7==4 & adm7!=-1
+replace oth_post=1 if indextype7==5 & adm7!=-1
+
+stsplit stop0, after(exposuretf0) at(0)
+*stsplit stop0, at(0(1)max) after(exposuretf0)
+replace su_post=0 if su_post==1 & stop0!=-1
+
+stsplit stop1, after(exposuretf1) at(0)
+*stsplit stop1, at(0(1)max) after(exposuretf1)
+replace dpp4i_post=0 if dpp4i_post==1 & stop1!=-1
+
+stsplit stop2, after(exposuretf2) at(0)
+*stsplit stop2, at(0(1)max) after(exposuretf2)
+replace glp1ra_post=0 if glp1ra_post==1 & stop2!=-1
+
+stsplit stop3, after(exposuretf3) at(0)
+*stsplit stop3, at(0(1)max) after(exposuretf3)
+replace ins_post=0 if ins_post==1 & stop3!=-1
+
+stsplit stop4, after(exposuretf4) at(0)
+*stsplit stop4, at(0(1)max) after(exposuretf4)
+replace tzd_post=0 if tzd_post==1 & stop4!=-1
+
+stsplit stop5, after(exposuretf5) at(0)
+*stsplit stop5, at(0(1)max) after(exposuretf5)
+replace oth_post=0 if oth_post==1 & stop5!=-1
+
+//Generate person-years, incidence rate, and 95%CI as well as hazard ratio
+label var indextype "Exposure"
+stptime, by(indextype) per(1000)
+stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+
+stptime, title(person-years) per(1000)
+putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("SensAnalysis3") modify
+forval i=0/5{
+local row=`i'+2
+stptime if indextype==`i'
+putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("SensAnalysis3") modify
+}
+forval i=1/5 {
+local row=`i'+2
+local matrow=`i'+1
+stcox i.indextype 
+matrix b=r(table)
+matrix a= b'
+putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("SensAnalysis3") modify
+}
+
+//Multivariable analysis 
+stcox i.indextype age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.bmi_i_cats ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+matrix b=r(table)
+matrix c=b'
+matrix list c
+*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
+local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("SensAnalysis3") modify
+}
+
+// Multiple imputation
+
+// #2 THIRDLINE THERAPY
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
 keep if exclude==0 // apply exclusion criteria
