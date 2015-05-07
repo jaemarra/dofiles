@@ -214,6 +214,21 @@ graph export lnlnplot.pdf, replace
 stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
 estat phtest, rank detail
 
+stcox i.indextype `covariate', schoenfeld(sch*) scaledsch(sca*)
+stphtest, detail
+
+/*
+estat phtest, log plot(indextype_2) yline(0) saving(lnlnplot, replace) 
+stphplot, strata(indextype_4) adjust(age_indexdate gender dmdur) nolntime
+stcox indextype_4, nohr nolog noshow tvc(indextype_4) texp( ln(_t) )
+stphplot if indextype==1 | indextype==0 | indextype==2, by(indextype)
+stphplot, by(indextype)
+stphplot if indextype==1 | indextype==0 | indextype==2, by(indextype) nolntime
+stphplot if indextype==1 | indextype==0 | indextype==2, strata(indextype) adjust(age_indexdate gender dmdur metoverlap  i.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post) nolntime
+stcoxkm, by(indextype_3)
+stcoxkm if indextype==1 | indextype==0 | indextype==2, by(indextype)
+*/
+
 // Testing collinearity
 
 collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 mdvisits4 ndrugs2 ndrugs3 ndrugs4 ndrugs5 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
