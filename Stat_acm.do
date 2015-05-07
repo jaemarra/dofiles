@@ -216,18 +216,8 @@ estat phtest, rank detail
 
 stcox i.indextype `covariate', schoenfeld(sch*) scaledsch(sca*)
 stphtest, detail
-
-/*
-estat phtest, log plot(indextype_2) yline(0) saving(lnlnplot, replace) 
-stphplot, strata(indextype_4) adjust(age_indexdate gender dmdur) nolntime
-stcox indextype_4, nohr nolog noshow tvc(indextype_4) texp( ln(_t) )
-stphplot if indextype==1 | indextype==0 | indextype==2, by(indextype)
-stphplot, by(indextype)
-stphplot if indextype==1 | indextype==0 | indextype==2, by(indextype) nolntime
-stphplot if indextype==1 | indextype==0 | indextype==2, strata(indextype) adjust(age_indexdate gender dmdur metoverlap  i.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i ib1.bmi_i_cats statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post) nolntime
-stcoxkm, by(indextype_3)
-stcoxkm if indextype==1 | indextype==0 | indextype==2, by(indextype)
-*/
+//repeat this test for each variable of interest
+ stphtest, plot(age_indexdate) msym(oh)
 
 // Testing collinearity
 
