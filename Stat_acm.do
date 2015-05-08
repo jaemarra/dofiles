@@ -200,9 +200,24 @@ mi xeq: summarize
 mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp
 mi describe
 
+//change reference groups using multiple imputation method
+stcox ib2.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox ib3.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox ib4.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+matrix b=r(table)
+matrix c=b'
+matrix list c
+local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_varyref_mi, sheet("Adjusted") modify
+}
 //re-analyze if only cprd 
 preserve
 keep if linked==0
+stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
@@ -218,6 +233,7 @@ restore
 //re-analyze if only linked
 preserve
 keep if linked==1
+stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
@@ -410,8 +426,7 @@ label define subvals 0 "Less than 65" 1 "65 or older" 2 "Female" 3 "Male" 4 "Les
 label values subval subvals
 rename subval Subgroup
 //Generate Forest Plots
-metan hr ll ul if adj==0 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))
-metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))
+metan hr ll ul if adj==0 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))
 metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small))
 metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small))
 
@@ -547,7 +562,7 @@ keep if exclude==0
 //restrict to jan 1, 2007
 drop if seconddate<17167 
 
-//#2b. update censor times for single agent exposure to a thirddate
+//update censor times for single agent exposure to a thirddate
 forval i=0/5 {
 	replace acm_exit = exposuret0`i' if indextype3==`i' & exposuret0`i'!=.
 }
@@ -601,7 +616,8 @@ set seed 1979
 mi impute mvn bmi_i sbp = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
 //fit the model separately on each of the 10 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp
-// #3 Fourth-line Therapy
+
+//#2b. Fourth-line Therapy
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
 //apply exclusion criteria
@@ -609,7 +625,7 @@ keep if exclude==0
 //restrict to jan 1, 2007
 drop if seconddate<17167 
 
-//#2c. update censor times for final exposure to fourth-line agent (indextype4)
+//update censor times for final exposure to fourth-line agent (indextype4)
 
 forval i=0/5 {
 	replace acm_exit = exposuretf`i' if indextype4==`i' & exposuretf`i'!=.
@@ -677,7 +693,7 @@ drop if seconddate<17167
 // declare survival analysis - final exposure as last exposure date 
 stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
 
-// spit data to integrate time-varying covariates for diabetes meds.
+// split data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, at(0) after(thirddate)
 gen su_post=regexm(thirdadmrx, "SU") & adm3!=-1
 gen dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
