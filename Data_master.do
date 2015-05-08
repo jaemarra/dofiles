@@ -132,7 +132,7 @@ do Data03_drug_exposures_a
 								- generate variables indicating drug exposures to subclasses of antidiabetic drugs				
 								- generate variables for number of unique drugs and medication adherence
 */
-do Data03_drug_exposures_b
+*do Data03_drug_exposures_b
 /*	Files saved:	drugexpb_0-49
 					Drug_Exposures_b.dta
 */
@@ -144,7 +144,7 @@ do Data03_drug_exposures_b
 								- generate variables for number of unique drugs and medication adherence
 */
 
-do Data04_drug_covariates_loop
+do Data04_drug_covariates_loop_short
 /* 	Files saved: 	drug_covariates_0-49
 					Drug_Covariates
 */
@@ -331,6 +331,8 @@ do Data09_clinicalcovariates_c
 									- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
 									- rectangularize, fillin, drop unwanted, reshape, save
 */
+do Data09_fixedvariables
+
 do Data10_labcovariates
 /*	Files saved: 	LabCovariates.dta (intermediate)
 					LabCovariates_c.dta
