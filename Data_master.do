@@ -132,7 +132,7 @@ do Data03_drug_exposures_a
 								- generate variables indicating drug exposures to subclasses of antidiabetic drugs				
 								- generate variables for number of unique drugs and medication adherence
 */
-*do Data03_drug_exposures_b
+do Data03_drug_exposures_b
 /*	Files saved:	drugexpb_0-49
 					Drug_Exposures_b.dta
 */
