@@ -314,6 +314,8 @@ do Data09_clinicalcovariates_b
 										- merge 1:1 patid using Clinical_cci_s
 										- merge 1:1 patid using hes_cci_s
 */
+do Data09_fixedvariables
+
 do Data09_clinicalcovariates_c
 
 /*	Files saved:	ClinicalCovariates_merged_i.dta
@@ -331,7 +333,6 @@ do Data09_clinicalcovariates_c
 									- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
 									- rectangularize, fillin, drop unwanted, reshape, save
 */
-do Data09_fixedvariables
 
 do Data10_labcovariates
 /*	Files saved: 	LabCovariates.dta (intermediate)
