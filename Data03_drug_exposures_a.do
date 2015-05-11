@@ -753,7 +753,7 @@ save Dates.dta, replace
 clear
 
 //################### generate "analytic variables" dataset for  use########################
-use Drug_Exposures_a.dta
+use Drug_Exposures_a.dta, clear
 keep patid firstadmrx firstadmrxdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx
 xfill firstadmrx firstadmrxdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx, i(patid)
 collapse (first) firstadmrx firstadmrxdate secondadmrx seconddate thirdadmrx thirddate fourthadmrx fourthdate fifthadmrx fifthdate sixthadmrx sixthdate seventhadmrx seventhdate ever* tx cohort_b unqrx, by(patid)
@@ -765,7 +765,7 @@ label var `numb'admrx "The `numb' antidiabetic regimen"
 labe var `numb'date "The date associated with the `numb' antidiabetic regimen"
 }
 local x=0
-local names "sulfonylurea GLP-1RA DPP-4I insulin thiazolidinedione other-antidiabetic metformin"
+local names "sulfonylurea DPP-4I GLP-1RA insulin thiazolidinedione other-antidiabetic metformin"
 forval i=0/6	{
 local x= `x'+1
 local next:word `x' of `names'
@@ -801,7 +801,7 @@ drop dupa
 keep patid rxtype exposuret0 exposuret1 exposuretf
 reshape wide exposuret0 exposuret1 exposuretf, i(patid) j(rxtype)
 local x=0
-local names "sulfonylurea GLP-1RA DPP-4I insulin thiazolidinedione other-antidiabetic metformin"
+local names "sulfonylurea DPP-4I GLP-1RA insulin thiazolidinedione other-antidiabetic metformin"
 forval i=0/6	{
 local x= `x'+1
 local next:word `x' of `names'
