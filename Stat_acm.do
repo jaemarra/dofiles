@@ -752,7 +752,6 @@ local meds = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i
 local clin = "ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 ib1.bmi_i_cats bmi_i sbp"
 local covariate = "`demo' `comorb' `meds' `clin'"
 //Ever DPP
-preserve
 //stset acm_exit if exposuretf2!=., fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<acm_exit) 
 mi set mlong
 save acm_mlong, replace
@@ -760,9 +759,54 @@ mi register imputed bmi_i sbp bmi_i_cats sbp_i_cats2
 set seed 1979
 mi impute mvn bmi_i sbp= acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
 mi impute chained (mlogit) bmi_i_cats sbp_i_cats2 = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
-mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
-mi stset acm_exit if exposuretf2!=., fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<acm_exit) 
+//mi stset acm_exit if exposuretf2!=., fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<acm_exit) 
+//mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
+
+gen su_notinc=0
+local nums "second third fourth fifth sixth seventh"
+local a=0
+forval i=0/5{
+local a=`a'+1
+local numb:word `a' of `nums'
+replace su_notinc=1 if regexm(`numb'admrx, "SU")
+replace su_notinc=0 if regexm(`numb'admrx, "DPP")
+replace su_notinc=0 if regexm(`numb'admrx, "GLP")
+}
+gen dpp_ever=0
+local nums "second third fourth fifth sixth seventh"
+local a=0
+forval i=0/5{
+local a=`a'+1
+local numb:word `a' of `nums'
+replace dpp_ever=1 if regexm(`numb'admrx, "DPP")
+replace dpp_ever=0 if regexm(`numb'admrx, "GLP")
+}
+
+gen glp_ever=0
+local nums "second third fourth fifth sixth seventh"
+local a=0
+forval i=0/5{
+local a=`a'+1
+local numb:word `a' of `nums'
+replace glp_ever=1 if regexm(`numb'admrx, "GLP")
+replace glp_ever=0 if regexm(`numb'admrx, "DPP")
+}
+
+preserve
+replace indextype==5
+replace indextype==0 if su_notinc==1
+replace indextype==1 if dpp_ever==1
+keep if indextype==0|indextype==1
+//mi stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<acm_exit if indextype) 
+mi stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<=acm_exit)
 mi estimate, hr: stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+restore
+preserve 
+replace indextype=5
+replace indextype=0 if su_notinc==1
+replace indextype=2 if glp_ever==1
+mi estimate, hr: stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+restore
 
 //Multivariable analysis 
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
