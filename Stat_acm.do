@@ -38,6 +38,7 @@ local clin = "ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 ib1
 local clin2 = "ib1.hba1c_cats_i2 i.ckd_amdrd"
 local covariate = "`demo' `comorb' `meds' `clin'"
 local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.bmi_i_cats ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post"
+local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 
 //Create table1 
 table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1.xls, replace)
@@ -140,11 +141,11 @@ stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
  
 stptime, title(person-years) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadjusted") modify
+putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Miss Ind") modify
 forval i=0/5{
 local row=`i'+2
 stptime if indextype==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadjusted") modify
+putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj Miss Ind") modify
 }
 forval i=1/5 {
 local row=`i'+2
@@ -152,7 +153,7 @@ local matrow=`i'+1
 stcox i.indextype 
 matrix b=r(table)
 matrix a= b'
-putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadjusted") modify
+putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj Miss Ind") modify
 }
 
 //Multivariable analysis 
@@ -161,21 +162,43 @@ stcox i.indextype age_index gender dmdur, cformat(%6.2f) pformat(%5.3f) sformat(
 stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox i.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 // change reference groups
-stcox ib2.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib3.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib4.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+stcox ib2.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+matrix b=r(table)
+matrix c=b'
+matrix list c
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref2") modify
+}
+stcox ib3.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+matrix b=r(table)
+matrix c=b'
+matrix list c
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref3") modify
+} 
+stcox ib4.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+matrix b=r(table)
+matrix c=b'
+matrix list c
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref4") modify
+} 
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind") modify
 }
 
 // Multiple imputation
@@ -183,32 +206,58 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 mi set mlong
 save acm_mlong, replace
 //inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
-mi register imputed bmi_i sbp
+mi register imputed bmi_i sbp bmi_i_cats sbp_i_cats2
 //describe and learn about the missing values in the data
 mi describe 
 mi misstable summarize
 mi misstable nested
 //set the seed so that results are reproducible
 set seed 1979
-//impute (10 iterations) for each missing value in the registered variables
-mi impute mvn bmi_i sbp = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
+//impute (20 iterations) for each missing value in the registered variables
+mi impute chained (regress) bmi_i sbp (mlogit) bmi_i_cats sbp_i_cats2 = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
 //verify that all missing values are filled in
 mi describe
 //look at summary statistics in each of the imputation datasets
 mi xeq: summarize
-//fit the model separately on each of the 10 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp
+//fit the model separately on each of the 20 imputed datasets and combine results
+mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
 mi describe
 
 //change reference groups using multiple imputation method
-stcox ib2.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib3.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-stcox ib4.indextype `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+//DPP
+stcox ib2.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+matrix b=r(table)
+matrix c=b'
+matrix list c
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref2") modify
+}
+//GLP
+stcox ib3.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+matrix b=r(table)
+matrix c=b'
+matrix list c
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref3") modify
+}
+//Insulin
+stcox ib4.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+matrix b=r(table)
+matrix c=b'
+matrix list c
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref4") modify
+}
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
@@ -217,23 +266,24 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 //re-analyze if only cprd 
 preserve
 keep if linked==0
-stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
+gen acm_exit_g = rowmin(tod2 deathdate2 lcd2)
+stset acm_exit_g, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_cprd, sheet("Adjusted") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj CPRD Only") modify
 }
 restore
 
 //re-analyze if only linked
 preserve
 keep if linked==1
-stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
+gen acm_exit_o = rowmin(tod2 dod2 lcd2)
+stset acm_exit_o, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
@@ -242,7 +292,7 @@ local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metfor
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_linked, sheet("Adjusted") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj HES Only") modify
 }
 restore
 
@@ -418,17 +468,22 @@ lincom 1.indextype+1.indextype#0.mi_stroke, hr
 lincom 1.indextype + 1.indextype#1.mi_stroke, hr
 lincom 2.indextype+2.indextype#0.mi_stroke, hr
 lincom 2.indextype + 2.indextype#1.mi_stroke, hr
+save Stat_acm_mi, replace
 
+//Generate Forest Plots
+use SubgroupAnalysis2, clear
 //Label variables for subgroup graphs
 label define subgroups 1 "Age" 2 "Gender" 3 "Duration of metformin monotherapy" 4 "HbA1c" 5 "BMI" 6 "Renal insufficiency" 7 "History of HF" 8 "History of MI/stroke"
 label values subgroup subgroups
 label define subvals 0 "Less than 65" 1 "65 or older" 2 "Female" 3 "Male" 4 "Less than 2 years" 5 "2 or more years" 6 "Less than 8" 7 "8 or greater" 8 "Less than 30" 9 "30 or greater" 10 "EGFR 60 or greater" 11 "EGFR less than 60" 12 "Negative history" 13 "Positive history"
 label values subval subvals
 rename subval Subgroup
-//Generate Forest Plots
-metan hr ll ul if adj==0 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))
-metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small))
-metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small))
+metan hr ll ul if adj==0 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small)) saving(PanelA, asis replace)
+metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))saving(PanelB, asis replace)
+metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small)) saving(PanelC, asis replace)
+metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small)) saving(PanelD, asis replace)
+
+use Stat_acm_mi, clear
 
 ***SENSITIVITY ANALYSIS***
 
@@ -439,6 +494,9 @@ do Data13_variable_generation.do
 keep if exclude==0
 //restrict to jan 1, 2007
 drop if seconddate<17167 
+//generate macros
+local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.bmi_i_cats ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post"
+local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 
 //update censor times for last continuous exposure to second-line agent (indextype)
 forval i=0/5 {
@@ -507,17 +565,30 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 
+// Multiple imputation
+//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
+mi set mlong
+save acm_mlong, replace
+//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
+mi register imputed bmi_i sbp bmi_i_cats sbp_i_cats2
+//set the seed so that results are reproducible
+set seed 1979
+//impute (20 iterations) for each missing value in the registered variables
+mi impute chained (regress) bmi_i sbp (mlogit) bmi_i_cats sbp_i_cats2 = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
+//fit the model separately on each of the 20 imputed datasets and combine results
+mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
+
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 label var indextype "Exposure"
 stptime, by(indextype) per(1000)
 stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 stptime, title(person-years) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadjusted2") modify
+putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj MI Gap1") modify
 forval i=0/5{
 local row=`i'+2
 stptime if indextype==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadjusted2") modify
+putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj MI Gap1") modify
 }
 forval i=1/5 {
 local row=`i'+2
@@ -525,7 +596,7 @@ local matrow=`i'+1
 stcox i.indextype 
 matrix b=r(table)
 matrix a= b'
-putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadjusted2") modify
+putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj First Gap") modify
 }
 
 //Multivariable analysis 
@@ -533,26 +604,11 @@ stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 matrix b=r(table)
 matrix c=b'
 matrix list c
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted2") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Gap1") modify
 }
-
-// Multiple imputation
-//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
-mi set mlong
-save acm_mlong, replace
-//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
-mi register imputed bmi_i sbp
-//set the seed so that results are reproducible
-set seed 1979
-//impute (10 iterations) for each missing value in the registered variables
-mi impute mvn bmi_i sbp = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
-//fit the model separately on each of the 10 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp
-
 
 //#2a. CENSOR EXPSOURE AT EXPOSURE TO THIRD AGENT
 use Analytic_Dataset_Master, clear
@@ -561,6 +617,9 @@ do Data13_variable_generation.do
 keep if exclude==0 
 //restrict to jan 1, 2007
 drop if seconddate<17167 
+//generate macros
+local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.bmi_i_cats ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
+local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 
 //update censor times for single agent exposure to a thirddate
 forval i=0/5 {
@@ -570,17 +629,30 @@ forval i=0/5 {
 // declare survival analysis for single agent exposure to a thirddate
 stset acm_exit, fail(acm) id(patid) origin(thirddate) scale(365.35)
 
+// Multiple imputation
+//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
+mi set mlong
+save acm_mlong, replace
+//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
+mi register imputed bmi_i sbp bmi_i_cats sbp_i_cats2
+//set the seed so that results are reproducible
+set seed 1979
+//impute (20 iterations) for each missing value in the registered variables
+mi impute chained (regress) bmi_i sbp (mlogit) bmi_i_cats sbp_i_cats2 = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
+//fit the model separately on each of the 20 imputed datasets and combine results
+mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
+
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 label var indextype "Exposure"
 stptime, by(indextype) per(1000)
 stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 stptime, title(person-years) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("SensAnalysis3") modify
+putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Agent3") modify
 forval i=0/5{
 local row=`i'+2
 stptime if indextype==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("SensAnalysis3") modify
+putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj MI Agent3") modify
 }
 forval i=1/5 {
 local row=`i'+2
@@ -588,7 +660,7 @@ local matrow=`i'+1
 stcox i.indextype 
 matrix b=r(table)
 matrix a= b'
-putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("SensAnalysis3") modify
+putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj MI Agent3") modify
 }
 
 //Multivariable analysis 
@@ -596,26 +668,11 @@ stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 matrix b=r(table)
 matrix c=b'
 matrix list c
-*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("SensAnalysis3") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Agent3") modify
 }
-
-// Multiple imputation
-//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
-mi set mlong
-save acm_mlong, replace
-//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
-mi register imputed bmi_i sbp
-//set the seed so that results are reproducible
-set seed 1979
-//impute (10 iterations) for each missing value in the registered variables
-mi impute mvn bmi_i sbp = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
-//fit the model separately on each of the 10 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp
 
 //#2b. Fourth-line Therapy
 use Analytic_Dataset_Master, clear
@@ -634,17 +691,30 @@ forval i=0/5 {
 // declare survival analysis - final exposure as last exposure date 
 stset acm_exit, fail(allcausemort) id(patid) origin(fourthdate) scale(365.25)
 
+// Multiple imputation
+//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
+mi set mlong
+save acm_mlong, replace
+//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
+mi register imputed bmi_i sbp bmi_i_cats sbp_i_cats2
+//set the seed so that results are reproducible
+set seed 1979
+//impute (20 iterations) for each missing value in the registered variables
+mi impute chained (regress) bmi_i sbp (mlogit) bmi_i_cats sbp_i_cats2 = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
+//fit the model separately on each of the 20 imputed datasets and combine results
+mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
+
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 label var indextype "Exposure"
 stptime, by(indextype4) per(1000)
 stcox i.indextype4, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 stptime, title(person-years) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadjusted4") modify
+putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj MI Agent4") modify
 forval i=0/5{
 local row=`i'+2
 stptime if indextype4==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadjusted4") modify
+putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj MI Agent4") modify
 }
 forval i=1/5 {
 local row=`i'+2
@@ -652,35 +722,19 @@ local matrow=`i'+1
 stcox i.indextype4 
 matrix b=r(table)
 matrix a= b'
-putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadjusted4") modify
+putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj MI Agent4") modify
 }
 
 //Multivariable analysis 
-// note: missing indicator approach used
 stcox i.indextype4 `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
-*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted4") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Agent4") modify
 }
-
-// Multiple imputation
-//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
-mi set mlong
-save acm_mlong, replace
-//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
-mi register imputed bmi_i sbp
-//set the seed so that results are reproducible
-set seed 1979
-//impute (10 iterations) for each missing value in the registered variables
-mi impute mvn bmi_i sbp = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
-//fit the model separately on each of the 10 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp
 
 //#3 Any exposure after metformin monotherapy
 use Analytic_Dataset_Master, clear
@@ -689,134 +743,92 @@ do Data13_variable_generation.do
 keep if exclude==0
 //restrict to jan 1, 2007
 drop if seconddate<17167 
+//generate macros
+local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5 ib1.bmi_i_cats bmi_i ib1.hba1c_cats_i2 ib1.sbp_i_cats2 sbp i.ckd_amdrd i.physician_vis2 i.unique_cov_drugs i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
+local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics"
+local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
+local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
+local meds = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
+local clin = "ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 ib1.bmi_i_cats bmi_i sbp"
+local covariate = "`demo' `comorb' `meds' `clin'"
+//Ever DPP
+preserve
+//stset acm_exit if exposuretf2!=., fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<acm_exit) 
+mi set mlong
+save acm_mlong, replace
+mi register imputed bmi_i sbp bmi_i_cats sbp_i_cats2
+set seed 1979
+mi impute mvn bmi_i sbp= acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
+mi impute chained (mlogit) bmi_i_cats sbp_i_cats2 = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
+mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
+mi stset acm_exit if exposuretf2!=., fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<acm_exit) 
+mi estimate, hr: stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
-// declare survival analysis - final exposure as last exposure date 
-stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
-
-// split data to integrate time-varying covariates for diabetes meds.
-stsplit adm3, at(0) after(thirddate)
-gen su_post=regexm(thirdadmrx, "SU") & adm3!=-1
-gen dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
-gen glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
-gen ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
-gen tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
-gen oth_post=regexm(thirdadmrx, "other") & adm3!=-1
-
-stsplit adm4, at(0) after(fourthdate)
-replace su_post=1 if regexm(fourthadmrx, "SU") & adm4!=-1
-replace dpp4i_post= 1 if regexm(fourthadmrx, "DPP") & adm4!=-1
-replace glp1ra_post=1 if regexm(fourthadmrx, "GLP") & adm4!=-1
-replace ins_post=1 if regexm(fourthadmrx, "insulin") & adm4!=-1
-replace tzd_post=1 if regexm(fourthadmrx, "TZD") & adm4!=-1
-replace oth_post=1 if regexm(fourthadmrx, "other") & adm4!=-1
-
-stsplit adm5, at(0) after(fifthdate)
-replace su_post=1 if regexm(fifthadmrx, "SU") & adm5!=-1
-replace dpp4i_post= 1 if regexm(fifthadmrx, "DPP") & adm5!=-1
-replace glp1ra_post=1 if regexm(fifthadmrx, "GLP") & adm5!=-1
-replace ins_post=1 if regexm(fifthadmrx, "insulin") & adm5!=-1
-replace tzd_post=1 if regexm(fifthadmrx, "TZD") & adm5!=-1
-replace oth_post=1 if regexm(fifthadmrx, "other") & adm5!=-1
-
-stsplit adm6, at(0) after(sixthdate)
-replace su_post=1 if regexm(sixthadmrx, "SU") & adm6!=-1
-replace dpp4i_post= 1 if regexm(sixthadmrx, "DPP") & adm6!=-1
-replace glp1ra_post=1 if regexm(sixthadmrx, "GLP") & adm6!=-1
-replace ins_post=1 if regexm(sixthadmrx, "insulin") & adm6!=-1
-replace tzd_post=1 if regexm(sixthadmrx, "TZD") & adm6!=-1
-replace oth_post=1 if regexm(sixthadmrx, "other") & adm6!=-1
-
-stsplit adm7, at(0) after(seventhdate)
-replace su_post=1 if regexm(seventhadmrx, "SU") & adm7!=-1
-replace dpp4i_post= 1 if regexm(seventhadmrx, "DPP") & adm7!=-1
-replace glp1ra_post=1 if regexm(seventhadmrx, "GLP") & adm7!=-1
-replace ins_post=1 if regexm(seventhadmrx, "insulin") & adm7!=-1
-replace tzd_post=1 if regexm(seventhadmrx, "TZD") & adm7!=-1
-replace oth_post=1 if regexm(seventhadmrx, "other") & adm7!=-1
-
-replace su_post=1 if regexm(secondadmrx, "SU")
-replace dpp4i_post=1 if regexm(secondadmrx, "DPP")
-replace glp1ra_post=1 if regexm(secondadmrx, "GLP")
-replace ins_post=1 if regexm(secondadmrx, "insulin")
-replace tzd_post=1 if regexm(secondadmrx, "TZD") 
-replace oth_post=1 if regexm(secondadmrx, "other")
-
-//Generate person-years, incidence rate, and 95%CI as well as hazard ratios
-foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
-	stptime, by(`var'_post) per(1000)
-	stcox `var'_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-	}
-	
-stcox `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-
-// any use [time-varying]
-stsplit stop0, at(0(1)max) after(exposuretf0)
-replace su_post=0 if su_post==1 & stop0!=-1
-
-stsplit stop1, at(0(1)max) after(exposuretf1)
-replace dpp4i_post=0 if dpp4i_post==1 & stop1!=-1
-
-stsplit stop2, at(0(1)max) after(exposuretf2)
-replace glp1ra_post=0 if glp1ra_post==1 & stop2!=-1
-
-stsplit stop3, at(0(1)max) after(exposuretf3)
-replace ins_post=0 if ins_post==1 & stop3!=-1
-
-stsplit stop4, at(0(1)max) after(exposuretf4)
-replace tzd_post=0 if tzd_post==1 & stop4!=-1
-
-stsplit stop5, at(0(1)max) after(exposuretf5)
-replace oth_post=0 if oth_post==1 & stop5!=-1
-
-//Generate person-years, incidence rate, and 95%CI as well as hazard ratios
-foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
-	stptime, by(`var'_post) per(1000)
-	stcox `var'_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-	}
-	
+//Multivariable analysis 
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
-*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adjusted4") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI AnyDPP") modify
 }
+restore
 
+//Ever GLP
+preserve
+stset acm_exit if ever1==1, fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf1<acm_exit) 
 // Multiple imputation
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
 mi set mlong
 save acm_mlong, replace
 //inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
-mi register imputed bmi_i sbp
+mi register imputed bmi_i sbp bmi_i_cats sbp_i_cats2
 //set the seed so that results are reproducible
 set seed 1979
-//impute (10 iterations) for each missing value in the registered variables
-mi impute mvn bmi_i sbp = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
-//fit the model separately on each of the 10 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp
-
-//#4 Reframe indexdate to the first date a patient initiated their THIRD ADM
-forval i=0/5 {
-	replace acm_exit = exposuretf`i' if indextype3==`i' & exposuretf`i'!=.
-}
-
-// declare survival analysis - final exposure as last exposure date 
-stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
-
-stcox i.indextype3 `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+//impute (20 iterations) for each missing value in the registered variables
+mi impute chained (regress) bmi_i sbp (mlogit) bmi_i_cats sbp_i_cats2 = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
+//fit the model separately on each of the 20 imputed datasets and combine results
+mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
+//Multivariable analysis 
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
 forval i=1/79{
 local x=`i'+1
 local rowname:word `i' of `matrownames'
-putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_index3, sheet("Adjusted") modify
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI AnyGLP") modify
 }
+restore
+
+//NO INCRETINS
+preserve
+stset acm_exit if ever1!=1&ever2!=1, fail(allcausemort) id(patid) origin(seconddate) scale(365.25)
+// Multiple imputation
+//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
+mi set mlong
+save acm_mlong, replace
+//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
+mi register imputed bmi_i sbp bmi_i_cats sbp_i_cats2
+//set the seed so that results are reproducible
+set seed 1979
+//impute (20 iterations) for each missing value in the registered variables
+mi impute chained (regress) bmi_i sbp (mlogit) bmi_i_cats sbp_i_cats2 = acm `demo' `comorb' `meds3' `clin2', add(20) by(indextype)
+//fit the model separately on each of the 20 imputed datasets and combine results
+mi estimate, hr: stcox i.indextype `covariate' bmi_i sbp bmi_i_cats sbp_i_cats2
+//Multivariable analysis 
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+matrix b=r(table)
+matrix c=b'
+matrix list c
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI NoIncretins") modify
+}
+restore
 
 timer off 1
 log close stat_acm
