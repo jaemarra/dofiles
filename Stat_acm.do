@@ -793,12 +793,12 @@ replace glp_ever=0 if regexm(`numb'admrx, "DPP")
 }
 
 preserve
-replace indextype==5
-replace indextype==0 if su_notinc==1
-replace indextype==1 if dpp_ever==1
-keep if indextype==0|indextype==1
+replace indextype=5
+replace indextype=0 if su_notinc==1
+replace indextype=1 if dpp_ever==1
+keep if indextype=0|indextype==1
 //mi stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<acm_exit if indextype) 
-mi stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf2<=acm_exit)
+mi stset acm_exit, fail(allcausemort) id(patid) origin(seconddate) scale(365.25) before(exposuretf1<=acm_exit)
 mi estimate, hr: stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 restore
 preserve 
@@ -873,6 +873,110 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI NoIncretins") modify
 }
 restore
+
+// # 4 Any exposure after metformin monotherapy
+use Analytic_Dataset_Master, clear
+do Data13_variable_generation.do
+//apply exclusion criteria
+keep if exclude==0
+//restrict to jan 1, 2007
+drop if seconddate<17167 
+
+// declare survival analysis - final exposure as last exposure date 
+stset mace_exit, fail(mace) id(patid) origin(seconddate) scale(365.25)
+
+// spit data to integrate time-varying covariates for diabetes meds.
+stsplit adm3, at(0) after(thirddate)
+gen su_post=regexm(thirdadmrx, "SU") & adm3!=-1
+gen dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
+gen glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
+gen ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
+gen tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
+gen oth_post=regexm(thirdadmrx, "other") & adm3!=-1
+
+stsplit adm4, at(0) after(fourthdate)
+replace su_post=1 if regexm(fourthadmrx, "SU") & adm4!=-1
+replace dpp4i_post= 1 if regexm(fourthadmrx, "DPP") & adm4!=-1
+replace glp1ra_post=1 if regexm(fourthadmrx, "GLP") & adm4!=-1
+replace ins_post=1 if regexm(fourthadmrx, "insulin") & adm4!=-1
+replace tzd_post=1 if regexm(fourthadmrx, "TZD") & adm4!=-1
+replace oth_post=1 if regexm(fourthadmrx, "other") & adm4!=-1
+
+stsplit adm5, at(0) after(fifthdate)
+replace su_post=1 if regexm(fifthadmrx, "SU") & adm5!=-1
+replace dpp4i_post= 1 if regexm(fifthadmrx, "DPP") & adm5!=-1
+replace glp1ra_post=1 if regexm(fifthadmrx, "GLP") & adm5!=-1
+replace ins_post=1 if regexm(fifthadmrx, "insulin") & adm5!=-1
+replace tzd_post=1 if regexm(fifthadmrx, "TZD") & adm5!=-1
+replace oth_post=1 if regexm(fifthadmrx, "other") & adm5!=-1
+
+stsplit adm6, at(0) after(sixthdate)
+replace su_post=1 if regexm(sixthadmrx, "SU") & adm6!=-1
+replace dpp4i_post= 1 if regexm(sixthadmrx, "DPP") & adm6!=-1
+replace glp1ra_post=1 if regexm(sixthadmrx, "GLP") & adm6!=-1
+replace ins_post=1 if regexm(sixthadmrx, "insulin") & adm6!=-1
+replace tzd_post=1 if regexm(sixthadmrx, "TZD") & adm6!=-1
+replace oth_post=1 if regexm(sixthadmrx, "other") & adm6!=-1
+
+stsplit adm7, at(0) after(seventhdate)
+replace su_post=1 if regexm(seventhadmrx, "SU") & adm7!=-1
+replace dpp4i_post= 1 if regexm(seventhadmrx, "DPP") & adm7!=-1
+replace glp1ra_post=1 if regexm(seventhadmrx, "GLP") & adm7!=-1
+replace ins_post=1 if regexm(seventhadmrx, "insulin") & adm7!=-1
+replace tzd_post=1 if regexm(seventhadmrx, "TZD") & adm7!=-1
+replace oth_post=1 if regexm(seventhadmrx, "other") & adm7!=-1
+
+replace su_post=1 if regexm(secondadmrx, "SU")
+replace dpp4i_post=1 if regexm(secondadmrx, "DPP")
+replace glp1ra_post=1 if regexm(secondadmrx, "GLP")
+replace ins_post=1 if regexm(secondadmrx, "insulin")
+replace tzd_post=1 if regexm(secondadmrx, "TZD") 
+replace oth_post=1 if regexm(secondadmrx, "other")
+
+//Generate person-years, incidence rate, and 95%CI as well as hazard ratios
+foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
+	stptime, by(`var'_post) per(1000)
+	stcox `var'_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+	}
+	
+stcox `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+
+// any use [time-varying]
+stsplit stop0, at(0(1)max) after(exposuretf0)
+replace su_post=0 if su_post==1 & stop0!=-1
+
+stsplit stop1, at(0(1)max) after(exposuretf1)
+replace dpp4i_post=0 if dpp4i_post==1 & stop1!=-1
+
+stsplit stop2, at(0(1)max) after(exposuretf2)
+replace glp1ra_post=0 if glp1ra_post==1 & stop2!=-1
+
+stsplit stop3, at(0(1)max) after(exposuretf3)
+replace ins_post=0 if ins_post==1 & stop3!=-1
+
+stsplit stop4, at(0(1)max) after(exposuretf4)
+replace tzd_post=0 if tzd_post==1 & stop4!=-1
+
+stsplit stop5, at(0(1)max) after(exposuretf5)
+replace oth_post=0 if oth_post==1 & stop5!=-1
+
+//Generate person-years, incidence rate, and 95%CI as well as hazard ratios
+foreach var in "su" "dpp4i" "glp1ra" "ins" "tzd" "oth" {
+	stptime, by(`var'_post) per(1000)
+	stcox `var'_post, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+	}
+	
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+matrix b=r(table)
+matrix c=b'
+matrix list c
+*matrix rownames c = SU DPP4I GLP1RA INS TZD OTH Age Male su_post dpp4i_post glp1ra_post tzd_post oth_post diabetes_duration HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_unknown Physician_visits_0_12  Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 Non_Smoker Unknown Current Former CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics
+local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown Current Non_Drinker Former BMI_<20 BMI_20_24 BMI_25_29 BMI_30_34 BMI_35_40 BMI_40+ Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown SBP_<120 SBP_120_129 SBP_130_139  SBP_140_149 SBP_150_159 SBP_160+ SBP_missing eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown Physician_visits_0_12 Physician_visits_13_24 Physician_visits_24+ Physician_visits_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ MI Stroke HF Arrythmia Angina Revascularization HTN AFIB PVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post"
+forval i=1/79{
+local x=`i'+1
+local rowname:word `i' of `matrownames'
+putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adjusted4") modify
+}
 
 timer off 1
 log close stat_acm
