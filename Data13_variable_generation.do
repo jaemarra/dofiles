@@ -444,6 +444,8 @@ gen allcausemort = (death_date!=.)
 label var allcausemort "All-cause mortality"
 clonevar acm = allcausemort
 egen acm_exit = rowmin(tod2 death_date lcd2)
+egen acm_exit_o = rowmin(tod2 death_ons lcd2)
+egen acm_exit_c = rowmin(tod2 deathdate2 lcd2)
 format acm_exit %td
 label var acm_exit "Exit date for all-cause mortality analysis"
 
