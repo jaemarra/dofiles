@@ -89,7 +89,6 @@ replace indextype7=6 if seventhadmrx=="metformin"
 label value indextype7 exposure
 tabulate indextype7, gen(indextype7_)
 
-
 //Create post-index exposure numbers for cohort schematic
 local names "SU DPP GLP insulin TZD other metformin"
 local a=0
@@ -177,8 +176,8 @@ recode physician_vis (0=0)(1/12=1) (13/24=2) (25/36=3) (37/48=4) (49/max=5) (.=6
 label define visits_cats 0 "None" 1 "1 to 12" 2 "13 to 24" 3 "25 to 36" 4 "37 to 48" 5 "49 or more" 6 "Unknown"
 label values physician_vis visits_cats
 gen physician_vis2 = physician_vis
-recode physician_vis2 (4/5=3)
-label define visits_cats2 0 "None" 1 "1 to 12" 2 "13 to 24" 3 "24 or more"  6 "Unknown"
+recode physician_vis2 (4/5=3) (6=1)
+label define visits_cats2 0 "None" 1 "1 to 12" 2 "13 to 24" 3 "24 or more" 
 label values physician_vis2 visits_cats2
 tabulate physician_vis2, gen(mdvisits)
 
@@ -253,6 +252,10 @@ replace afib_i= 1 if prx_covvalue_g_ai13==1|prx_covvalue_ai13==1
 //Peripheral Vascular Disease
 gen pvd_i =0
 replace pvd_i= 1 if prx_covvalue_g_ai14==1|prx_covvalue_i14==1
+
+//History of CVD
+gen cvd_i = 0
+replace cvd_i=1 if (pvd_i==1|afib_i==1|revasc_i==1|ang_i==1|arr_i==1|hf_i==1|stroke_i==1|mi_i==1)
 
 //Fill in hes cci
 replace  prx_ccivalue_g_i2=1 if prx_ccivalue_g_i2==.
