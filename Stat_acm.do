@@ -63,7 +63,7 @@ tab indextype6 acm, row
 tab indextype7 acm, row
 
 //2x2 tables for each covariate to determine if events are too low to include any of them
-foreach var of varlist age_65 gender dmdur_cat ckd_amdrd unique_cov_drugs prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i_cats sbp_i_cats2 hba1c_cats_i2_clone prx_covvalue_g_i4_clone {
+foreach var of varlist age_65 gender dmdur_cat ckd_amdrd unique_cov_drugs prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i_cats sbp_i_cats2 hba1c_cats_i2 prx_covvalue_g_i4 {
 tab indextype `var', row
 }
 // 2x2 tables with exposure and death, by baseline covariates
@@ -364,6 +364,8 @@ mi estimate, hr: stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype
 
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi'
+tempfile d0
+save `d0', replace
 matrix b=r(table)
 matrix c=b'
 matrix list c
@@ -448,19 +450,30 @@ restore
 sts graph, by(indextype) saving(kmplot, replace) 
 graph export kmplot.pdf, replace
 
+forvalues i = 1/3{
+  tempfile d`i'
+  use `d0', clear
+  mi extract `i'
+  qui stcox i.indextype `mvmodel_mi'
+  stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5) outfile(`d`i'', replace)
+  use `d0', clear
+  append using `d`i''
+  save, replace
+}
+
 stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5) saving(survplot, replace) 
 graph export survplot.pdf, replace
 **********************************************************Testing PH Assumption*************************************************
-stphplot, by(indextype) saving(lnlnplot, replace)
-graph export lnlnplot.pdf, replace
+//stphplot, by(indextype) saving(lnlnplot, replace)
+//graph export lnlnplot.pdf, replace
 
-stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
-estat phtest, rank detail
+//stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
+//estat phtest, rank detail
 
-stcox i.indextype `covariate', schoenfeld(sch*) scaledsch(sca*)
-stphtest, detail
+//stcox i.indextype `covariate', schoenfeld(sch*) scaledsch(sca*)
+//stphtest, detail
 //repeat this test for each variable of interest
-stphtest, plot(age_indexdate) msym(oh)
+//stphtest, plot(age_indexdate) msym(oh)
 ***********************************************************Testing collinearity******************************************************
 collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 mdvisits4 ndrugs2 ndrugs3 ndrugs4 ndrugs5 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
 
