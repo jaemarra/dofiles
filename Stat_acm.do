@@ -181,7 +181,6 @@ stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2 ib1.sb
 // 4. Test out full multivariate model (mvmodel) all covariates included
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 /* ONLY FOR GENERATING FOREST PLOT
-preserve
 use MainModelGraphs
 label define models 1 "Unadjusted" 2 "Base1" 3 "Base2" 4 "Base3" 5 "Full"
 label values model models
@@ -190,9 +189,6 @@ rename sub_val Covariates
 label values Covariates covariates
 drop treatment
 metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Covariates) effect("Hazard Ratio") title(Comparison of Unadjusted and Iteratively Adjusted Cox Models for Index Exposure to DPP4i, size(small)) saving(ModelComparison, asis replace)
-metan hr ll ul if adj==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))saving(PanelB, asis replace)
-//metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small)) saving(PanelC, asis replace)
-//metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small)) saving(PanelD, asis replace)
 */
 matrix b=r(table)
 matrix c=b'
@@ -447,9 +443,9 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 }
 restore
 **********************************************************KM and survival curves****************************************************
+preserve 
 sts graph, by(indextype) saving(kmplot, replace) 
-graph export kmplot.pdf, replace
-
+graph export kmplot.pdf, replace 
 forvalues i = 1/3{
   tempfile d`i'
   use `d0', clear
@@ -461,19 +457,22 @@ forvalues i = 1/3{
   save, replace
 }
 
-stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5) saving(survplot, replace) 
-graph export survplot.pdf, replace
+use `d0', clear
+collapse (mean) surv2 (mean) surv3, by(_t)
+sort _t
+twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i)  ti("Averaged Curves")
+restore
 **********************************************************Testing PH Assumption*************************************************
-//stphplot, by(indextype) saving(lnlnplot, replace)
-//graph export lnlnplot.pdf, replace
+stphplot, by(indextype) saving(lnlnplot, replace)
+graph export lnlnplot.pdf, replace
 
-//stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
-//estat phtest, rank detail
+stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `covariate', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
+estat phtest, rank detail
 
-//stcox i.indextype `covariate', schoenfeld(sch*) scaledsch(sca*)
-//stphtest, detail
+stcox i.indextype `covariate', schoenfeld(sch*) scaledsch(sca*)
+stphtest, detail
 //repeat this test for each variable of interest
-//stphtest, plot(age_indexdate) msym(oh)
+stphtest, plot(age_indexdate) msym(oh)
 ***********************************************************Testing collinearity******************************************************
 collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 mdvisits4 ndrugs2 ndrugs3 ndrugs4 ndrugs5 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
 
