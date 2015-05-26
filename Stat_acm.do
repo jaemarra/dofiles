@@ -835,15 +835,15 @@ mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 
 mi xeq: stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Agent3") modify
-forval i=0/4{
+forval i=0/5{
 local row=`i'+2
-mi xeq: stptime if indextype==`i'
+mi xeq: stptime if indextype3==`i'
 putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj MI Agent3") modify
 }
 forval i=1/5 {
 local row=`i'+2
 local matrow=`i'+1
-mi estimate, hr: stcox i.indextype 
+mi estimate, hr: stcox i.indextype3
 matrix b=r(table)
 matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj MI Agent3") modify
@@ -851,7 +851,7 @@ putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) us
 
 //Multivariable analysis
 //note: no observations for dpp and glp so omitted from cox model
-mi estimate, hr: stcox indextype_4 indextype_5 indextype_6 `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+mi estimate, hr: stcox i.indextype3 `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
