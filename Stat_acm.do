@@ -813,7 +813,7 @@ forval i=0/5 {
 //reset acm to zero patient is censored before the death event
 replace acm=0 if acm_exit<death_date
 
-// declare survival analysis for single agent exposure to a thirddate
+// declare survival analysis for single agent exposure to thirddate
 stset acm_exit, fail(acm) id(patid) origin(thirddate) scale(365.25)
 
 // Multiple imputation
@@ -835,7 +835,7 @@ mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 
 mi xeq: stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Agent3") modify
-forval i=0/5{
+forval i=0/4{
 local row=`i'+2
 mi xeq: stptime if indextype==`i'
 putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj MI Agent3") modify
@@ -849,7 +849,8 @@ matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj MI Agent3") modify
 }
 
-//Multivariable analysis 
+//Multivariable analysis
+//note: no observations for dpp and glp so omitted from cox model
 mi estimate, hr: stcox indextype_4 indextype_5 indextype_6 `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
