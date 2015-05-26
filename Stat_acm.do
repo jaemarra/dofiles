@@ -922,19 +922,19 @@ local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Agent4") modify
 }
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
-label var indextype "Exposure"
-stptime, by(indextype4) per(1000)
-stcox i.indextype4, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+
+mi xeq: stptime, by(indextype4) per(1000)
+mi estimate, hr: stcox i.indextype4, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Miss Ind Agent4") modify
 forval i=0/5{
 local row=`i'+2
-stptime if indextype4==`i'
+mi xeq: stptime if indextype4==`i'
 putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj Miss Ind Agent4") modify
 }
 forval i=1/5 {
 local row=`i'+2
 local matrow=`i'+1
-stcox i.indextype4 
+mi estimate, hr: stcox i.indextype4 
 matrix b=r(table)
 matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj Miss Ind Agent4") modify
@@ -945,13 +945,13 @@ mi estimate, hr: stcox i.indextype4, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj MI Agent4") modify
 forval i=0/5{
 local row=`i'+2
-stptime if indextype4==`i'
+mi xeq: stptime if indextype4==`i'
 putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj MI Agent4") modify
 }
 forval i=1/5 {
 local row=`i'+2
 local matrow=`i'+1
-stcox i.indextype4 
+mi estimate, hr: stcox i.indextype4 
 matrix b=r(table)
 matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj MI Agent4") modify
@@ -1255,6 +1255,7 @@ lincom 1.indextype_3+1.indextype_3#0.mi_stroke, hr
 lincom 1.indextype_3+1.indextype_3#1.mi_stroke, hr
 save Stat_acm_mi, replace
 
+/*
 //Generate Forest Plots
 use SubgroupAnalysis_anyafter, clear
 //Label variables for subgroup graphs
@@ -1274,6 +1275,6 @@ metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosub
 metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to DPP4i, size(small))saving(PanelB_any, asis replace)
 metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelC_any, asis replace)
 metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelD_any, asis replace)
-
+*/
 timer off 1
 log close stat_acm
