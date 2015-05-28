@@ -181,12 +181,15 @@ stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2 ib1.sb
 // 4. Test out full multivariate model (mvmodel) all covariates included
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 /* ONLY FOR GENERATING FOREST PLOT
-use MainModels
-label define models 1 "Unadjusted" 2 "Model 1" 3 "Model 2" 4 "Model 3" 5 "Fully Adjusted"
-label values model models
-label define covariates 0 "None" 1 "Age, Sex" 2 "+DM, Metf, HbA1c" 3 "+SBP, CKD, uRx, CCI, Visits" 4 "All Covariates"
+use MainModels, clear
+capture lable drop models
+label define modelcats 1 "Unadjusted" 2 "Model 1" 3 "Model 2" 4 "Model 3" 5 "Fully Adjusted"
+label values model modelcats
+capture label drop covariates
+label define covariates 0 "No Covariates" 1 "Age, Sex" 2 "+ DM duration , Met overlap, A1c" 3 "+ SBP, CKD, Number of Rx, CCI, Visits" 4 "All Covariates"
 label values Covariates covariates
-metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(60) scheme(s1mono) lcols(Covariates) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
+rename Covariates Models
+metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
 */
 matrix b=r(table)
 matrix c=b'
@@ -829,7 +832,7 @@ set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2 prx_covvalue_g_i4_clone = acm `demo2' `comorb2' `meds3' `clin3', add(20)
 //Generate hazard ratios
-mi estimate, hr: stcox indextype3_2 indextype3_3 indextype3_4 indextype3_5 indextype3_6 indextype3_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+mi estimate, hr: stcox i.indextype3, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 mi xeq: stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Agent3") modify
@@ -849,8 +852,7 @@ putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) us
 }
 
 //Multivariable analysis
-//note: no "observations" for glp (even though 1087 patids started GLP third)--> omitted from model
-mi estimate, hr: stcox indextype3_2 indextype3_3 indextype3_4 indextype3_5 indextype3_6 `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+mi estimate, hr: stcox i.indextype3 `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
 matrix list c
