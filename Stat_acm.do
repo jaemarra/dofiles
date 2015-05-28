@@ -186,7 +186,7 @@ capture lable drop models
 label define modelcats 1 "Unadjusted" 2 "Model 1" 3 "Model 2" 4 "Model 3" 5 "Fully Adjusted"
 label values model modelcats
 capture label drop covariates
-label define covariates 0 "No Covariates" 1 "Age, Sex" 2 "+ DM duration , Met overlap, A1c" 3 "+ SBP, CKD, Number of Rx, CCI, Visits" 4 "All Covariates"
+label define covariates 0 "No Covariates" 1 "Age, Sex" 2 "+ Metformin mono, Metformin overlap, A1c" 3 "+ SBP, CKD, Number of Rx, CCI, Visits" 4 "All Covariates"
 label values Covariates covariates
 rename Covariates Models
 metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
@@ -445,9 +445,8 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 restore
 **********************************************************KM and survival curves****************************************************
 preserve 
-sts graph, by(indextype) saving(kmplot, replace) 
-graph export kmplot.pdf, replace 
-forvalues i = 1/3{
+sts graph, by(indextype) saving(kmplot_acm, replace)  
+forvalues i = 1/5{
   tempfile d`i'
   use `d0', clear
   mi extract `i'
@@ -459,20 +458,21 @@ forvalues i = 1/3{
 }
 
 use `d0', clear
-collapse (mean) surv2 (mean) surv3, by(_t)
+collapse (mean) surv1 (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6, by(_t)
 sort _t
-twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i)  ti("Averaged Curves")
+twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) surv4 _t, c(stairstep) ms(i) || surv5 _t, c(stairstep) ms(i) ||surv6 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
 restore
-**********************************************************Testing PH Assumption*************************************************
+**********************************************************Other tests of PH Assumption*************************************************
+//generate the log log plot for PH assumption 
 stphplot, by(indextype) saving(lnlnplot, replace)
 graph export lnlnplot.pdf, replace
 
+//non-zero slope for time-dependent covariates
 stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
 estat phtest, rank detail
-
 stcox i.indextype `mvmodel', schoenfeld(sch*) scaledsch(sca*)
 stphtest, detail
-//repeat this test for each variable of interest
+//repeat this test for each time-dependent variable of interest if you want to look at them individually
 stphtest, plot(age_indexdate) msym(oh)
 ***********************************************************Testing collinearity******************************************************
 collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 ndrugs2 ndrugs3 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
@@ -643,7 +643,7 @@ metan hr ll ul if adj==1, force by(subgroup) nowt nobox nooverall nosubgroup nul
 //metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small)) saving(PanelD, asis replace)
 */
 *******************************************************SENSITIVITY ANALYSIS*******************************************************
-// #1. CENSOR EXPSOURE AT FIRST GAP (SECOND AGENT)
+// #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
 keep if exclude==0
@@ -780,8 +780,9 @@ local x=`i'+1
 local rowname:word `i' of `matrownames_mi2'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Gap1") modify
 }
+
 //********************************************************************************************************************************//
-//#2a. CENSOR EXPSOURE AT THIRD AGENT
+//#2a. CENSOR EXPSOURE AT SECOND SWITCH/ADD AGENT (INDEXTYPE3)
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
 //apply exclusion criteria
@@ -861,6 +862,20 @@ local x=`i'+1
 local rowname:word `i' of `matrownames_mi2'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Agent3") modify
 }
+
+/*
+Sensitivity Analyses Plots
+use SensitivityGraphs, clear
+capture label drop subgroupcats
+label define subgroupcats 1 "DPP" 2 "GLP1RA" 3 "Insulin" 4 "TZD" 5 "Other"
+capture rename subgroup Subgroup
+label values Subgroup subgroupcats
+capture label drop periodcats
+label define periodcats 1 "Index to last" 2 "Index to last continuous" 3 "Index to switch/add" 4 "Index or later exposure" 
+capture rename period Period
+label values Period periodcats
+metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) lcols(Period) effect("Hazard Ratio") saving(SensGrph, asis replace)
+*/
 
 //********************************************************************************************************************************//
 //#3 ANY EXPOSURE AFTER METFORMIN
@@ -1154,7 +1169,7 @@ save Stat_acm_mi, replace
 //Generate Forest Plots
 use SubgroupAnalysis_anyafter, clear
 //Label variables for subgroup graphs
-label define subgroups 1 "Age" 2 "Gender" 3 "Duration of metformin monotherapy" 4 "HbA1c" 5 "BMI" 6 "Renal insufficiency" 7 "History of HF" 8 "History of MI/Stroke"
+label define subgroups 1 "Age" 2 "Gender" 3 "Metformin monotherapy" 4 "A1c" 5 "BMI" 6 "Renal insufficiency" 7 "History of HF" 8 "History of MI/Stroke"
 label values subgroup subgroups
 label define subvals 0 "Less than 65" 1 "65 or older" 2 "Female" 3 "Male" 4 "Less than 2 years" 5 "2 or more years" 6 "Less than 8" 7 "8 or greater" 8 "Less than 30" 9 "30 or greater" 10 "EGFR 60 or greater" 11 "EGFR less than 60" 12 "Negative history" 13 "Positive history"
 label values sub_val subvals
@@ -1167,7 +1182,7 @@ recast float adjusted
 recast float Subgroup
 
 metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Any Exposure to DPP4i, size(small)) saving(PanelA_any, asis replace)
-metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to DPP4i, size(small))saving(PanelB_any, asis replace)
+metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to DPP4i, size(small))saving(PanelB_any, asis replace)
 metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelC_any, asis replace)
 metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelD_any, asis replace)
 */
