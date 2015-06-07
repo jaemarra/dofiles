@@ -458,9 +458,9 @@ forvalues i = 1/5{
 }
 
 use `d0', clear
-collapse (mean) surv1 (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6, by(_t)
+collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
-twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) surv4 _t, c(stairstep) ms(i) || surv5 _t, c(stairstep) ms(i) ||surv6 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
+twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
 restore
 **********************************************************Other tests of PH Assumption*************************************************
 //generate the log log plot for PH assumption 
@@ -473,7 +473,7 @@ estat phtest, rank detail
 stcox i.indextype `mvmodel', schoenfeld(sch*) scaledsch(sca*)
 stphtest, detail
 //repeat this test for each time-dependent variable of interest if you want to look at them individually
-stphtest, plot(age_indexdate) msym(oh)
+//stphtest, plot(age_indexdate) msym(oh)
 ***********************************************************Testing collinearity******************************************************
 collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 ndrugs2 ndrugs3 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
 *************************************************SUBGROUP ANALYSES / EFFECT MODIFIERS*************************************************
@@ -782,7 +782,7 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 }
 
 //********************************************************************************************************************************//
-//#2a. CENSOR EXPSOURE AT SECOND SWITCH/ADD AGENT (INDEXTYPE3)
+//#2a. CENSOR EXPSOURE AT INDEXTYPE3
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
 //apply exclusion criteria
@@ -810,7 +810,12 @@ local matrownames_mi2 "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Me
 
 //update censor times for single agent exposure to a thirddate
 forval i=0/5 {
-	replace acm_exit = exposuret0`i' if indextype3==`i' & exposuret0`i'!=.
+	gen censor2 = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
+	gen censor3 = exposuret0`i' if indextype3==`i' & exposuret0`i'!=.
+	egen censordate = rowmin(censor2 censor3)
+	replace acm_exit = censordate
+	drop censor2 censor3 censordate
+	}
 }
 //reset acm to zero patient is censored before the death event
 replace acm=0 if acm_exit<death_date
