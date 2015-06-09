@@ -269,7 +269,7 @@ forval i=1/76{
 //MULTIPLE IMPUTATION APPROACH
 use Analytic_Dataset_Master, clear
 quietly do Data13_variable_generation.do
-gen stroke = stroke_i
+capture gen stroke = stroke_i
 
 //apply exclusion criteria
 keep if exclude==0
@@ -938,7 +938,11 @@ capture recast float Outcomes
 
 capture format %8.0g Outcomes
 
-metan hr ll ul, force by(Outcomes) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) lcols(Agents) effect("Hazard Ratio") saving(SecondaryOutcomes, asis replace)
+rename Agents Outcome
+
+metan hr ll ul, force by(Outcomes) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) lcols(Outcome) effect("Hazard Ratio") saving(SecondaryOutcomes, asis replace)
+
+rename Outcome Agents
 
 */
 
