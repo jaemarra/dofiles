@@ -14,7 +14,7 @@ timer on 1
 
 use Analytic_Dataset_Master.dta, clear
 quietly do Data13_variable_generation.do
-gen hf=hf_i
+capture gen hf=hf_i
 
 //Numbers for flow diagrams
 
@@ -267,7 +267,7 @@ forval i=1/76{
 //MULTIPLE IMPUTATION APPROACH
 use Analytic_Dataset_Master, clear
 quietly do Data13_variable_generation.do
-gen hf=hf_i
+capture gen hf=hf_i
 
 //apply exclusion criteria
 keep if exclude==0
@@ -399,8 +399,6 @@ forval i=1/78{
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Ref0") modify
 } 
 
-
-
 ********************************************Change reference groups using multiple imputation method********************************************
 
 //DPP
@@ -526,7 +524,7 @@ collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate
 // #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen hf=hf_i
+capture gen hf=hf_i
 keep if exclude==0
 drop if seconddate<17167 
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -667,7 +665,7 @@ forval i=1/79{
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen hf=hf_i
+capture gen hf=hf_i
 
 //apply exclusion criteria
 keep if exclude==0 
@@ -786,7 +784,7 @@ metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) schem
 //#3 ANY EXPOSURE AFTER METFORMIN
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen hf=hf_i
+capture gen hf=hf_i
 
 //apply exclusion criteria
 keep if exclude==0

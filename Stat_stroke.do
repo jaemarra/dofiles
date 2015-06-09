@@ -910,5 +910,37 @@ replace oth_post=0 if oth_post==1 & stop5!=-1
 
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
+/*
+
+Secondary Outcome Plots
+
+use SecondaryPlots, clear
+
+capture label drop trtgrpcats
+
+label define trtgrpcats 1 "DPP" 2 "GLP1RA" 3 "Insulin" 4 "TZD" 5 "Other"
+
+capture rename trtgrp Agents
+
+label values Agents trtgrpcats
+
+capture label drop subgroupcats
+
+label define subgroupcats 1 "Angina" 2 "Arrhythmia" 3 "Heart Failure" 4 "Myocardial Infarction" 5 "Revascularization" 6 "Stroke"
+
+capture rename subgroup Outcomes
+
+label values Outcomes subgroupcats
+
+capture recast float Agents
+
+capture recast float Outcomes
+
+capture format %8.0g Outcomes
+
+metan hr ll ul, force by(Outcomes) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) lcols(Agents) effect("Hazard Ratio") saving(SecondaryOutcomes, asis replace)
+
+*/
+
 timer off 1
 log close stat_stroke
