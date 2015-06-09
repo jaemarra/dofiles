@@ -10,6 +10,9 @@ set more off
 log using Stat_acm.smcl, name(stat_acm) replace
 timer on 1
 
+capture ssc install table1
+capture net install collin.pkg
+
 use Analytic_Dataset_Master.dta, clear
 quietly do Data13_variable_generation.do
 
