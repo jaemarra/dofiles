@@ -14,6 +14,7 @@ timer on 1
 
 use Analytic_Dataset_Master.dta, clear
 quietly do Data13_variable_generation.do
+gen hf=hf_i
 
 //Numbers for flow diagrams
 
@@ -54,8 +55,8 @@ local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Met
 
 //Create table1 
 
-table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1.xls, replace)
-table1 if linked_b==1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1_linked.xls, replace)
+table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1_hf.xls, replace)
+table1 if linked_b==1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1_linked_hf.xls, replace)
 
 // 2x2 tables with exposure and outcome (death)
 label var indextype "2nd-line Agent"
@@ -162,11 +163,11 @@ stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 stptime, title(person-years) per(1000)
 
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Miss Ind") modify
+putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_hf, sheet("Unadj Miss Ind") modify
 forval i=0/5{
  local row=`i'+2
  stptime if indextype==`i'
- putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj Miss Ind") modify
+ putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_hf, sheet("Unadj Miss Ind") modify
 }
 
 forval i=1/5 {
@@ -175,10 +176,8 @@ forval i=1/5 {
  stcox i.indextype 
  matrix b=r(table)
  matrix a= b'
- putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj Miss Ind") modify
+ putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2_hf, sheet("Unadj Miss Ind") modify
 }
-
-
 
 //Multivariable analysis 
 // note: missing indicator approach used
@@ -221,7 +220,7 @@ matrix list c
 forval i=1/76{
  local x=`i'+2
  local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref0") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj Miss Ind Ref0") modify
 }
 
 stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
@@ -231,7 +230,7 @@ matrix list c
 forval i=1/75{
  local x=`i'+2
  local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref0Sep") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj Miss Ind Ref0Sep") modify
 }
 
 **********************************************************Change reference groups**********************************************************
@@ -242,7 +241,7 @@ matrix list c
 forval i=1/76{
  local x=`i'+1
  local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref2") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj Miss Ind Ref2") modify
 }
 
 stcox ib3.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
@@ -252,7 +251,7 @@ matrix list c
 forval i=1/76{
  local x=`i'+1
  local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref3") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj Miss Ind Ref3") modify
 } 
 
 stcox ib4.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
@@ -262,14 +261,13 @@ matrix list c
 forval i=1/76{
  local x=`i'+1
  local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref4") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj Miss Ind Ref4") modify
 } 
-
-restore
 
 //MULTIPLE IMPUTATION APPROACH
 use Analytic_Dataset_Master, clear
 quietly do Data13_variable_generation.do
+gen hf=hf_i
 
 //apply exclusion criteria
 keep if exclude==0
@@ -398,7 +396,7 @@ matrix list c
 forval i=1/78{
  local x=`i'+2
  local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref0") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Ref0") modify
 } 
 
 
@@ -413,7 +411,7 @@ matrix list c
 forval i=1/78{
  local x=`i'+2
  local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref2") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Ref2") modify
 }
 
 //GLP
@@ -424,7 +422,7 @@ matrix list c
 forval i=1/78{
  local x=`i'+2
  local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref3") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Ref3") modify
 }
 
 //Insulin
@@ -435,7 +433,7 @@ matrix list c
 forval i=1/78{
  local x=`i'+2
  local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref4") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Ref4") modify
 }
 
 //TZD
@@ -446,7 +444,7 @@ matrix list c
 forval i=1/78{
  local x=`i'+2
  local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref4") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Ref4") modify
 }
 
 ********************************************Re-analyze for CPRD only******************************************** 
@@ -462,7 +460,7 @@ matrix list c
 forval i=1/76{
  local x=`i'+1
  local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj CPRD Only MI") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj CPRD Only MI") modify
 }
 restore
 
@@ -479,7 +477,7 @@ matrix list c
 forval i=1/79{
  local x=`i'+1
  local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj HES Only MI") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj HES Only MI") modify
 }
 restore
 
@@ -528,6 +526,7 @@ collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate
 // #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
+gen hf=hf_i
 keep if exclude==0
 drop if seconddate<17167 
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -636,11 +635,11 @@ mi estimate, hr: stcox i.indextype `mvmodel_mi'
 //Unadjusted MI
 mi xeq: stptime, title(person-years) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj MI Gap1") modify
+putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_hf, sheet("Unadj MI Gap1") modify
 forval i=0/5{
  local row=`i'+2
  mi xeq: stptime if indextype==`i'
- putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj MI Gap1") modify
+ putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_hf, sheet("Unadj MI Gap1") modify
 }
 
 forval i=1/5 {
@@ -649,7 +648,7 @@ forval i=1/5 {
  mi estimate, hr: stcox i.indextype 
  matrix b=r(table)
  matrix a= b'
- putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj MI Gap1") modify
+ putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2_hf, sheet("Unadj MI Gap1") modify
 }
 
 //Multivariable analysis MI
@@ -660,7 +659,7 @@ matrix list c
 forval i=1/79{
  local x=`i'+1
  local rowname:word `i' of `matrownames_mi2'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Gap1") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Gap1") modify
 }
 
 //********************************************************************************************************************************//
@@ -668,6 +667,7 @@ forval i=1/79{
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
+gen hf=hf_i
 
 //apply exclusion criteria
 keep if exclude==0 
@@ -728,11 +728,11 @@ mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2 prx_covvalue_g_i4_c
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 mi xeq: stptime, title(person-years) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Agent3") modify
+putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_hf, sheet("Unadj Agent3") modify
 forval i=0/5{
 local row=`i'+2
 mi xeq: stptime if indextype==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2, sheet("Unadj MI Agent3") modify
+putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_hf, sheet("Unadj MI Agent3") modify
 }
 
 forval i=1/5 {
@@ -741,7 +741,7 @@ forval i=1/5 {
  mi estimate, hr: stcox i.indextype
  matrix b=r(table)
  matrix a= b'
- putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj MI Agent3") modify
+ putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2_hf, sheet("Unadj MI Agent3") modify
 }
 
 //Multivariable analysis
@@ -752,7 +752,7 @@ matrix list c
 forval i=1/79{
  local x=`i'+1
  local rowname:word `i' of `matrownames_mi2'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Agent3") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Agent3") modify
 }
 
 /*
@@ -786,6 +786,7 @@ metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) schem
 //#3 ANY EXPOSURE AFTER METFORMIN
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
+gen hf=hf_i
 
 //apply exclusion criteria
 keep if exclude==0
@@ -835,7 +836,7 @@ matrix list c
 forval i=1/78{
  local x=`i'+2
  local rowname:word `i' of `matrownames_mi2'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Any Aft") modify
+ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj MI Any Aft") modify
 }
 
 // spit data to integrate time-varying covariates for diabetes meds.
