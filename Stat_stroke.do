@@ -944,5 +944,33 @@ rename Outcome Agents
 
 */
 
+/*
+Secondary outcomes plot for DPP with varying reference groups
+
+use SecDPPvaryRef, clear
+
+rename subgroup Subgroup
+
+rename outcome Outcome
+
+capture label drop subgrpcats
+
+label define subgrpcats 0 "SU" 2 "GLP1RA" 3 "Insulin" 4 "TZD"
+
+label values Subgroup subgrpcats
+
+capture label drop outcomecats
+
+label define outcomecats 1 "Angina" 2 "Arrhythmia" 3 "Heart Failure" 4 "Myocardial Infarction" 5 "Revascularization" 6 "Stroke"
+
+label values Outcome outcomecats
+
+capture recast float Subgroup
+
+capture recast float Outcome
+
+metan hr ll ul, force by(Outcome) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(-5, 5, 10, 15, 20) lcols(Subgroup) effect("Hazard Ratio") saving(SecondaryOutcomes, asis replace)
+*/
+
 timer off 1
 log close stat_stroke
