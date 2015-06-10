@@ -239,7 +239,6 @@ local x=`i'+1
 local rowname:word `i' of `matrownames'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj Miss Ind Ref4") modify
 } 
-restore
 
 //MULTIPLE IMPUTATION APPROACH
 use Analytic_Dataset_Master, clear
@@ -818,8 +817,8 @@ forval i=0/5 {
 	egen censordate = rowmin(censor2 censor3)
 	replace acm_exit = censordate
 	drop censor2 censor3 censordate
-	}
 }
+
 //reset acm to zero patient is censored before the death event
 replace acm=0 if acm_exit<death_date
 

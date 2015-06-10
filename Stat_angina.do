@@ -311,17 +311,17 @@ replace prx_covvalue_g_i4_clone=. if prx_covvalue_g_i4==0
 //inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
 mi register imputed bmi_i sbp prx_covvalue_g_i4_clone hba1c_cats_i2_clone
 //describe and learn about the missing values in the data
-mi describe 
-mi misstable summarize
-mi misstable nested
+//mi describe 
+//mi misstable summarize
+//mi misstable nested
 //set the seed so that results are reproducible
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) prx_covvalue_g_i4_clone hba1c_cats_i2_clone = angina `demo2' `comorb2' `meds3' `clin3', add(20)
 //verify that all missing values are filled in
-mi describe
+//mi describe
 //look at summary statistics in each of the imputation datasets
-mi xeq: summarize
+//mi xeq: summarize
 // spit data to integrate time-varying covariates for diabetes meds.
 mi stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
