@@ -93,7 +93,7 @@ replace mace=0 if mace_exit<death_date
 stset mace_exit, fail(mace) id(patid) origin(seconddate) scale(365.25)
 
 //MISSING INDICATOR APPROACH
-preserve
+capture preserve
 
 // spit data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, after(thirddate) at(0)
@@ -450,7 +450,7 @@ forval i=1/78{
 
 ********************************************Re-analyze for CPRD only******************************************** 
 
-preserve
+capture preserve
 keep if linked_b==1
 egen mace_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset mace_exit_g, fail(mace) id(patid) origin(seconddate) scale(365.25)
@@ -463,11 +463,11 @@ forval i=1/76{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj CPRD Only MI") modify
 }
-restore
+capture restore
 
 ********************************************Re-analyze if HES linked********************************************
 
-preserve
+capture preserve
 keep if linked_b!=1
 egen mace_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset mace_exit_g, fail(mace) id(patid) origin(seconddate) scale(365.25)
@@ -480,11 +480,11 @@ forval i=1/79{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj HES Only MI") modify
 }
-restore
+capture restore
 
 **********************************************************KM and survival curves****************************************************
 
-preserve 
+capture preserve 
 sts graph, by(indextype) saving(kmplot_mace, replace)  
 forvalues i = 1/5{
   tempfile d`i'
@@ -501,7 +501,7 @@ use `d0', clear
 collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
-restore
+capture restore
 
 **********************************************************Other tests of PH Assumption*************************************************
 
