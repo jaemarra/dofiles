@@ -47,6 +47,7 @@ local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib1
 local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_>10 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post BMI SBP PhysVis_12 PhysVis_24 PhysVis_24plus"
 local mvmodel_mi = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
 local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
+local mvmodel_nofac = "age_indexdate gender prx_covvalue_g_i4 hba1c_cats_i2 prx_ccivalue_g_i2"
 
 //Create table1 
 table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1.xls, replace)
@@ -88,8 +89,8 @@ replace acm=0 if acm_exit<death_date
 
 // declare survival analysis - final exposure as last exposure date 
 stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
+
 //MISSING INDICATOR APPROACH
-capture preserve
 // spit data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -194,6 +195,35 @@ label values Covariates covariates
 rename Covariates Models
 metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
 */
+
+/*
+**********************************************************MODEL DIAGNOSTICS SECTION*********************************************
+**********************************************************Goodness of Fit Tests*************************************************
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
+//cox-snell cumulative hazard slope should ~=1
+predict cs, csnell
+quietly stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
+sts gen H=na
+line H cs cs, sort ytitle("Goodness of Fit") legend(cols(1))
+**********************************************************Functional Form Tests*************************************************
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
+predict mg, mgale
+lowess mg `age_indexdate' //can repeat this for any non-factor variable you like
+linktest, efron nolog estimate
+**********************************************************Influential Outliers Tests*************************************************
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
+predict dfb(age_indexdate), dfbeta
+scatter dfb(age_in) _t, yline(0) mlabel(id) msymbol(i)
+
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
+predict ld(age_in), ldisplace
+scatter ld _t, yline(0) mlabel(id) msymbol(i)
+
+stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
+predict lm(age_in), lmax
+scatter lm _t, yline(0) mlabel(id) msymbol(i)
+*/
+
 matrix b=r(table)
 matrix c=b'
 matrix list c
@@ -416,7 +446,7 @@ local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref4") modify
 }
 ********************************************Re-analyze for CPRD only******************************************** 
-capture preserve
+preserve
 keep if linked_b==1
 egen acm_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset acm_exit_g, fail(acm) id(patid) origin(seconddate) scale(365.25)
@@ -429,7 +459,7 @@ local x=`i'+1
 local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj CPRD Only MI") modify
 }
-capture restore
+restore
 ********************************************Re-analyze if HES linked********************************************
 capture preserve
 keep if linked_b!=1
@@ -446,7 +476,7 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 }
 capture restore
 **********************************************************KM and survival curves****************************************************
-capture preserve 
+capture preserve
 sts graph, by(indextype) saving(kmplot_acm, replace)  
 forvalues i = 1/5{
   tempfile d`i'

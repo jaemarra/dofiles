@@ -1035,7 +1035,7 @@ lincom 1.indextype_3+1.indextype_3#1.ckd_60, hr
 //Unadjusted
 mi estimate, hr: stcox i.indextype if hf_i==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 mi estimate, hr: stcox i.indextype if hf_i==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-mi estimate, hr post: stcox indextype_2##i.hf_i indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
+mi estimate, hr post: stcox indextype_2##i.hf_i   indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 lincom 1.indextype_2+1.indextype_2#0.hf_i, hr
 lincom 1.indextype_2+1.indextype_2#1.hf_i, hr
 mi estimate, hr post: stcox indextype_2 indextype_3##i.hf_i indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
@@ -1074,42 +1074,27 @@ lincom 1.indextype_3+1.indextype_3#1.mi_stroke, hr
 /*
 //Generate Forest Plots
 
-use SubgroupAnalysis_anyafter, clear
+use SubgroupAnalysis_anyafter_mace, clear
 
 //Label variables for subgroup graphs
 
-label define subgroups 1 "Age" 2 "Gender" 3 "Metformin monotherapy" 4 "A1c" 5 "BMI" 6 "Renal insufficiency" 7 "History of HF" 8 "History of MI/Stroke"
+capture label define subgroups 1 "Age" 2 "Gender" 3 "Metformin monotherapy" 4 "A1c" 5 "BMI" 6 "Renal insufficiency" 7 "History of HF" 8 "History of MI/Stroke"
 
-label values subgroup subgroups
+capture label values subgroup subgroups
 
-label define subvals 0 "Less than 65" 1 "65 or older" 2 "Female" 3 "Male" 4 "Less than 2 years" 5 "2 or more years" 6 "Less than 8" 7 "8 or greater" 8 "Less than 30" 9 "30 or greater" 10 "EGFR 60 or greater" 11 "EGFR less than 60" 12 "Negative history" 13 "Positive history"
+capture label define subvals 0 "Less than 65" 1 "65 or older" 2 "Female" 3 "Male" 4 "Less than 2 years" 5 "2 or more years" 6 "Less than 8" 7 "8 or greater" 8 "Less than 30" 9 "30 or greater" 10 "EGFR 60 or greater" 11 "EGFR less than 60" 12 "Negative history" 13 "Positive history"
 
-label values sub_val subvals
+capture label values sub_val subvals
 
-rename sub_val Subgroup
+capture rename sub_val Subgroup
 
-gen trt = 1 if treatment =="DPP4i"
+capture recast float subgroup
 
-replace trt = 2 if treatment =="GLPRA1"
+capture recast float adjusted
 
-drop treatment var1
+capture recast float Subgroup
 
-recast float subgroup
-
-recast float adjusted
-
-recast float Subgroup
-
-
-
-metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Any Exposure to DPP4i, size(small)) saving(PanelA_any, asis replace)
-
-metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to DPP4i, size(small))saving(PanelB_any, asis replace)
-
-metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelC_any, asis replace)
-
-metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelD_any, asis replace)
-
+metan hr ll ul if adj==1, force by(subgroup) nowt nobox nooverall nosubgroup scheme(s1mono) null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") saving(subgroup_mace, asis replace)
 */
 
 timer off 1
