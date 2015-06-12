@@ -136,6 +136,18 @@ do Data03_drug_exposures_b
 /*	Files saved:	drugexpb_0-49
 					Drug_Exposures_b.dta
 */
+
+/* #3 Data03_drug_exposures_c:	use adm_drug_exposures
+								- merge m:1 patid using Analytic_variables_a
+								- merge m:1 patid using Exclusion_merged
+								- merge m:1 patid using Dates
+								- merge m:1 patid using Patient
+								- generate cohort of only the eligible 38265 patients			
+								- generate history of insulin prescriptions and classifications
+*/
+do Data03_drug_exposures_c
+/*	Files saved:	Drug_Exposures_c.dta
+*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* #3 Data04_drug_covariates:	use Therapy_0-49
 								- do Data04_drug_covariates_loop to call the actual do file and loop all Therapy files through
@@ -313,6 +325,12 @@ do Data09_clinicalcovariates_b
 										- merge 1:1 patid using hesCovariates_s
 										- merge 1:1 patid using Clinical_cci_s
 										- merge 1:1 patid using hes_cci_s
+										
+#9 Data09_fixedvariables: 				use Clinical001_2b-013_2b
+										- merge m:1 patid using Patient
+										- merge m:1 patid using Additonal
+										- merge m:1 patid using Dates
+										- generate fixed variables for bmi, height, and weight
 */
 do Data09_fixedvariables
 
@@ -332,6 +350,10 @@ do Data09_clinicalcovariates_c
 									- create variable for eligible dates
 									- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
 									- rectangularize, fillin, drop unwanted, reshape, save
+									
+#10 Data10_labcovariates_ckd:		use LabCovariates
+									- merge m:1 Analytic_variables_a
+									- generate history for serum creatinine tests for patients in total cohort (165308)
 */
 
 do Data10_labcovariates
