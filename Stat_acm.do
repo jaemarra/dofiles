@@ -841,14 +841,15 @@ local mvmodel_mi2 = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_
 local matrownames_mi2 "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
 
 //update censor times for single agent exposure to a thirddate
+gen censor2 = .
+gen censor3 = .
 forval i=0/5 {
-	gen censor2 = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
-	gen censor3 = exposuret0`i' if indextype3==`i' & exposuret0`i'!=.
-	egen censordate = rowmin(censor2 censor3)
-	replace acm_exit = censordate
-	drop censor2 censor3 censordate
+	replace censor2 = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
+	replace censor3 = exposuret0`i' if indextype3==`i' & exposuret0`i'!=.	
 }
 
+	egen censordate = rowmin(censor2 censor3)
+	replace acm_exit = censordate if censordate!=.
 //reset acm to zero patient is censored before the death event
 replace acm=0 if acm_exit<death_date
 
