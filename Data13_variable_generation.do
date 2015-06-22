@@ -13,7 +13,7 @@ timer on 1
 use Analytic_Dataset_Master
 
 //Exclusion unification
-gen exclude=1 if (gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0|tx<=seconddate)
+gen exclude=1 if (gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0|tx<=seconddate|deathdate2<indexdate|dod2<indexdate)
 replace exclude=0 if exclude!=1
 label var exclude "Bin ind for pcos, preg, gest_diab, or <30yo; excluded=1, not excluded=0)
 tab exclude
