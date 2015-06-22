@@ -5,9 +5,9 @@
 //				
 
 clear all
-capture log close stat_acm_maincox
+capture log close stat_acm_ps
 set more off
-log using Stat_acm_maincox.smcl, name(stat_acm_maincox) replace
+log using Stat_acm_ps.smcl, name(stat_acm_maincox) replace
 timer on 1
 
 capture ssc install psmatch2
@@ -23,28 +23,14 @@ keep if exclude==0
 drop if seconddate<17167
 
 //Create macros
-local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
-local demo2= "age_indexdate gender"
-local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
-local comorb2 ="i.prx_ccivalue_g_i2 hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
-local meds = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_*"
-local meds2 = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
-local meds3 = "i.unique_cov_drugs dmdur statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
-local clin = "ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 ib1.bmi_i_cats"
-local clin2 = "ib1.hba1c_cats_i2 i.ckd_amdrd"
-local clin3 = "i.ckd_amdrd"
-local covariate = "`demo' `comorb' `meds' `clin'"
-local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib1.hba1c_cats_i2 i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i su_post dpp4i_post glp1ra_post ins_post tzd_post bmi_i sbp i.physician_vis2"
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_>10 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post BMI SBP PhysVis_12 PhysVis_24 PhysVis_24plus"
-local mvmodel_mi = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
-local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
-local mvmodel_nofac = "age_indexdate gender prx_covvalue_g_i4 hba1c_cats_i2 prx_ccivalue_g_i2"
+local mvmodel_ps = "dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
 
 gen trt =.
 replace trt=0 if indextype==0
 replace trt=1 if indextype==1
 //generate a PS
-pscore trt `mvmodel_nofac', pscore(ps_single) blockid(ps_block) detail
+pscore trt `mvmodel_ps', pscore(ps_single) blockid(ps_block) detail
+//generate a cstat
 _pctile ps_single, p(10(10)90)
 ret li
 gen decile = 10 if ps_single < .
@@ -52,14 +38,15 @@ qui forval i = 9(-1)1 {
          replace decile = `i' if ps_single <= r(r`i')
  }
 tabstat ps_single, by(decile) s(n sum mean)
+//twoway overlay graph of kernel density or histogram 
 //trim non-overlapping by nearest neighbor matching (always and never treated are removed)
 qui psmatch2 trt, outcome(acm) pscore(ps_single) neighbor(1)
 //Check to make sure PS are balanced
 psgraph, treated(trt) pscore(ps_single)
 //Evaluate standardized differences in matched sample
-pstest `mvmodel_nofac', treated(trt) both
+pstest `mvmodel_ps', treated(trt) both
 //Graph standardized differences in matched sample
-pstest `mvmodel_nofac', treated(trt) both graph
+pstest `mvmodel_ps', treated(trt) both graph
 //Now you can adjust by deciles of the PS in a multivariable model
 // update censor times for final exposure to second-line agent (indextype)
 forval i=0/5 {
@@ -158,5 +145,5 @@ mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 mi estimate, hr: stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 
 //fit the model separately on each of the 20 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype `mvmodel_mi' decile
+mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender
 
