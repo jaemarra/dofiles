@@ -478,7 +478,7 @@ forval i=1/79{
 capture restore
 
 **********************************************************KM and survival curves****************************************************
-
+/*
 capture preserve 
 sts graph, by(indextype) saving(kmplot_hf, replace)  
 forvalues i = 1/5{
@@ -497,7 +497,7 @@ collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean
 sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
 capture restore
-
+*/
 **********************************************************Other tests of PH Assumption*************************************************
 
 //generate the log log plot for PH assumption 
@@ -905,7 +905,7 @@ replace oth_post=0 if oth_post==1 & stop5!=-1
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 timer off 1
-log close stat_hf
+log close Stat_hf
 
 
 

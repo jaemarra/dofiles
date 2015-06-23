@@ -907,4 +907,4 @@ replace oth_post=0 if oth_post==1 & stop5!=-1
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 timer off 1
-log close stat_revasc
+log close Stat_revasc
