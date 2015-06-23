@@ -7,9 +7,9 @@
 
 
 clear all
-capture log close stat_stroke
+capture log close Stat_stroke
 set more off
-log using Stat_stroke.smcl, name(stat_stroke) replace
+log using Stat_stroke.smcl, name(Stat_stroke) replace
 timer on 1
 
 use Analytic_Dataset_Master.dta, clear
@@ -446,7 +446,7 @@ forval i=1/78{
 
 ********************************************Re-analyze for CPRD only******************************************** 
 
-preserve
+capture preserve
 keep if linked_b==1
 egen stroke_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset stroke_exit_g, fail(stroke) id(patid) origin(seconddate) scale(365.25)
@@ -459,11 +459,11 @@ forval i=1/76{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_stroke, sheet("Adj CPRD Only MI") modify
 }
-restore
+capture restore
 
 ********************************************Re-analyze if HES linked********************************************
 
-preserve
+capture preserve
 keep if linked_b!=1
 egen stroke_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset stroke_exit_g, fail(stroke) id(patid) origin(seconddate) scale(365.25)
@@ -476,11 +476,11 @@ forval i=1/79{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_stroke, sheet("Adj HES Only MI") modify
 }
-restore
+capture restore
 
 **********************************************************KM and survival curves****************************************************
-
-preserve 
+/*
+capture preserve 
 sts graph, by(indextype) saving(kmplot_stroke, replace)  
 forvalues i = 1/5{
   tempfile d`i'
@@ -497,8 +497,8 @@ use `d0', clear
 collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
-restore
-
+capture restore
+*/
 **********************************************************Other tests of PH Assumption*************************************************
 
 //generate the log log plot for PH assumption 
@@ -523,7 +523,6 @@ collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate
 // #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen stroke = stroke_i
 keep if exclude==0
 drop if seconddate<17167 
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -664,7 +663,6 @@ forval i=1/79{
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen stroke = stroke_i
 
 //apply exclusion criteria
 keep if exclude==0 
@@ -783,7 +781,6 @@ metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) schem
 //#3 ANY EXPOSURE AFTER METFORMIN
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen stroke = stroke_i
 
 //apply exclusion criteria
 keep if exclude==0
@@ -970,4 +967,4 @@ metan hr ll ul, force by(Outcome) nowt nobox nooverall nosubgroup null(1) scheme
 */
 
 timer off 1
-log close stat_stroke
+log close Stat_stroke
