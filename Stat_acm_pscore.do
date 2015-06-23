@@ -1,4 +1,4 @@
-//  program:    Stat_acm_ps.do
+//  program:    Stat_acm_pscore.do
 //  task:		Propensity score analysis for all-cause mortality
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     JM \ June 2015  
@@ -23,7 +23,14 @@ keep if exclude==0
 drop if seconddate<17167
 
 //Create macros
-local mvmodel_ps = "dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
+tab ckd_amdrd, gen(ckd_dum)
+tab unique_cov_drugs, gen(unq_dum)
+tab prx_ccivalue_g_i2, gen(cci_dum)
+tab hba1c_cats_i2, gen(a1c_dum)
+tab prx_covvalue_g_i4, gen(smk_dum)
+tab physician_vis2, gen(vis_dum)
+
+local mvmodel_ps = "dmdur metoverlap ckd_dum* unq_dum* cci_dum* a1c_dum* smk_dum* vis_dum* cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp"
 
 gen trt =.
 replace trt=0 if indextype==0
@@ -32,14 +39,19 @@ replace trt=1 if indextype==1
 pscore trt `mvmodel_ps', pscore(ps_single) blockid(ps_block) detail
 //generate a cstat
 _pctile ps_single, p(10(10)90)
-ret li
+return list
 gen decile = 10 if ps_single < .
 qui forval i = 9(-1)1 {
          replace decile = `i' if ps_single <= r(r`i')
  }
 tabstat ps_single, by(decile) s(n sum mean)
 //twoway overlay graph of kernel density or histogram 
-//trim non-overlapping by nearest neighbor matching (always and never treated are removed)
+kdensity ps_single if trt==0, nograph gen(x ps_0)
+kdensity ps_single if trt==1, nograph gen(x2 ps_1)
+label var ps_1 "Treated with DPP4i"
+label var ps_0 "Not treated with DPP4i"
+line ps_0 ps_1 x
+//trim non-overlapping by nearest neighbor matching (always and never treated are removed but not applicable in cohort)
 qui psmatch2 trt, outcome(acm) pscore(ps_single) neighbor(1)
 //Check to make sure PS are balanced
 psgraph, treated(trt) pscore(ps_single)
@@ -140,10 +152,6 @@ replace oth_post=0 if oth_post==1 & stop5!=-1
 
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 mi xeq: stptime, by(indextype) per(1000)
-//check that i.indextype and the separated indextypes yield the same results
-mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-mi estimate, hr: stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender
 
