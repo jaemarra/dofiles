@@ -4,17 +4,15 @@
 //  author:     JM \ April 2015  
 //				
 
-
-
 clear all
-capture log close stat_angina
+capture log close Stat_angina
 set more off
-log using Stat_angina.smcl, name(stat_angina) replace
+log using Stat_angina.smcl, name(Stat_angina) replace
 timer on 1
 
 use Analytic_Dataset_Master.dta, clear
 quietly do Data13_variable_generation.do
-gen angina=ang_i
+capture gen angina=ang_i
 
 //Numbers for flow diagrams
 
@@ -267,7 +265,7 @@ forval i=1/76{
 //MULTIPLE IMPUTATION APPROACH
 use Analytic_Dataset_Master, clear
 quietly do Data13_variable_generation.do
-gen angina=ang_i
+capture gen angina=ang_i
 
 //apply exclusion criteria
 keep if exclude==0
@@ -481,7 +479,7 @@ forval i=1/79{
 capture restore
 
 **********************************************************KM and survival curves**************************************************** 
-capture preserve 
+/*capture preserve 
 sts graph, by(indextype) saving(kmplot_angina, replace)  
 forvalues i = 1/5{
   tempfile d`i'
@@ -499,7 +497,7 @@ collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean
 sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
 capture restore
-
+*/
 **********************************************************Other tests of PH Assumption*************************************************
 
 //generate the log log plot for PH assumption 
@@ -524,7 +522,7 @@ collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate
 // #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen angina=ang_i
+capture gen angina=ang_i
 keep if exclude==0
 drop if seconddate<17167 
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -665,7 +663,7 @@ forval i=1/79{
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen angina=ang_i
+capture gen angina=ang_i
 
 //apply exclusion criteria
 keep if exclude==0 
@@ -784,7 +782,7 @@ metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) schem
 //#3 ANY EXPOSURE AFTER METFORMIN
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
-gen angina=ang_i
+capture gen angina=ang_i
 
 //apply exclusion criteria
 keep if exclude==0
@@ -907,4 +905,4 @@ replace oth_post=0 if oth_post==1 & stop5!=-1
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 timer off 1
-log close stat_angina
+log close Stat_angina
