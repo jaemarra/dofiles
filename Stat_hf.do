@@ -7,9 +7,9 @@
 
 
 clear all
-capture log close stat_hf
+capture log close Stat_hf
 set more off
-log using Stat_hf.smcl, name(stat_hf) replace
+log using Stat_hf.smcl, name(Stat_hf) replace
 timer on 1
 
 use Analytic_Dataset_Master.dta, clear
@@ -33,8 +33,6 @@ keep if exclude==0
 
 //restrict to jan 1, 2007
 drop if seconddate<17167
-
-
 
 //Create macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -94,7 +92,7 @@ replace hf=0 if hf_exit<death_date
 stset hf_exit, fail(hf) id(patid) origin(seconddate) scale(365.25)
 
 //MISSING INDICATOR APPROACH
-preserve
+capture preserve
 
 // spit data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, after(thirddate) at(0)
@@ -447,7 +445,7 @@ forval i=1/78{
 
 ********************************************Re-analyze for CPRD only******************************************** 
 
-preserve
+capture preserve
 keep if linked_b==1
 egen hf_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset hf_exit_g, fail(hf) id(patid) origin(seconddate) scale(365.25)
@@ -460,11 +458,11 @@ forval i=1/76{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj CPRD Only MI") modify
 }
-restore
+capture restore
 
 ********************************************Re-analyze if HES linked********************************************
 
-preserve
+capture preserve
 keep if linked_b!=1
 egen hf_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset hf_exit_g, fail(hf) id(patid) origin(seconddate) scale(365.25)
@@ -477,11 +475,11 @@ forval i=1/79{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_hf, sheet("Adj HES Only MI") modify
 }
-restore
+capture restore
 
 **********************************************************KM and survival curves****************************************************
 
-preserve 
+capture preserve 
 sts graph, by(indextype) saving(kmplot_hf, replace)  
 forvalues i = 1/5{
   tempfile d`i'
@@ -498,7 +496,7 @@ use `d0', clear
 collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
-restore
+capture restore
 
 **********************************************************Other tests of PH Assumption*************************************************
 
