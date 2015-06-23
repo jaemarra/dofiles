@@ -33,8 +33,6 @@ keep if exclude==0
 //restrict to jan 1, 2007
 drop if seconddate<17167
 
-
-
 //Create macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
