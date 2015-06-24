@@ -472,7 +472,8 @@ forval i=1/79{
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_angina, sheet("Adj HES Only MI") modify
 }
 **********************************************************KM and survival curves**************************************************** 
-/*use Stat_angina_mi, clear
+/*
+use Stat_angina_mi, clear
 sts graph, by(indextype) saving(kmplot_angina, replace)  
 forvalues i = 1/5{
   tempfile d`i'
@@ -491,7 +492,6 @@ sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
 */
 **********************************************************Other tests of PH Assumption*************************************************
-
 //generate the log log plot for PH assumption 
 stphplot, by(indextype) saving(lnlnplot, replace)
 graph export lnlnplot.pdf, replace
@@ -504,7 +504,6 @@ stphtest, detail
 
 //repeat this test plot for each time-dependent variable of interest if you want to look at them individually
 //stphtest, plot(age_indexdate) msym(oh)
-
 ***********************************************************Testing collinearity******************************************************
 
 collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 ndrugs2 ndrugs3 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
