@@ -4,8 +4,6 @@
 //  author:     JM \ April 2015  
 //				
 
-
-
 clear all
 capture log close Stat_myoinf
 set more off
@@ -33,8 +31,6 @@ keep if exclude==0
 
 //restrict to jan 1, 2007
 drop if seconddate<17167
-
-
 
 //Create macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -94,8 +90,6 @@ replace myoinf=0 if mi_exit<death_date
 stset mi_exit, fail(myoinf) id(patid) origin(seconddate) scale(365.25)
 
 //MISSING INDICATOR APPROACH
-capture preserve
-
 // spit data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -178,8 +172,6 @@ forval i=1/5 {
  matrix a= b'
  putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2_myoinf, sheet("Unadj Miss Ind") modify
 }
-
-
 
 //Multivariable analysis 
 // note: missing indicator approach used
@@ -383,6 +375,8 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 
+save Stat_myoinf_mi, replace
+
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 mi xeq: stptime, by(indextype) per(1000)
 //check that i.indextype and the separated indextypes yield the same results
@@ -400,11 +394,7 @@ forval i=1/78{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_myoinf, sheet("Adj MI Ref0") modify
 } 
-
-
-
 ********************************************Change reference groups using multiple imputation method********************************************
-
 //DPP
 mi estimate, hr: stcox ib1.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 matrix b=r(table)
@@ -448,10 +438,8 @@ forval i=1/78{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_myoinf, sheet("Adj MI Ref4") modify
 }
-
 ********************************************Re-analyze for CPRD only******************************************** 
-
-capture preserve
+use Stat_myoinf_mi, clear
 keep if linked_b==1
 egen mi_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset mi_exit_g, fail(myoinf) id(patid) origin(seconddate) scale(365.25)
@@ -464,11 +452,8 @@ forval i=1/76{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_myoinf, sheet("Adj CPRD Only MI") modify
 }
-capture restore
-
 ********************************************Re-analyze if HES linked********************************************
-
-capture preserve
+use Stat_myoinf_mi, clear
 keep if linked_b!=1
 egen mi_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset mi_exit_g, fail(myoinf) id(patid) origin(seconddate) scale(365.25)
@@ -481,11 +466,9 @@ forval i=1/79{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_myoinf, sheet("Adj HES Only MI") modify
 }
-capture restore
-
 **********************************************************KM and survival curves****************************************************
 /*
-capture preserve 
+use Stat_myoinf_mi, clear 
 sts graph, by(indextype) saving(kmplot_myoinf, replace)  
 forvalues i = 1/5{
   tempfile d`i'
@@ -502,10 +485,8 @@ use `d0', clear
 collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
-capture restore
 */
 **********************************************************Other tests of PH Assumption*************************************************
-
 //generate the log log plot for PH assumption 
 stphplot, by(indextype) saving(lnlnplot, replace)
 graph export lnlnplot.pdf, replace
@@ -518,7 +499,6 @@ stphtest, detail
 
 //repeat this test plot for each time-dependent variable of interest if you want to look at them individually
 //stphtest, plot(age_indexdate) msym(oh)
-
 ***********************************************************Testing collinearity******************************************************
 
 collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 ndrugs2 ndrugs3 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
@@ -663,9 +643,7 @@ forval i=1/79{
  local rowname:word `i' of `matrownames_mi2'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_myoinf, sheet("Adj MI Gap1") modify
 }
-
 //********************************************************************************************************************************//
-
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
