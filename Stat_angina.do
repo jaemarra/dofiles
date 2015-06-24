@@ -379,7 +379,7 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 
-save Stat_angina_mi.dat, replace
+save Stat_angina_mi, replace
 
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 mi xeq: stptime, by(indextype) per(1000)
@@ -398,7 +398,6 @@ forval i=1/78{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_angina, sheet("Adj MI Ref0") modify
 } 
-
 
 ********************************************Change reference groups using multiple imputation method********************************************
 //DPP
