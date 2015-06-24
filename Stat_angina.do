@@ -379,6 +379,8 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 
+save Stat_angina_mi.dat, replace
+
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 mi xeq: stptime, by(indextype) per(1000)
 //check that i.indextype and the separated indextypes yield the same results
@@ -399,7 +401,6 @@ forval i=1/78{
 
 
 ********************************************Change reference groups using multiple imputation method********************************************
-
 //DPP
 mi estimate, hr: stcox ib1.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 matrix b=r(table)
@@ -443,10 +444,8 @@ forval i=1/78{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_angina, sheet("Adj MI Ref4") modify
 }
-
 ********************************************Re-analyze for CPRD only******************************************** 
-
-capture preserve
+use Stat_angina_mi, clear
 keep if linked_b==1
 egen ang_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset ang_exit_g, fail(angina) id(patid) origin(seconddate) scale(365.25)
@@ -459,11 +458,8 @@ forval i=1/76{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_angina, sheet("Adj CPRD Only MI") modify
 }
-capture restore
-
 ********************************************Re-analyze if HES linked********************************************
-
-capture preserve
+use Stat_angina_mi, clear
 keep if linked_b!=1
 egen ang_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset ang_exit_g, fail(angina) id(patid) origin(seconddate) scale(365.25)
@@ -476,10 +472,8 @@ forval i=1/79{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_angina, sheet("Adj HES Only MI") modify
 }
-capture restore
-
 **********************************************************KM and survival curves**************************************************** 
-/*capture preserve 
+/*use Stat_angina_mi, clear
 sts graph, by(indextype) saving(kmplot_angina, replace)  
 forvalues i = 1/5{
   tempfile d`i'
@@ -496,7 +490,6 @@ use `d0', clear
 collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
-capture restore
 */
 **********************************************************Other tests of PH Assumption*************************************************
 
