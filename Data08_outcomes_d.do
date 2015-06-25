@@ -30,16 +30,10 @@ gen death_date = min(deathdate2, dod2)
 label variable death_date "Date of death"
 
 //MACE
-gen cvprim_comp_o_date_i = min(myoinfarct_o_date_i, stroke_o_date_i, cvdeath_o_date_i)
-label variable cvprim_comp_o_date_i "Date of first primary CV composite outcome (ons) after index date"
-gen cvprim_comp_o_i = 0 if cvprim_comp_o_date_i==.
-replace cvprim_comp_o_i = 1 if cvprim_comp_o_date_i!=.
-label variable cvprim_comp_o_i "CV composite primary outcome(ons) after index: 1=event 0=no event"
-
-gen cvprim_comp_o_date_s = min(myoinfarct_o_date_s, stroke_o_date_s, cvdeath_o_date_s)
-label variable cvprim_comp_o_date_s "Date of first primary CV composite outcome (ons) after study entry"
-gen cvprim_comp_o_s = (cvprim_comp_o_date_s==.)
-label variable cvprim_comp_o_s "CV composite primary outcome(ons) after study entry: 1=event 0=no event"
+gen mace_date = min(myoinfarct_o_date_i, stroke_o_date_i, cvdeath_o_date_i, myoinfarct_h_date_i, stroke_h_date_i, myoinfarct_g_date_i, stroke_g_date_i)
+label variable mace_date "Date of first primary CV composite outcome (ons) after index date"
+gen mace = (mace_date!=.)
+label variable mace "CV composite primary outcome(ons) after index: 1=event 0=no event"
 
 //Secondary endpoints
 
@@ -84,16 +78,6 @@ label variable revasc_date_i "Date of first revasc (all) after index date"
 
 gen revasc_date_s = min(revasc_g_date_s, proc_date_s)
 label variable revasc_date_s "Date of first revasc (all) after study entry"
-
-gen cvprim_comp_date_i = cvprim_comp_o_date_i
-label variable cvprim_comp_date_i "Date of first primary CV composite outcome (all) after index date"
-gen cvprim_comp_i = (cvprim_comp_date_i!=.)
-label variable cvprim_comp_i "CV composite primary outcome (all) after index: 1=event 0=no event"
-
-gen cvprim_comp_date_s = cvprim_comp_o_date_s
-label variable cvprim_comp_date_s "Date of first primary CV composite outcome (gold) after study entry"
-gen cvprim_comp_s = (cvprim_comp_date_s!=.)
-label variable cvprim_comp_s "CV composite primary outcome(gold) after study entry: 1=event 0=no event"
 
 compress
 save Outcomes.dta, replace 
