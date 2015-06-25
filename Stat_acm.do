@@ -90,7 +90,7 @@ replace acm=0 if acm_exit<death_date
 // declare survival analysis - final exposure as last exposure date 
 stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
 
-//MISSING INDICATOR APPROACH
+//COMPLETE CASE APPROACH
 // spit data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -187,12 +187,14 @@ stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 /* ONLY FOR GENERATING FOREST PLOT
 use MainModels, clear
 capture lable drop models
-label define modelcats 1 "Unadjusted" 2 "Model 1" 3 "Model 2" 4 "Model 3" 5 "Fully Adjusted"
+capture label drop modelcats
+capture rename Models Covariates
+label define modelcats 1 "Unadjusted" 2 "Adjusted for age" 3 "Adjusted for previous" 4 "Adjusted for previous + SBP," 5 "Adjusted for" 6 "Propensity score adjusted"
 label values model modelcats
 capture label drop covariates
-label define covariates 0 "No Covariates" 1 "Age, Sex" 2 "+ Metformin mono, Metformin overlap, A1c" 3 "+ SBP, CKD, Number of Rx, CCI, Visits" 4 "All Covariates"
+label define covariates 0 "no Covariates" 1 "and gender" 2 "+ met mono, met overlap, A1c" 3 "CKD, unique Rx, CCI, visits" 4 "all covariates" 5 "for age, gender, decile"
 label values Covariates covariates
-rename Covariates Models
+capture rename Covariates Models
 metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
 */
 
@@ -205,7 +207,7 @@ predict cs, csnell
 quietly stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
 sts gen H=na
 line H cs cs, sort ytitle("Goodness of Fit") legend(cols(1))
-**********************************************************Functional Form Tests*************************************************
+**********************************************************Function Form Tests*************************************************
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
 predict mg, mgale
 lowess mg `age_indexdate' //can repeat this for any non-factor variable you like
@@ -393,8 +395,6 @@ mi estimate, hr: stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype
 
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi'
-tempfile d0
-save `d0', replace
 matrix b=r(table)
 matrix c=b'
 matrix list c
@@ -403,7 +403,7 @@ local x=`i'+2
 local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref0") modify
 } 
-
+save Stat_acm_mi, replace
 ********************************************Change reference groups using multiple imputation method********************************************
 //DPP
 mi estimate, hr: stcox ib1.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
@@ -446,7 +446,6 @@ local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref4") modify
 }
 ********************************************Re-analyze for CPRD only******************************************** 
-preserve
 keep if linked_b==1
 egen acm_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset acm_exit_g, fail(acm) id(patid) origin(seconddate) scale(365.25)
@@ -459,9 +458,7 @@ local x=`i'+1
 local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj CPRD Only MI") modify
 }
-restore
 ********************************************Re-analyze if HES linked********************************************
-capture preserve
 keep if linked_b!=1
 egen acm_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset acm_exit_g, fail(acm) id(patid) origin(seconddate) scale(365.25)
@@ -474,10 +471,10 @@ local x=`i'+1
 local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj HES Only MI") modify
 }
-capture restore
 **********************************************************KM and survival curves****************************************************
-capture preserve
 sts graph, by(indextype) saving(kmplot_acm, replace)  
+tempfile d0
+save `d0', replace
 forvalues i = 1/5{
   tempfile d`i'
   use `d0', clear
@@ -493,7 +490,6 @@ use `d0', clear
 collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
 twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
-capture restore
 **********************************************************Other tests of PH Assumption*************************************************
 //generate the log log plot for PH assumption 
 stphplot, by(indextype) saving(lnlnplot, replace)
@@ -1219,7 +1215,7 @@ mi xeq 2: stptime if indextype==0&mi_stroke==0
 mi xeq 2: stptime if indextype==0&mi_stroke==1
 mi xeq 2: stptime if indextype==1&mi_stroke==0
 mi xeq 2: stptime if indextype==1&mi_stroke==1
-save Stat_acm_mi, replace
+save Stat_acm_mi2, replace
 
 /*
 //Generate Forest Plots
@@ -1244,5 +1240,6 @@ metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosub
 metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelC_any, asis replace)
 metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelD_any, asis replace)
 */
+
 timer off 1
 log close stat_acm

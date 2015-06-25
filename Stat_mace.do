@@ -14,7 +14,6 @@ use Analytic_Dataset_Master.dta, clear
 quietly do Data13_variable_generation.do
 
 //Numbers for flow diagrams
-
 tab firstadmrx
 tab gest_diab
 tab pcos
@@ -76,7 +75,6 @@ foreach var of varlist gender dmdur_cat prx_covvalue_g_i4 prx_covvalue_g_i5 bmi_
 	diuretics_all_i {
 table indextype `var', contents(n mace mean mace) format(%6.2f) center col
 	}
-
 *******************************************************COX PROPORTIONAL HAZARDS REGRESSION*******************************************************
 // update censor times for final exposure to second-line agent (indextype)
 forval i=0/5 {
@@ -88,7 +86,7 @@ replace mace=0 if mace_exit<death_date
 // declare survival analysis - final exposure as last exposure date 
 stset mace_exit, fail(mace) id(patid) origin(seconddate) scale(365.25)
 
-//MISSING INDICATOR APPROACH
+//COMPLETE CASE APPROACH
 // spit data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -149,7 +147,6 @@ stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
-
 label var indextype "Exposure"
 stptime, by(indextype) per(1000)
 stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
@@ -186,25 +183,15 @@ stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2 ib1.sb
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 /* ONLY FOR GENERATING FOREST PLOT
-
 use MainModels, clear
-
 capture lable drop models
-
 label define modelcats 1 "Unadjusted" 2 "Model 1" 3 "Model 2" 4 "Model 3" 5 "Fully Adjusted"
-
 label values model modelcats
-
 capture label drop covariates
-
 label define covariates 0 "No Covariates" 1 "Age, Sex" 2 "+ Metformin mono, Metformin overlap, A1c" 3 "+ SBP, CKD, Number of Rx, CCI, Visits" 4 "All Covariates"
-
 label values Covariates covariates
-
 rename Covariates Models
-
 metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
-
 */
 
 matrix b=r(table)
@@ -225,7 +212,6 @@ forval i=1/75{
  local rowname:word `i' of `matrownames'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj Miss Ind Ref0Sep") modify
 }
-
 **********************************************************Change reference groups**********************************************************
 stcox ib2.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 matrix b=r(table)
@@ -256,7 +242,6 @@ forval i=1/76{
  local rowname:word `i' of `matrownames'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj Miss Ind Ref4") modify
 } 
-
 
 //MULTIPLE IMPUTATION APPROACH
 use Analytic_Dataset_Master, clear
@@ -303,18 +288,10 @@ clonevar prx_covvalue_g_i4_clone = prx_covvalue_g_i4
 replace prx_covvalue_g_i4_clone=. if prx_covvalue_g_i4==0
 //inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
 mi register imputed bmi_i sbp prx_covvalue_g_i4_clone hba1c_cats_i2_clone
-//describe and learn about the missing values in the data
-mi describe 
-mi misstable summarize
-mi misstable nested
 //set the seed so that results are reproducible
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) prx_covvalue_g_i4_clone hba1c_cats_i2_clone = mace `demo2' `comorb2' `meds3' `clin3', add(20)
-//verify that all missing values are filled in
-mi describe
-//look at summary statistics in each of the imputation datasets
-mi xeq: summarize
 // spit data to integrate time-varying covariates for diabetes meds.
 mi stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -383,8 +360,6 @@ mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 mi estimate, hr: stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi'
-tempfile d0
-save `d0', replace
 matrix b=r(table)
 matrix c=b'
 matrix list c
@@ -468,6 +443,8 @@ forval i=1/79{
 **********************************************************KM and survival curves****************************************************
 use Stat_mace_mi, clear
 sts graph, by(indextype) saving(kmplot_mace, replace)  
+tempfile d0
+save `d0', replace
 forvalues i = 1/5{
   tempfile d`i'
   use `d0', clear
@@ -478,13 +455,12 @@ forvalues i = 1/5{
   append using `d`i''
   save, replace
 }
-
 use `d0', clear
 collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
-twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
+twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot_mace, replace)
 **********************************************************Other tests of PH Assumption*************************************************
-
+use Stat_mace_mi, clear
 //generate the log log plot for PH assumption 
 stphplot, by(indextype) saving(lnlnplot, replace)
 graph export lnlnplot.pdf, replace
@@ -497,7 +473,6 @@ stphtest, detail
 
 //repeat this test plot for each time-dependent variable of interest if you want to look at them individually
 //stphtest, plot(age_indexdate) msym(oh)
-
 ***********************************************************Testing collinearity******************************************************
 
 collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 ndrugs2 ndrugs3 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
