@@ -445,7 +445,7 @@ use Stat_mace_mi, clear
 sts graph, by(indextype) saving(kmplot_mace, replace)  
 tempfile d0
 save `d0', replace
-forvalues i = 1/5{
+forvalues i = 1/20{
   tempfile d`i'
   use `d0', clear
   mi extract `i'
@@ -710,33 +710,19 @@ forval i=1/79{
 }
 
 /*
-
 Sensitivity Analyses Plots
-
 use SensitivityGraphs, clear
-
 capture label drop subgroupcats
-
 label define subgroupcats 1 "DPP" 2 "GLP1RA" 3 "Insulin" 4 "TZD" 5 "Other"
-
 capture rename subgroup Subgroup
-
 label values Subgroup subgroupcats
-
 capture label drop periodcats
-
 label define periodcats 1 "Index to last" 2 "Index to last continuous" 3 "Index to switch/add" 4 "Index or later exposure" 
-
 capture rename period Period
-
 label values Period periodcats
-
 metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) lcols(Period) effect("Hazard Ratio") saving(SensGrph, asis replace)
-
 */
-
 //********************************************************************************************************************************//
-
 //#3 ANY EXPOSURE AFTER METFORMIN
 use Analytic_Dataset_Master, clear
 do Data13_variable_generation.do
@@ -1044,27 +1030,16 @@ mi xeq 2: stptime if indextype==1&mi_stroke==1
 
 /*
 //Generate Forest Plots
-
 use SubgroupAnalysis_anyafter_mace, clear
-
 //Label variables for subgroup graphs
-
 capture label define subgroups 1 "Age" 2 "Gender" 3 "Metformin monotherapy" 4 "A1c" 5 "BMI" 6 "Renal insufficiency" 7 "History of HF" 8 "History of MI/Stroke"
-
 capture label values subgroup subgroups
-
 capture label define subvals 0 "Less than 65" 1 "65 or older" 2 "Female" 3 "Male" 4 "Less than 2 years" 5 "2 or more years" 6 "Less than 8" 7 "8 or greater" 8 "Less than 30" 9 "30 or greater" 10 "EGFR 60 or greater" 11 "EGFR less than 60" 12 "Negative history" 13 "Positive history"
-
 capture label values sub_val subvals
-
 capture rename sub_val Subgroup
-
 capture recast float subgroup
-
 capture recast float adjusted
-
 capture recast float Subgroup
-
 metan hr ll ul if adj==1, force by(subgroup) nowt nobox nooverall nosubgroup scheme(s1mono) null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") saving(subgroup_mace, asis replace)
 */
 

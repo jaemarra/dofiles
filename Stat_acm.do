@@ -1241,5 +1241,14 @@ metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosub
 metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelD_any, asis replace)
 */
 
+//Generate additional table
+gen dpptype = .
+replace dpptype = 1 if indextype==1&alogliptin==1
+replace dpptype = 2 if indextype==1&linagliptin==1
+replace dpptype = 3 if indextype==1&sitagliptin==1
+replace dpptype = 4 if indextype==1&saxagliptin==1
+replace dpptype = 5 if indextype==1&vildagliptin==1
+mi xeq 2: stptime, by(dpptype) per(1000)
+
 timer off 1
 log close stat_acm
