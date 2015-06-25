@@ -507,6 +507,39 @@ egen revasc_exit = rowmin(revasc_date_i tod2 death_date lcd2)
 format revasc_exit %td
 label var revasc_exit "Exit date for urgent revascularization"
 
+//Generate variable for exposure order
+//NOTE: 0=never exposed to meformin, 1=exposed first, 9=exposed after or in combination with another antidiabetic agent.
+gen metord=0
+replace metord=1 if cohort_b==1
+replace metord=9 if regexm(firstadmrx, "metformin[a-zA-Z]")
+replace metord=9 if regexm(firstadmrx, "[a-zA-Z]combo$")
+
+//NOTE: 0=never exposed, 1-7=numerical order of exposure, 9=exposed first (before or together with metformin at first ever exposure)
+foreach x in SU DPP GLP insulin TZD other{
+gen `x'ord=0
+replace `x'ord = 9 if regexm(firstadmrx, "`x'[a-zA-Z]")
+replace `x'ord = 9 if regexm(firstadmrx, "[a-zA-Z]`x'")
+replace `x'ord = 9 if regexm(firstadmrx, "`x'")
+replace `x'ord = 2 if regexm(secondadmrx, "`x'[a-zA-Z]")
+replace `x'ord = 2 if regexm(secondadmrx, "[a-zA-Z]`x'")
+replace `x'ord = 2 if regexm(secondadmrx, "`x'")
+replace `x'ord = 3 if regexm(thirdadmrx, "`x'[a-zA-Z]")
+replace `x'ord = 3 if regexm(thirdadmrx, "[a-zA-Z]`x'")
+replace `x'ord = 3 if regexm(thirdadmrx, "`x'")
+replace `x'ord = 4 if regexm(fourthadmrx, "`x'[a-zA-Z]")
+replace `x'ord = 4 if regexm(fourthadmrx, "[a-zA-Z]`x'")
+replace `x'ord = 4 if regexm(fourthadmrx, "`x'")
+replace `x'ord = 5 if regexm(fifthadmrx, "`x'[a-zA-Z]")
+replace `x'ord = 5 if regexm(fifthadmrx, "[a-zA-Z]`x'")
+replace `x'ord = 5 if regexm(fifthadmrx, "`x'")
+replace `x'ord = 6 if regexm(sixthadmrx, "`x'[a-zA-Z]")
+replace `x'ord = 6 if regexm(sixthadmrx, "[a-zA-Z]`x'")
+replace `x'ord = 6 if regexm(sixthadmrx, "`x'")
+replace `x'ord = 7 if regexm(sixthadmrx, "`x'[a-zA-Z]")
+replace `x'ord = 7 if regexm(seventhadmrx, "[a-zA-Z]`x'")
+replace `x'ord = 7 if regexm(seventhadmrx, "`x'")
+}
+
 // Labeling
 
 label var age_index "Age at index date"
@@ -544,7 +577,13 @@ label var antiplat_i "Antiplatelets"
 label var ace_arb_renin_i "ACE/ARB/Renin"
 label var diuretics_all_i "Diuretics"
 label var unqrx "No unique antidiabetic agents"
-
+lab var metord "Order of exposure to metf, 0=never, 1=first, 9=oth"
+lab var SUord "Order of exposure to sulfonylurea"
+lab var DPPord "Order of exposure to DPP"
+lab var GLPord	"Order of exposure to GLP"
+lab var insulinord "Order of exposure to insulin"
+lab var TZDord "Order of exposure to TZD"
+lab var otherord "Order of exposure to other classes"
 timer off 1
 log close Data13
 
