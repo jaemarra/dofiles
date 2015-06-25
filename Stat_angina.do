@@ -89,9 +89,7 @@ replace angina=0 if ang_exit<death_date
 // declare survival analysis - final exposure as last exposure date 
 stset ang_exit, fail(angina) id(patid) origin(seconddate) scale(365.25)
 
-//MISSING INDICATOR APPROACH
-capture preserve
-
+//COMPLETE CASE APPROACH
 // spit data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -191,25 +189,15 @@ stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2 ib1.sb
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 /* ONLY FOR GENERATING FOREST PLOT
-
 use MainModels, clear
-
 capture lable drop models
-
 label define modelcats 1 "Unadjusted" 2 "Model 1" 3 "Model 2" 4 "Model 3" 5 "Fully Adjusted"
-
 label values model modelcats
-
 capture label drop covariates
-
 label define covariates 0 "No Covariates" 1 "Age, Sex" 2 "+ Metformin mono, Metformin overlap, A1c" 3 "+ SBP, CKD, Number of Rx, CCI, Visits" 4 "All Covariates"
-
 label values Covariates covariates
-
 rename Covariates Models
-
 metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison_angina, asis replace)
-
 */
 
 matrix b=r(table)
@@ -308,18 +296,10 @@ clonevar prx_covvalue_g_i4_clone = prx_covvalue_g_i4
 replace prx_covvalue_g_i4_clone=. if prx_covvalue_g_i4==0
 //inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
 mi register imputed bmi_i sbp prx_covvalue_g_i4_clone hba1c_cats_i2_clone
-//describe and learn about the missing values in the data
-//mi describe 
-//mi misstable summarize
-//mi misstable nested
 //set the seed so that results are reproducible
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) prx_covvalue_g_i4_clone hba1c_cats_i2_clone = angina `demo2' `comorb2' `meds3' `clin3', add(20)
-//verify that all missing values are filled in
-//mi describe
-//look at summary statistics in each of the imputation datasets
-//mi xeq: summarize
 // spit data to integrate time-varying covariates for diabetes meds.
 mi stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -388,8 +368,6 @@ mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 mi estimate, hr: stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi'
-tempfile d0
-save `d0', replace
 matrix b=r(table)
 matrix c=b'
 matrix list c
@@ -472,10 +450,11 @@ forval i=1/79{
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_angina, sheet("Adj HES Only MI") modify
 }
 **********************************************************KM and survival curves**************************************************** 
-/*
 use Stat_angina_mi, clear
 sts graph, by(indextype) saving(kmplot_angina, replace)  
-forvalues i = 1/5{
+tempfile d0
+save `d0', replace
+forvalues i = 1/20{
   tempfile d`i'
   use `d0', clear
   mi extract `i'
@@ -489,8 +468,7 @@ forvalues i = 1/5{
 use `d0', clear
 collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
 sort _t
-twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
-*/
+twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot_angina, replace)
 **********************************************************Other tests of PH Assumption*************************************************
 //generate the log log plot for PH assumption 
 stphplot, by(indextype) saving(lnlnplot, replace)
