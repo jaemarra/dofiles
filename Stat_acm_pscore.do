@@ -7,7 +7,7 @@
 clear all
 capture log close stat_acm_ps
 set more off
-log using Stat_acm_ps.smcl, name(stat_acm_maincox) replace
+log using Stat_acm_ps.smcl, name(stat_acm_ps) replace
 timer on 1
 
 capture ssc install psmatch2
@@ -31,35 +31,6 @@ tab prx_covvalue_g_i4, gen(smk_dum)
 tab physician_vis2, gen(vis_dum)
 
 local mvmodel_ps = "dmdur metoverlap ckd_dum* unq_dum* cci_dum* a1c_dum* smk_dum* vis_dum* cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp"
-
-gen trt =.
-replace trt=0 if indextype==0
-replace trt=1 if indextype==1
-//generate a PS
-pscore trt `mvmodel_ps', pscore(ps_single) blockid(ps_block) detail
-//generate a cstat
-_pctile ps_single, p(10(10)90)
-return list
-gen decile = 10 if ps_single < .
-qui forval i = 9(-1)1 {
-         replace decile = `i' if ps_single <= r(r`i')
- }
-tabstat ps_single, by(decile) s(n sum mean)
-//twoway overlay graph of kernel density or histogram 
-kdensity ps_single if trt==0, nograph gen(x ps_0)
-kdensity ps_single if trt==1, nograph gen(x2 ps_1)
-label var ps_1 "Treated with DPP4i"
-label var ps_0 "Not treated with DPP4i"
-line ps_0 ps_1 x
-//trim non-overlapping by nearest neighbor matching (always and never treated are removed but not applicable in cohort)
-qui psmatch2 trt, outcome(acm) pscore(ps_single) neighbor(1)
-//Check to make sure PS are balanced
-psgraph, treated(trt) pscore(ps_single)
-//Evaluate standardized differences in matched sample
-pstest `mvmodel_ps', treated(trt) both
-//Graph standardized differences in matched sample
-pstest `mvmodel_ps', treated(trt) both graph
-//Now you can adjust by deciles of the PS in a multivariable model
 // update censor times for final exposure to second-line agent (indextype)
 forval i=0/5 {
 	replace acm_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
@@ -150,8 +121,35 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 
-//Generate person-years, incidence rate, and 95%CI as well as hazard ratio
-mi xeq: stptime, by(indextype) per(1000)
+gen trt =.
+replace trt=0 if indextype==0
+replace trt=1 if indextype==1
+//generate a PS
+pscore trt `mvmodel_ps', pscore(ps_single) blockid(ps_block) detail
+//generate a cstat
+_pctile ps_single, p(10(10)90)
+return list
+gen decile = 10 if ps_single < .
+qui forval i = 9(-1)1 {
+         replace decile = `i' if ps_single <= r(r`i')
+ }
+tabstat ps_single, by(decile) s(n sum mean)
+//twoway overlay graph of kernel density or histogram 
+kdensity ps_single if trt==0, nograph gen(x ps_0)
+kdensity ps_single if trt==1, nograph gen(x2 ps_1)
+label var ps_1 "Treated with DPP4i"
+label var ps_0 "Not treated with DPP4i"
+line ps_0 ps_1 x
+//trim non-overlapping by nearest neighbor matching (always and never treated are removed but not applicable in cohort)
+qui psmatch2 trt, outcome(acm) pscore(ps_single) neighbor(1)
+//Check to make sure PS are balanced
+psgraph, treated(trt) pscore(ps_single)
+//Evaluate standardized differences in matched sample
+pstest `mvmodel_ps', treated(trt) both
+//Graph standardized differences in matched sample
+pstest `mvmodel_ps', treated(trt) both graph
+//Now you can adjust by deciles of the PS in a multivariable model
+
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender
-
+mi estimate, hr: stcox trt ib5.decile age_indexdate gender
