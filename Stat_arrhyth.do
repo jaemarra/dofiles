@@ -32,6 +32,8 @@ keep if exclude==0
 //restrict to jan 1, 2007
 drop if seconddate<17167
 
+save arrhyth, replace
+
 //Create macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
@@ -249,15 +251,7 @@ forval i=1/76{
 } 
 
 //MULTIPLE IMPUTATION APPROACH
-use Analytic_Dataset_Master, clear
-quietly do Data13_variable_generation.do
-capture gen arrhyth = arr_i
-
-//apply exclusion criteria
-keep if exclude==0
-
-//restrict to jan 1, 2007
-drop if seconddate<17167
+use arrhyth, clear
 
 //Create macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -453,53 +447,11 @@ forval i=1/79{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_arrhyth, sheet("Adj HES Only MI") modify
 }
-**********************************************************KM and survival curves****************************************************
-use Stat_arrhyth_mi, clear
-sts graph, by(indextype) saving(kmplot_arrhyth, replace)  
-tempfile d0
-save `d0', replace
-forvalues i = 1/20{
-  tempfile d`i'
-  use `d0', clear
-  mi extract `i'
-  qui stcox i.indextype `mvmodel_mi'
-  stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5) outfile(`d`i'', replace)
-  use `d0', clear
-  append using `d`i''
-  save, replace
-}
-
-use `d0', clear
-collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
-sort _t
-twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot_arrhyth, replace)
-**********************************************************Other tests of PH Assumption*************************************************
-
-//generate the log log plot for PH assumption 
-stphplot, by(indextype) saving(lnlnplot, replace)
-graph export lnlnplot.pdf, replace
-
-//non-zero slope for time-dependent covariates
-stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
-estat phtest, rank detail
-stcox i.indextype `mvmodel', schoenfeld(sch*) scaledsch(sca*)
-stphtest, detail
-
-//repeat this test plot for each time-dependent variable of interest if you want to look at them individually
-//stphtest, plot(age_indexdate) msym(oh)
-
-***********************************************************Testing collinearity******************************************************
-
-collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 ndrugs2 ndrugs3 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
-
 *******************************************************SENSITIVITY ANALYSIS*******************************************************
 
 // #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
-use Analytic_Dataset_Master, clear
-do Data13_variable_generation.do
-capture gen arrhyth = arr_i
-keep if exclude==0
-drop if seconddate<17167 
+use arrhyth, clear
+
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
 local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
@@ -598,6 +550,8 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 
+save Stat_arrhyth_mi_index, replace
+
 mi xeq: stptime, by(indextype) per(1000)
 
 //fit the model separately on each of the 20 imputed datasets and combine results
@@ -636,15 +590,7 @@ forval i=1/79{
 //********************************************************************************************************************************//
 
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
-use Analytic_Dataset_Master, clear
-do Data13_variable_generation.do
-capture gen arrhyth = arr_i
-
-//apply exclusion criteria
-keep if exclude==0 
-
-//restrict to jan 1, 2007
-drop if seconddate<17167 
+use arrhyth, clear 
 
 //generate macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -697,6 +643,8 @@ set seed 1979
 mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2 prx_covvalue_g_i4_clone = arrhyth `demo2' `comorb2' `meds3' `clin3', add(20)
 //Generate hazard ratios
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+
+save Stat_arrhyth_mi_index3, replace
 
 mi xeq: stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_arrhyth, sheet("Unadj Agent3") modify
@@ -755,15 +703,7 @@ metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) schem
 //********************************************************************************************************************************//
 
 //#3 ANY EXPOSURE AFTER METFORMIN
-use Analytic_Dataset_Master, clear
-do Data13_variable_generation.do
-capture gen arrhyth = arr_i
-
-//apply exclusion criteria
-keep if exclude==0
-
-//restrict to jan 1, 2007
-drop if seconddate<17167 
+use arrhyth, clear
 
 //generate macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
@@ -876,6 +816,8 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 mi stsplit stop5, at(0) after(exposuretf5)
 replace oth_post=0 if oth_post==1 & stop5!=-1
+
+save Stat_arrhyth_mi_any, replace
 
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
