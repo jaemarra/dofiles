@@ -5,9 +5,9 @@
 //				
 
 clear all
-capture log close stat_acm
+capture log close Stat_acm
 set more off
-log using Stat_acm.smcl, name(stat_acm) replace
+log using Stat_acm.smcl, name(Stat_acm) replace
 timer on 1
 
 capture ssc install table1
@@ -172,8 +172,9 @@ matrix a= b'
 putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2, sheet("Unadj Miss Ind") modify
 }
 
-//Multivariable analysis 
-// note: missing indicator approach used
+//UNADJUSTED AND ADJUSTED COX PROPORTIONAL HAZARDS REGRESSION ANALYSIS
+// note: complete case analysis (BMI and SBP have missing values; therefore total N is reduced if BMI and SBP in model)
+// note: missing indicators used for discrete variables with missing values (smoking status, A1C, eGFR)
 // 1. Test out unadjusted model
 stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 // 2. + age, gender
@@ -196,34 +197,6 @@ label define covariates 0 "no Covariates" 1 "and gender" 2 "+ met mono, met over
 label values Covariates covariates
 capture rename Covariates Models
 metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
-*/
-
-/*
-**********************************************************MODEL DIAGNOSTICS SECTION*********************************************
-**********************************************************Goodness of Fit Tests*************************************************
-stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
-//cox-snell cumulative hazard slope should ~=1
-predict cs, csnell
-quietly stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
-sts gen H=na
-line H cs cs, sort ytitle("Goodness of Fit") legend(cols(1))
-**********************************************************Function Form Tests*************************************************
-stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
-predict mg, mgale
-lowess mg `age_indexdate' //can repeat this for any non-factor variable you like
-linktest, efron nolog estimate
-**********************************************************Influential Outliers Tests*************************************************
-stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-predict dfb
-scatter dfb _t, yline(0) mlabel(patid) msymbol(i)
-
-stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
-predict ld, ldisplace
-scatter ld _t, yline(0) mlabel(patid) msymbol(i)
-
-stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
-predict lm, lmax
-scatter lm _t, yline(0) mlabel(patid) msymbol(i)
 */
 
 matrix b=r(table)
@@ -446,6 +419,7 @@ local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Ref4") modify
 }
 ********************************************Re-analyze for CPRD only******************************************** 
+use Stat_acm_mi, clear
 keep if linked_b==1
 egen acm_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset acm_exit_g, fail(acm) id(patid) origin(seconddate) scale(365.25)
@@ -459,6 +433,7 @@ local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj CPRD Only MI") modify
 }
 ********************************************Re-analyze if HES linked********************************************
+use Stat_acm_mi, clear
 keep if linked_b!=1
 egen acm_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset acm_exit_g, fail(acm) id(patid) origin(seconddate) scale(365.25)
@@ -471,39 +446,6 @@ local x=`i'+1
 local rowname:word `i' of `matrownames_mi'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj HES Only MI") modify
 }
-**********************************************************KM and survival curves****************************************************
-sts graph, by(indextype) saving(kmplot_acm, replace)  
-tempfile d0
-save `d0', replace
-forvalues i = 1/5{
-  tempfile d`i'
-  use `d0', clear
-  mi extract `i'
-  qui stcox i.indextype `mvmodel_mi'
-  stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5) outfile(`d`i'', replace)
-  use `d0', clear
-  append using `d`i''
-  save, replace
-}
-
-use `d0', clear
-collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
-sort _t
-twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot, replace)
-**********************************************************Other tests of PH Assumption*************************************************
-//generate the log log plot for PH assumption 
-stphplot, by(indextype) saving(lnlnplot, replace)
-graph export lnlnplot.pdf, replace
-
-//non-zero slope for time-dependent covariates
-stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
-estat phtest, rank detail
-stcox i.indextype `mvmodel', schoenfeld(sch*) scaledsch(sca*)
-stphtest, detail
-//repeat this test for each time-dependent variable of interest if you want to look at them individually
-//stphtest, plot(age_indexdate) msym(oh)
-***********************************************************Testing collinearity******************************************************
-collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 ndrugs2 ndrugs3 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
 *************************************************SUBGROUP ANALYSES / EFFECT MODIFIERS*************************************************
 //AGE- Generate the linear combination hr and ci (DPP and GLP only)
 //Unadjusted
@@ -651,7 +593,6 @@ lincom 1.indextype_2+1.indextype_2#0.mi_stroke, hr
 lincom 1.indextype_2+1.indextype_2#1.mi_stroke, hr
 //lincom 2.indextype+2.indextype#0.mi_stroke, hr
 //lincom 2.indextype+2.indextype#1.mi_stroke, hr
-save Stat_acm_mi, replace
 /*
 //Generate Forest Plots
 use SubgroupAnalysis2, clear
@@ -780,6 +721,8 @@ mi xeq: stptime, by(indextype) per(1000)
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi'
 
+save Stat_acm_mi_index, replace
+
 //Unadjusted MI
 mi xeq: stptime, title(person-years) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
@@ -808,7 +751,6 @@ local x=`i'+1
 local rowname:word `i' of `matrownames_mi2'
 putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2, sheet("Adj MI Gap1") modify
 }
-
 //********************************************************************************************************************************//
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
 use Analytic_Dataset_Master, clear
@@ -869,6 +811,8 @@ set seed 1979
 mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2 prx_covvalue_g_i4_clone = acm `demo2' `comorb2' `meds3' `clin3', add(20)
 //Generate hazard ratios
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+
+save Stat_acm_mi_index3, replace
 
 mi xeq: stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2, sheet("Unadj Agent3") modify
@@ -1034,6 +978,7 @@ replace oth_post=0 if oth_post==1 & stop5!=-1
 
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
+save Stat_acm_mi_any, replace
 *************************************************SUBGROUP ANALYSES / EFFECT MODIFIERS*************************************************
 //AGE- Generate the linear combination hr and ci (DPP and GLP only)
 //Unadjusted
@@ -1215,7 +1160,6 @@ mi xeq 2: stptime if indextype==0&mi_stroke==0
 mi xeq 2: stptime if indextype==0&mi_stroke==1
 mi xeq 2: stptime if indextype==1&mi_stroke==0
 mi xeq 2: stptime if indextype==1&mi_stroke==1
-save Stat_acm_mi2, replace
 
 /*
 //Generate Forest Plots
@@ -1251,4 +1195,4 @@ replace dpptype = 5 if indextype==1&vildagliptin==1
 mi xeq 2: stptime, by(dpptype) per(1000)
 
 timer off 1
-log close stat_acm
+log close Stat_acm
