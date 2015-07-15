@@ -120,6 +120,7 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
+save Stat_acm_mi_pscore, replace
 
 gen trt =.
 replace trt=0 if indextype==0
@@ -149,7 +150,9 @@ pstest `mvmodel_ps', treated(trt) both
 //Graph standardized differences in matched sample
 pstest `mvmodel_ps', treated(trt) both graph
 //Now you can adjust by deciles of the PS in a multivariable model
-
-//fit the model separately on each of the 20 imputed datasets and combine results
+//Fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender
 mi estimate, hr: stcox trt ib5.decile age_indexdate gender
+
+timer off 1
+log close stat_acm_ps
