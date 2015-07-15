@@ -168,15 +168,17 @@ stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2 ib1.sb
 stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog
 
 /* ONLY FOR GENERATING FOREST PLOT
-use MainModels, clear
+use MainModelsMace, clear
 capture lable drop models
-label define modelcats 1 "Unadjusted" 2 "Model 1" 3 "Model 2" 4 "Model 3" 5 "Fully Adjusted"
+capture label drop modelcats
+capture rename covariates Covariates
+label define modelcats 1 "Unadjusted" 2 "Adjusted for age" 3 "Adjusted for previous" 4 "Adjusted for previous + SBP," 5 "Adjusted for" 6 "Propensity score adjusted"
 label values model modelcats
 capture label drop covariates
-label define covariates 0 "No Covariates" 1 "Age, Sex" 2 "+ Metformin mono, Metformin overlap, A1c" 3 "+ SBP, CKD, Number of Rx, CCI, Visits" 4 "All Covariates"
+label define covariates 0 "no Covariates" 1 "and gender" 2 "+ met mono, met overlap, A1c" 3 "CKD, unique Rx, CCI, visits" 4 "all covariates" 5 "for age, gender, decile"
 label values Covariates covariates
-rename Covariates Models
-metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
+capture rename Covariates Models
+metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0, 0.25, 0.5, 0.75) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
 */
 
 quietly {
@@ -403,7 +405,7 @@ forval i=1/78{
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Ref4") modify
 }
 }
-/*
+
 ********************************************Re-analyze for HES only******************************************** 
 use Stat_mace_mi, clear
 keep if linked_b==1
@@ -432,43 +434,6 @@ forval i=1/79{
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj HES Only MI") modify
 }
-**********************************************************KM and survival curves****************************************************
-use Stat_mace_mi, clear
-sts graph, by(indextype) saving(kmplot_mace, replace)  
-tempfile d0
-save `d0', replace
-forvalues i = 1/20{
-  tempfile d`i'
-  use `d0', clear
-  mi extract `i'
-  qui stcox i.indextype `mvmodel_mi'
-  stcurve, survival at1(indextype=0) at2(indextype=1) at3(indextype=2) at4(indextype=3) at5(indextype=4) at6(indextype=5) outfile(`d`i'', replace)
-  use `d0', clear
-  append using `d`i''
-  save, replace
-}
-use `d0', clear
-collapse (mean) surv2 (mean) surv3 (mean) surv4 (mean) surv5 (mean) surv6  (mean) surv7, by(_t)
-sort _t
-twoway scatter surv2 _t, c(stairstep) ms(i) || scatter surv3 _t, c(stairstep) ms(i) || scatter surv4 _t, c(stairstep) ms(i) || scatter surv5 _t, c(stairstep) ms(i) || scatter surv6 _t, c(stairstep) ms(i) || scatter surv7 _t, c(stairstep) ms(i) ti("Averaged Curves") saving(avgkmplot_mace, replace)
-**********************************************************Other tests of PH Assumption*************************************************
-use Stat_mace_mi, clear
-//generate the log log plot for PH assumption 
-stphplot, by(indextype) saving(lnlnplot, replace)
-graph export lnlnplot.pdf, replace
-
-//non-zero slope for time-dependent covariates
-stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  nolog noshow
-estat phtest, rank detail
-stcox i.indextype `mvmodel', schoenfeld(sch*) scaledsch(sca*)
-stphtest, detail
-
-//repeat this test plot for each time-dependent variable of interest if you want to look at them individually
-//stphtest, plot(age_indexdate) msym(oh)
-***********************************************************Testing collinearity******************************************************
-
-collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate gender dmdur metoverlap bmicat1 bmicat3 bmicat4 bmicat5 bmicat6 bmicat7 smokestatus1 smokestatus2 smokestatus4 drinkstatus1 drinkstatus2 drinkstatus4 a1ccat1 a1ccat3 a1ccat4 a1ccat5 a1ccat6 sbpcat1 sbpcat3 sbpcat4 sbpcat5 sbpcat6 sbpcat7 ckdcat2 ckdcat3 ckdcat4 ckdcat5 ckdcat6 mdvisits2 mdvisits3 ndrugs2 ndrugs3 cci2 cci3 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i *_post
-*/
 *******************************************************SENSITIVITY ANALYSIS*******************************************************
 
 // #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
@@ -573,10 +538,10 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
-
 }
 
 mi xeq: stptime, by(indextype) per(1000)
+save Stat_mace_mi_index, replace
 
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi'
@@ -614,8 +579,8 @@ forval i=1/79{
 //********************************************************************************************************************************//
 
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
+quietly{
 use mace, clear
-
 //generate macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
@@ -634,7 +599,7 @@ local mvmodel_mi = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_c
 local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
 local mvmodel_mi2 = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
 local matrownames_mi2 "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
-
+}
 //update censor times for single agent exposure to a thirddate
 
 forval i=0/5 {
@@ -667,6 +632,8 @@ set seed 1979
 mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2 prx_covvalue_g_i4_clone = mace `demo2' `comorb2' `meds3' `clin3', add(20)
 //Generate hazard ratios
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+
+save Stat_mace_mi_index3, replace
 
 mi xeq: stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_mace, sheet("Unadj Agent3") modify
@@ -711,7 +678,7 @@ metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) schem
 */
 //********************************************************************************************************************************//
 //#3 ANY EXPOSURE AFTER METFORMIN
-quitely {
+quietly {
 use mace, clear
 
 //generate macros
@@ -752,7 +719,7 @@ mi impute chained (regress) bmi_i sbp (mlogit) prx_covvalue_g_i4_clone hba1c_cat
 }
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi2'
-quitely {
+quietly {
 matrix b=r(table)
 matrix c=b'
 matrix list c
@@ -831,6 +798,7 @@ replace oth_post=0 if oth_post==1 & stop5!=-1
 }
 
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+save Stat_mace_mi_any, replace
 
 *************************************************SUBGROUP ANALYSES / EFFECT MODIFIERS*************************************************
 
