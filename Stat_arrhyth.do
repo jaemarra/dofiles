@@ -12,7 +12,8 @@ timer on 1
 
 use Analytic_Dataset_Master.dta, clear
 quietly do Data13_variable_generation.do
-capture gen arrhyth = arr_i
+capture drop arrhyth
+gen arrhyth = arr
 
 //Numbers for flow diagrams
 
@@ -421,7 +422,7 @@ forval i=1/78{
 }
 ********************************************Re-analyze for CPRD only******************************************** 
 use Stat_arrhyth_mi, clear
-keep if linked_b==1
+keep if linked_b!=1
 egen arr_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset arr_exit_g, fail(arrhyth) id(patid) origin(seconddate) scale(365.25)
 mi estimate, hr: stcox i.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
@@ -435,8 +436,8 @@ forval i=1/76{
 }
 ********************************************Re-analyze if HES linked********************************************
 //NOT ENOUGH DATA TO RE-ANALYZE FOR THE HES-LINKED COHORT ONLY
-/*use Stat_arrhyth_mi, clear
-keep if linked_b!=1
+use Stat_arrhyth_mi, clear
+keep if linked_b==1
 egen arr_exit_g = rowmin(tod2 deathdate2 lcd2)
 mi stset arr_exit_g, fail(arrhyth) id(patid) origin(seconddate) scale(365.25)
 mi estimate, hr: stcox i.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
@@ -447,7 +448,7 @@ forval i=1/79{
  local x=`i'+1
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_arrhyth, sheet("Adj HES Only MI") modify
-}*/
+}
 *******************************************************SENSITIVITY ANALYSIS*******************************************************
 
 // #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
