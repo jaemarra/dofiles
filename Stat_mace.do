@@ -130,30 +130,14 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 }
+save Stat_mace_cc, replace
+
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 label var indextype "Exposure"
 stptime, by(indextype) per(1000)
 stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog
 stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog
-stptime, title(person-years) per(1000)
 
-quietly {
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_mace, sheet("Unadj Miss Ind") modify
-forval i=0/5{
- local row=`i'+2
- stptime if indextype==`i'
- putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_mace, sheet("Unadj Miss Ind") modify
-}
-
-forval i=1/5 {
- local row=`i'+2
- local matrow=`i'+1
- stcox i.indextype 
- matrix b=r(table)
- matrix a= b'
- putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2_mace, sheet("Unadj Miss Ind") modify
-}
-}
 //Multivariable analysis 
 // note: missing indicator approach used
 // 1. Test out unadjusted model
@@ -181,56 +165,6 @@ capture rename Covariates Models
 metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0, 0.25, 0.5, 0.75) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
 */
 
-quietly {
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/76{
- local x=`i'+2
- local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj Miss Ind Ref0") modify
-}
-
-stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/75{
- local x=`i'+2
- local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj Miss Ind Ref0Sep") modify
-}
-**********************************************************Change reference groups**********************************************************
-stcox ib2.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/76{
- local x=`i'+1
- local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj Miss Ind Ref2") modify
-}
-
-stcox ib3.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/76{
- local x=`i'+1
- local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj Miss Ind Ref3") modify
-} 
-
-stcox ib4.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/76{
- local x=`i'+1
- local rowname:word `i' of `matrownames'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj Miss Ind Ref4") modify
-} 
-}
 //MULTIPLE IMPUTATION APPROACH
 use mace, clear
 
@@ -332,9 +266,9 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
+}
 
 save Stat_mace_mi, replace
-}
 
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 mi xeq: stptime, by(indextype) per(1000) 
@@ -343,99 +277,8 @@ mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 mi estimate, hr: stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi' 
-quietly {
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/78{
- local x=`i'+2
- local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Ref0") modify
-} 
-}
-********************************************Change reference groups using multiple imputation method********************************************
-//DPP
-mi estimate, hr: stcox ib1.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-quietly {
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/78{
- local x=`i'+2
- local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Ref2") modify
-}
-}
 
-//GLP
-mi estimate, hr: stcox ib2.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-quietly {
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/78{
- local x=`i'+2
- local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Ref3") modify
-}
-}
-
-//Insulin
-mi estimate, hr: stcox ib3.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-quietly {
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/78{
- local x=`i'+2
- local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Ref4") modify
-}
-}
-
-//TZD
-mi estimate, hr: stcox ib4.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-quietly {
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/78{
- local x=`i'+2
- local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Ref4") modify
-}
-}
-
-********************************************Re-analyze for HES only******************************************** 
-use Stat_mace_mi, clear
-keep if linked_b==1
-egen mace_exit_g = rowmin(tod2 deathdate2 lcd2)
-mi stset mace_exit_g, fail(mace) id(patid) origin(seconddate) scale(365.25)
-mi estimate, hr: stcox i.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/76{
- local x=`i'+1
- local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj CPRD Only MI") modify
-}
-********************************************Re-analyze if CPRD linked********************************************
-use Stat_mace_mi, clear
-keep if linked_b!=1
-egen mace_exit_g = rowmin(tod2 deathdate2 lcd2)
-mi stset mace_exit_g, fail(mace) id(patid) origin(seconddate) scale(365.25)
-mi estimate, hr: stcox i.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/79{
- local x=`i'+1
- local rowname:word `i' of `matrownames_mi'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj HES Only MI") modify
-}
 *******************************************************SENSITIVITY ANALYSIS*******************************************************
-
 // #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
 quietly {
 use mace, clear
@@ -540,47 +383,15 @@ mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 }
 
-mi xeq: stptime, by(indextype) per(1000)
 save Stat_mace_mi_index, replace
 
-//fit the model separately on each of the 20 imputed datasets and combine results
+mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype `mvmodel_mi'
-
-//Unadjusted MI
-mi xeq: stptime, title(person-years) per(1000)
-mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_mace, sheet("Unadj MI Gap1") modify
-forval i=0/5{
- local row=`i'+2
- mi xeq: stptime if indextype==`i'
- putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_mace, sheet("Unadj MI Gap1") modify
-}
-
-forval i=1/5 {
- local row=`i'+2
- local matrow=`i'+1
- mi estimate, hr: stcox i.indextype 
- matrix b=r(table)
- matrix a= b'
- putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2_mace, sheet("Unadj MI Gap1") modify
-}
-
-//Multivariable analysis MI
-mi estimate, hr: stcox i.indextype `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/79{
- local x=`i'+1
- local rowname:word `i' of `matrownames_mi2'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Gap1") modify
-}
-
 //********************************************************************************************************************************//
 
 //#2a. CENSOR EXPSOURE AT INDEXTYPE3
-quietly{
 use mace, clear
+
 //generate macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
@@ -599,7 +410,7 @@ local mvmodel_mi = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_c
 local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
 local mvmodel_mi2 = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
 local matrownames_mi2 "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
-}
+
 //update censor times for single agent exposure to a thirddate
 
 forval i=0/5 {
@@ -630,38 +441,11 @@ mi register imputed bmi_i sbp prx_covvalue_g_i4_clone hba1c_cats_i2
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2 prx_covvalue_g_i4_clone = mace `demo2' `comorb2' `meds3' `clin3', add(20)
-//Generate hazard ratios
-mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 save Stat_mace_mi_index3, replace
 
 mi xeq: stptime, title(person-years) per(1000)
-putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_mace, sheet("Unadj Agent3") modify
-forval i=0/5{
-local row=`i'+2
-mi xeq: stptime if indextype==`i'
-putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_mace, sheet("Unadj MI Agent3") modify
-}
-
-forval i=1/5 {
- local row=`i'+2
- local matrow=`i'+1
- mi estimate, hr: stcox i.indextype
- matrix b=r(table)
- matrix a= b'
- putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2_mace, sheet("Unadj MI Agent3") modify
-}
-
-//Multivariable analysis
 mi estimate, hr: stcox i.indextype `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/79{
- local x=`i'+1
- local rowname:word `i' of `matrownames_mi2'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Agent3") modify
-}
 
 /*
 Sensitivity Analyses Plots
@@ -678,7 +462,7 @@ metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) schem
 */
 //********************************************************************************************************************************//
 //#3 ANY EXPOSURE AFTER METFORMIN
-quietly {
+quitely {
 use mace, clear
 
 //generate macros
@@ -716,18 +500,6 @@ mi register imputed bmi_i sbp prx_covvalue_g_i4_clone hba1c_cats_i2_clone
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) prx_covvalue_g_i4_clone hba1c_cats_i2_clone = mace `demo2' `comorb2' `meds3' `clin3', add(20)
-}
-//fit the model separately on each of the 20 imputed datasets and combine results
-mi estimate, hr: stcox i.indextype `mvmodel_mi2'
-quietly {
-matrix b=r(table)
-matrix c=b'
-matrix list c
-forval i=1/78{
- local x=`i'+2
- local rowname:word `i' of `matrownames_mi2'
- putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Any Aft") modify
-}
 
 // spit data to integrate time-varying covariates for diabetes meds.
 mi stsplit adm3, at(0) after(thirddate)
@@ -796,9 +568,8 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 mi stsplit stop5, at(0) after(exposuretf5)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 }
-
-mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 save Stat_mace_mi_any, replace
+mi estimate, hr: stcox i.indextype `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 *************************************************SUBGROUP ANALYSES / EFFECT MODIFIERS*************************************************
 
