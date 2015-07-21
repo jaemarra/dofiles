@@ -184,7 +184,7 @@ forval i=1/78{
 //Fully adjusted SU reference, CPRD only multiple imputation
 use Stat_mace_mi, clear
 keep if linked_b!=1
-egen mace_exit_g = rowmin(tod2 deathdate2 lcd2)
+egen mace_exit_g = rowmin(tod2 deathdate2 lcd2 myoinfarct_date_i stroke_date_i)
 mi stset mace_exit_g, fail(mace) id(patid) origin(seconddate) scale(365.25)
 mi estimate, hr: stcox i.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
@@ -198,8 +198,9 @@ forval i=1/76{
 //Fully adjusted SU reference, HES only multiple imputation
 use Stat_mace_mi, clear
 keep if linked_b==1
-egen mace_exit_g = rowmin(tod2 deathdate2 lcd2)
-mi stset mace_exit_g, fail(mace) id(patid) origin(seconddate) scale(365.25)
+capture drop mace_exit_h
+egen mace_exit_h = rowmin(tod2 dod2 deathdate2 lcd2 myoinfarct_date_i stroke_date_i)
+mi stset mace_exit_h, fail(mace) id(patid) origin(seconddate) scale(365.25)
 mi estimate, hr: stcox i.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 matrix b=r(table)
 matrix c=b'
