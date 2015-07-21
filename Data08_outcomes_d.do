@@ -25,15 +25,14 @@ merge 1:1 patid using Outcomes_ons, keep(match master) nogen
 // #3 Make variables of composites from different sources (ie CPRD, HES, ONS for each variable):
 
 //All-cause mortality
-
 gen death_date = min(deathdate2, dod2)
 label variable death_date "Date of death"
 
 //MACE
 gen mace_date = min(myoinfarct_o_date_i, stroke_o_date_i, cvdeath_o_date_i, myoinfarct_h_date_i, stroke_h_date_i, myoinfarct_g_date_i, stroke_g_date_i)
-label variable mace_date "Date of first primary CV composite outcome (ons) after index date"
+label variable mace_date "Date of first primary CV composite outcome (cprd+hes+ons) after index date"
 gen mace = (mace_date!=.)
-label variable mace "CV composite primary outcome(ons) after index: 1=event 0=no event"
+label variable mace "CV composite primary outcome (cprd+hes+ons) after index: 1=event 0=no event"
 
 //Secondary endpoints
 
