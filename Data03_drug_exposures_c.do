@@ -101,11 +101,11 @@ replace instype= 4 if regexm(gemscriptcode, "`degludec'")
 
 //drop unnecessary variables
 drop gemscriptcode
-save drugexpb`i', replace
+save drugexpc`i', replace
 }
-use drugexpb0, clear 
+use drugexpc0, clear 
 forval i=1/49 {
-	append using drugexpb`i'
+	append using drugexpc`i'
 	}
 save Drug_Exp_C.dta, replace
 
@@ -160,6 +160,8 @@ keep if insulin==1
 //keep index insulin users only
 keep if indextype==3
 
+//tidy up
+drop flag* multiplicity *admrx ever* thirddate fourthdate fifthdate sixthdate seventhdate unqrx linked_practice hes_e tod2 lcd2 death_e lsoa_e cprd_e start_o start_h start_g end_h end_o pcos gest_diab preg marital regstat reggap internal toreason accept frd2 crd2 yob2 yob_indexdate exclude
 //Generate intensity (quintiles of dose)
 
 
