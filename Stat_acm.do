@@ -15,6 +15,11 @@ capture net install collin.pkg
 
 use Analytic_Dataset_Master.dta, clear
 quietly do Data13_variable_generation.do
+//apply exclusion criteria
+keep if exclude==0
+//restrict to jan 1, 2007
+drop if seconddate<17167
+save acm, replace
 
 //Numbers for flow diagrams
 tab firstadmrx
@@ -26,28 +31,6 @@ tab cohort_b
 count if tx<=seconddate
 count if seconddate<17167
 count if seconddate>=17167 & cohort_b==1 & exclude==0
-//apply exclusion criteria
-keep if exclude==0
-//restrict to jan 1, 2007
-drop if seconddate<17167
-
-//Create macros
-local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
-local demo2= "age_indexdate gender"
-local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
-local comorb2 ="i.prx_ccivalue_g_i2 hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
-local meds = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_*"
-local meds2 = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
-local meds3 = "i.unique_cov_drugs dmdur statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
-local clin = "ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.physician_vis2 ib1.bmi_i_cats"
-local clin2 = "ib1.hba1c_cats_i2 i.ckd_amdrd"
-local clin3 = "i.ckd_amdrd"
-local covariate = "`demo' `comorb' `meds' `clin'"
-local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib1.hba1c_cats_i2 i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i su_post dpp4i_post glp1ra_post ins_post tzd_post bmi_i sbp i.physician_vis2"
-local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_>10 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post BMI SBP PhysVis_12 PhysVis_24 PhysVis_24plus"
-local mvmodel_mi = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
-local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
-local mvmodel_nofac = "age_indexdate gender prx_covvalue_g_i4 hba1c_cats_i2 prx_ccivalue_g_i2"
 
 //Create table1 
 table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(table1.xls, replace)
@@ -80,6 +63,7 @@ table indextype `var', contents(n acm mean acm) format(%6.2f) center col
 	}
 	
 *******************************************************COX PROPORTIONAL HAZARDS REGRESSION*******************************************************
+
 // update censor times for final exposure to second-line agent (indextype)
 forval i=0/5 {
 	replace acm_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
@@ -91,6 +75,7 @@ replace acm=0 if acm_exit<death_date
 stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
 
 //COMPLETE CASE APPROACH
+quietly {
 // spit data to integrate time-varying covariates for diabetes meds.
 stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -149,6 +134,9 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
+}
+
+save Stat_acm_cc, replace
 
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 label var indextype "Exposure"
@@ -156,43 +144,10 @@ stptime, by(indextype) per(1000)
 stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 stcox indextype_2 indextype_3 indextype_4 indextype_5 indextype_6, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
-save Stat_acm_cc, replace
-
-//UNADJUSTED AND ADJUSTED COX PROPORTIONAL HAZARDS REGRESSION ANALYSIS
-// note: complete case analysis (BMI and SBP have missing values; therefore total N is reduced if BMI and SBP in model)
-// note: missing indicators used for discrete variables with missing values (smoking status, A1C, eGFR)
-// 1. Test out unadjusted model
-stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-// 2. + age, gender
-stcox i.indextype age_index gender, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-// 2. + dmdur, metoverlap, hba1c
-stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-// 3. + bmi, ckd, unique drugs, physician visits, cci
-stcox i.indextype age_indexdate gender dmdur metoverlap ib1.hba1c_cats_i2 ib1.sbp_i_cats2 i.ckd_amdrd i.unique_cov_drugs i.physician_vis2 i.prx_ccivalue_g_i2, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-// 4. Test out full multivariate model (mvmodel) all covariates included
-stcox i.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
-/* ONLY FOR GENERATING FOREST PLOT
-use MainModels, clear
-capture lable drop models
-capture label drop modelcats
-capture rename Models Covariates
-label define modelcats 1 "Unadjusted" 2 "Adjusted for age" 3 "Adjusted for previous" 4 "Adjusted for previous + SBP," 5 "Adjusted for" 6 "Propensity score adjusted"
-label values model modelcats
-capture label drop covariates
-label define covariates 0 "no Covariates" 1 "and gender" 2 "+ met mono, met overlap, A1c" 3 "CKD, unique Rx, CCI, visits" 4 "all covariates" 5 "for age, gender, decile"
-label values Covariates covariates
-capture rename Covariates Models
-metan hr ll ul, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
-*/
-
 //MULTIPLE IMPUTATION APPROACH
-use Analytic_Dataset_Master, clear
-quietly do Data13_variable_generation.do
-//apply exclusion criteria
-keep if exclude==0
-//restrict to jan 1, 2007
-drop if seconddate<17167
+use acm, clear
 
+quietly {
 //Create macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
@@ -209,6 +164,7 @@ local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib1
 local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_>10 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post BMI SBP PhysVis_12 PhysVis_24 PhysVis_24plus"
 local mvmodel_mi = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
 local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
+local mvmodel_nofac = "age_indexdate gender prx_covvalue_g_i4 hba1c_cats_i2 prx_ccivalue_g_i2"
 
 // update censor times for final exposure to second-line agent (indextype)
 forval i=0/5 {
@@ -217,9 +173,15 @@ forval i=0/5 {
 
 replace acm=0 if acm_exit<death_date
 
+//generate variable necessary for use in later analyses with cprd and hes only
+egen acm_exit_g = rowmin(tod2 deathdate2 lcd2)
+egen acm_exit_h = rowmin(tod2 dod2 lcd2)
+}
+
 // declare survival analysis - final exposure as last exposure date 
 stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
 
+quietly {
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
 mi set mlong
 save acm_mlong, replace
@@ -299,6 +261,7 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
+}
 
 save Stat_acm_mi, replace
 
@@ -473,12 +436,11 @@ metan hr ll ul if adj==1, force by(subgroup) nowt nobox nooverall nosubgroup nul
 //metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small)) saving(PanelC, asis replace)
 //metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Index Exposure to GLP1RA, size(small)) saving(PanelD, asis replace)
 */
+
 *******************************************************SENSITIVITY ANALYSIS*******************************************************
 // #1. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
-use Analytic_Dataset_Master, clear
-do Data13_variable_generation.do
-keep if exclude==0
-drop if seconddate<17167 
+use acm, clear
+quietly {
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
 local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
@@ -500,10 +462,12 @@ forval i=0/5 {
 	replace acm_exit = exposuret1`i' if indextype==`i' & exposuret1`i'!=.
 }
 replace acm=0 if acm_exit<death_date
+}
 
 //declare survival analysis - last continuous exposure as last exposure date 
 stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
 
+quietly {
 // Multiple imputation
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
 mi set mlong
@@ -577,25 +541,20 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
-
+}
 save Stat_acm_mi_index, replace
 
-mi xeq: stptime, by(indextype) per(1000)
-mi estimate, hr: stcox i.indextype `mvmodel_mi'
-
 //Unadjusted MI
-mi xeq: stptime, title(person-years) per(1000)
+mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 //Multivariable analysis MI
 mi estimate, hr: stcox i.indextype `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+
 //********************************************************************************************************************************//
 //#2. CENSOR EXPSOURE AT INDEXTYPE3
-use Analytic_Dataset_Master, clear
-do Data13_variable_generation.do
-//apply exclusion criteria
-keep if exclude==0 
-//restrict to jan 1, 2007
-drop if seconddate<17167 
+use acm, clear
+
+quietly {
 //generate macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
@@ -628,10 +587,12 @@ replace acm_exit = censordate if censordate!=.
 
 //reset acm to zero patient is censored before the death event
 replace acm=0 if acm_exit<death_date
+}
 
 // declare survival analysis for single agent exposure to thirddate
 stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
 
+quietly {
 // Multiple imputation
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
 mi set mlong
@@ -646,35 +607,20 @@ mi register imputed bmi_i sbp prx_covvalue_g_i4_clone hba1c_cats_i2
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2 prx_covvalue_g_i4_clone = acm `demo2' `comorb2' `meds3' `clin3', add(20)
+}
 
 save Stat_acm_mi_index3, replace
 
+mi xeq: stptime, title(person-years) per(1000)
 //Generate hazard ratios
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-mi xeq: stptime, title(person-years) per(1000)
-
-/*
-Sensitivity Analyses Plots
-use SensitivityGraphs, clear
-capture label drop subgroupcats
-label define subgroupcats 1 "ACM" 2 "MACE"
-capture rename subgroup Subgroup
-label values Subgroup subgroupcats
-capture label drop periodcats
-label define periodcats 1 "Index to last" 2 "Index to last continuous" 3 "Index to switch/add" 4 "Index or later exposure" 
-capture rename period Period
-label values Period periodcats
-metan hr ll ul, force by(Subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) lcols(Period) effect("Hazard Ratio") saving(SensGrph, asis replace)
-*/
+mi estimate, hr: stcox i.indextype `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 //********************************************************************************************************************************//
 //#3 ANY EXPOSURE AFTER METFORMIN
-use Analytic_Dataset_Master, clear
-do Data13_variable_generation.do
-//apply exclusion criteria
-keep if exclude==0
-//restrict to jan 1, 2007
-drop if seconddate<17167 
+use acm, clear
+
+quietly {
 //generate macros
 local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
@@ -691,10 +637,11 @@ local mvmodel = "age_indexdate gender dmdur metoverlap ib2.prx_covvalue_g_i4 ib1
 local matrownames "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap Unknown Current Non_Smoker Former Unknown HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_>10 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post BMI SBP PhysVis_12 PhysVis_24 PhysVis_24plus"
 local mvmodel_mi = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_cov_drugs i.prx_ccivalue_g_i2 cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post bmi_i sbp ib1.hba1c_cats_i2_clone ib2.prx_covvalue_g_i4_clone i.physician_vis2"
 local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
-
+}
 //declare data as survival dataset
 stset acm_exit, fail(acm) id(patid) origin(seconddate)
 
+quietly {
 // Multiple imputation
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
 mi set mlong
@@ -778,8 +725,13 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 mi stsplit stop5, at(0) after(exposuretf5)
 replace oth_post=0 if oth_post==1 & stop5!=-1
+}
 
 save Stat_acm_mi_any, replace
+
+mi xeq: stptime, title(person-years) per(1000)
+mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+mi estimate, hr: stcox i.indextype `mvmodel_mi2', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 *************************************************SUBGROUP ANALYSES / EFFECT MODIFIERS*************************************************
 //AGE- Generate the linear combination hr and ci (DPP and GLP only)
@@ -986,15 +938,6 @@ metan hr ll ul if adj==1 & trt==1, force by(subgroup) nowt nobox nooverall nosub
 metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelC_any, asis replace)
 metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelD_any, asis replace)
 */
-
-//Generate additional incidence data for subclasses of DPP
-gen dpptype = .
-replace dpptype = 1 if indextype==1&alogliptin==1
-replace dpptype = 2 if indextype==1&linagliptin==1
-replace dpptype = 3 if indextype==1&sitagliptin==1
-replace dpptype = 4 if indextype==1&saxagliptin==1
-replace dpptype = 5 if indextype==1&vildagliptin==1
-mi xeq 2: stptime, by(dpptype) per(1000)
 
 timer off 1
 log close Stat_acm
