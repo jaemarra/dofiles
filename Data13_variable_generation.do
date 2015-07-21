@@ -444,7 +444,7 @@ label values ckd_ce ckd_ce_labels
 //Outcomes, indicators and exit dates for survival analysis
 
 //All-cause mortality
-gen allcausemort = (death_date!=.)
+gen allcausemort = 1 if death_date!=.
 label var allcausemort "All-cause mortality"
 clonevar acm = allcausemort
 egen acm_exit = rowmin(tod2 death_date lcd2)
@@ -454,7 +454,8 @@ format acm_exit %td
 label var acm_exit "Exit date for all-cause mortality analysis"
 
 //MACE
-label var mace "Indicator for first major cv event (mi, stroke, cvdeath) 1=event, 0=no event"
+gen mace_i=1 if mi_i==1|stroke_i==1
+label var mace_i "Indicator for first major cv event before indexdate (mi, stroke, cvdeath) 1=event, 0=no event"
 egen mace_exit = rowmin(mace_date tod2 death_date lcd2)
 format mace_exit %td
 label var mace_exit "Exit date for major cardiovascular event (MI, stroke, or CV death)"
