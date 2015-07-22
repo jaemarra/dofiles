@@ -109,14 +109,14 @@ mi xeq: stptime, by(indextype) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_mace, sheet("Unadj Comp Case") modify
 forval i=0/5{
  local row=`i'+2
- stptime if indextype==`i'
+ mi xeq 1: stptime if indextype==`i'
  putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_mace, sheet("Unadj MI") modify
 }
 
 forval i=1/5 {
  local row=`i'+2
  local matrow=`i'+1
- stcox i.indextype 
+ mi estimate, hr: stcox i.indextype 
  matrix b=r(table)
  matrix a= b'
  putexcel G`row'=(a[`matrow',1]) H`row'=(a[`matrow',5]) I`row'=(a[`matrow',6]) using table2_mace, sheet("Unadj MI") modify
@@ -181,7 +181,7 @@ forval i=1/78{
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj MI Ref4") modify
 }
 }
-//Fully adjusted SU reference, CPRD only multiple imputation
+/*//Fully adjusted SU reference, CPRD only multiple imputation
 use Stat_mace_mi, clear
 keep if linked_b!=1
 egen mace_exit_g = rowmin(tod2 deathdate2 lcd2 myoinfarct_date_i stroke_date_i)
@@ -190,11 +190,12 @@ mi estimate, hr: stcox i.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) s
 matrix b=r(table)
 matrix c=b'
 matrix list c
-forval i=1/76{
+forval i=1/76 {
  local x=`i'+1
  local rowname:word `i' of `matrownames_mi'
  putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") A`x'=("`rowname'") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6])using table2_mace, sheet("Adj CPRD Only MI") modify
-}
+}*/
+
 //Fully adjusted SU reference, HES only multiple imputation
 use Stat_mace_mi, clear
 keep if linked_b==1
@@ -215,12 +216,10 @@ forval i=1/79{
 use Stat_mace_mi_index, clear
 
 //Unadjusted at first gap multiple imputation
-mi xeq: stptime, title(person-years) per(1000)
-mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_mace, sheet("Unadj MI Gap1") modify
 forval i=0/5{
  local row=`i'+2
- mi xeq: stptime if indextype==`i'
+ mi xeq 1: stptime if indextype==`i'
  putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_mace, sheet("Unadj MI Gap1") modify
 }
 forval i=1/5 {
@@ -246,11 +245,10 @@ forval i=1/79{
 //#2. CENSOR EXPSOURE AT INDEXTYPE3
 use Stat_mace_mi_index3, clear
 //Unadjusted at indextype3, multiple imputation
-mi xeq: stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_mace, sheet("Unadj Agent3") modify
 forval i=0/5{
 local row=`i'+2
-mi xeq: stptime if indextype==`i'
+mi xeq 1: stptime if indextype==`i'
 putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_mace, sheet("Unadj MI Agent3") modify
 }
 forval i=1/5 {
@@ -276,11 +274,10 @@ forval i=1/79{
 //#3 ANY EXPOSURE AFTER METFORMIN
 use Stat_mace_mi_any, clear
 //Unadjusted any after metformin monotherapy multiple imputation
-mi xeq: stptime, title(person-years) per(1000)
 putexcel A1= ("Indextype") B1=("Person-Time") C1=("Failures") D1=("Incidence Rate") E1=("Lower Bound") F1=("Upper Bound") G1=("Hazard Ratio") H1=("Lower Bound") I1=("Upper Bound") using table2_mace, sheet("Unadj MI Any Aft") modify
 forval i=0/5{
 local row=`i'+2
-mi xeq: stptime if indextype==`i'
+mi xeq 1: stptime if indextype==`i'
 putexcel A`row'= ("`i'") B`row'=(r(ptime)) C`row'=(r(failures)) D`row'=(r(rate)*1000) E`row'=(r(lb)*1000) F`row'=(r(ub)*1000) using table2_mace, sheet("Unadj MI Any Aft") modify
 }
 forval i=1/5 {
