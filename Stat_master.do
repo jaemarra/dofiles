@@ -89,6 +89,13 @@ do Stat_acm_subgroup.do
 Files saved: 			SubgroupAnalysis2.dta
 						SubgroupAnalysis_anyafter.dta
 */
+/*
+#1d ACM propensity score
+*/
+do Stat_acm_pscore.do
+/*
+Files saved: 			none
+*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* #2 MACE: 			Generates all datasets required for downstream analyses of MACE
 						a) mace.dta:					use Analytic_Dataset_Master.dta
@@ -169,6 +176,13 @@ Files saved: 			table_mace.xlsx
 do Stat_mace_subgroup.do
 /*
 Files saved: 			SubgroupAnalysisMace.dta
+*/
+/*
+#2d MACE propensity score
+*/
+do Stat_mace_pscore.do
+/*
+Files saved: 			none
 */			
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
 /* #3 Angina: 			Generates all datasets required for downstream analyses of Angina
@@ -543,7 +557,7 @@ do Stat_stroke_tables.do
 Files saved: 			table_stroke.xlsx
 */
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/* #4 CV Death: 		Generates all datasets required for downstream analyses of CV Death
+/* #9 CV Death: 		Generates all datasets required for downstream analyses of CV Death
 						a) cvdeath.dta:				use Analytic_Dataset_Master.dta
 													do Data13_variable_generation.do
 													restrict to eligible population
@@ -576,7 +590,7 @@ do Stat_cvdeath.do
 						Stat_cvdeath_mi_any.dta
 */
 /*
-#1a CV Death diagnostics: Generates all diagnostics for CC and MI models
+#9a CV Death diagnostics: Generates all diagnostics for CC and MI models
 							i) Stat_cvdeath_diagnostics:		run diagnostics on complete case model
 						
 							ii) Stat_cvdeath_mi_diagnostics:	run diagnostics on multiple imputation models
@@ -584,7 +598,7 @@ do Stat_cvdeath.do
 do Stat_cvdeath_diagnostics.do
 do Stat_cvdeath_mi_diagnostics.do
 /*
-#1b CV Death tables	Generates all data in excel table format (table_cvdeath) with the following tabs:
+#9b CV Death tables	Generates all data in excel table format (table_cvdeath) with the following tabs:
 							Unadj Comp Case
 							Adj Comp Case Ref0
 							Adj Comp Case Ref0Sep
@@ -604,7 +618,13 @@ do Stat_cvdeath_tables.do
 /*
 Files saved: 			table_cvdeath.xlsx
 */
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*	#10 Manuscript: 	Generates all data and synthesizes tables, figures, and out puts required for the final manuscript
+*/
+do Stat_manuscript
+/*
+Files saved: 			Stat_manuscript.smcl
+*/
 ////////////////////////////////////////////
 timer off 1
 timer list 1
