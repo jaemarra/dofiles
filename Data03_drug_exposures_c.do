@@ -163,7 +163,7 @@ keep if indextype==3
 //tidy up
 drop flag* multiplicity *admrx ever* thirddate fourthdate fifthdate sixthdate seventhdate unqrx linked_practice hes_e tod2 lcd2 death_e lsoa_e cprd_e start_o start_h start_g end_h end_o pcos gest_diab preg marital regstat reggap internal toreason accept frd2 crd2 yob2 yob_indexdate exclude
 //Generate intensity (quintiles of dose)
-
+//several options for calculating- what do you want me to  put in here??
 
 //drop extraneous variables- anything you want me to drop here??
 
