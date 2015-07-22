@@ -350,10 +350,6 @@ do Data09_clinicalcovariates_c
 									- create variable for eligible dates
 									- pull out dates and associated covariates of interest, create counts, enumerate covtypes, keep obs relevant to window
 									- rectangularize, fillin, drop unwanted, reshape, save
-									
-#10 Data10_labcovariates_ckd:		use LabCovariates
-									- merge m:1 Analytic_variables_a
-									- generate history for serum creatinine tests for patients in total cohort (165308)
 */
 
 do Data10_labcovariates
@@ -361,6 +357,16 @@ do Data10_labcovariates
 					LabCovariates_c.dta
 					LabCovariates_s.dta
 					LabCovariates_i.dta
+					
+#10 Data10_labcovariates_ckd:		use LabCovariates
+									- merge m:1 Analytic_variables_a
+									- generate history for serum creatinine tests for patients in total cohort (165308)
+*/
+do Data19_labcovariates_ckd
+/*
+/*	
+Files saved: 	LabCovariates_ckd.dta
+*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #11 Data11_servicescovariates:	use Clinical001_2b-013_2b
 									- generate servtype
