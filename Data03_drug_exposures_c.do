@@ -112,6 +112,9 @@ save Drug_Exp_C.dta, replace
 //merge in analytic variables
 merge m:1 patid using Analytic_variables_a, gen(flag)
 
+//merge in supplemental common dosage information
+merge m:1 patid using Dosage_Info, gen(flagsuppl)
+
 //tidy labels
 label var tx "Censor date calculated as first of lcd, tod"
 label var cohort_b "Binary indicator; 1=metformin first only cohort; 0=not in cohort"
