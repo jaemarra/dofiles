@@ -460,6 +460,7 @@ local demo = "age_indexdate gender ib2.prx_covvalue_g_i4 ib2.prx_covvalue_g_i5"
 local demo2= "age_indexdate gender"
 local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
 local comorb2 ="i.prx_ccivalue_g_i2 hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
+local comorb3 = "i.prx_ccivalue_g_i2 cvd_i"
 local meds = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_*"
 local meds2 = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
 local meds3 = "i.unique_cov_drugs dmdur statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
@@ -473,7 +474,7 @@ local mvmodel_mi = "age_indexdate gender dmdur metoverlap i.ckd_amdrd i.unique_c
 local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male diabetes_duration Metformin_overlap eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_11_15 No_unique_drugs_16_20 No_unique_drugs_>20 CCI=1 CCI=2 CCI=3+ CVD Statin CCB BB Anticoag Antiplat RAS Diuretics su_post dpp4i_post glp1ra_post ins_post tzd_post oth_post BMI SBP HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 HbA1c_unknown Unknown Current Non_Smoker Former PhysVis_12 PhysVis_24 PhysVis_24plus"
 }
 //declare data as survival dataset
-stset acm_exit, fail(acm) id(patid) origin(seconddate)
+stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
 
 quietly {
 // Multiple imputation
@@ -489,76 +490,9 @@ mi register imputed bmi_i sbp prx_covvalue_g_i4_clone hba1c_cats_i2_clone
 //set the seed so that results are reproducible
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
-mi impute chained (regress) bmi_i sbp (mlogit) prx_covvalue_g_i4_clone hba1c_cats_i2_clone = acm `demo2' `comorb2' `meds3' `clin3', add(20)
+mi impute chained (regress) bmi_i sbp (mlogit) prx_covvalue_g_i4_clone hba1c_cats_i2_clone = acm `demo2' `comorb3' `meds3' `clin3', add(20) force augment
 //fit the model separately on each of the 20 imputed datasets and combine results
 mi estimate, hr: stcox i.indextype `mvmodel_mi2'
-
-// spit data to integrate time-varying covariates for diabetes meds.
-mi stsplit adm3, at(0) after(thirddate)
-gen su_post=regexm(thirdadmrx, "SU") & adm3!=-1
-gen dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
-gen glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
-gen ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
-gen tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
-gen oth_post=regexm(thirdadmrx, "other") & adm3!=-1
-
-mi stsplit adm4, at(0) after(fourthdate)
-replace su_post=1 if regexm(fourthadmrx, "SU") & adm4!=-1
-replace dpp4i_post= 1 if regexm(fourthadmrx, "DPP") & adm4!=-1
-replace glp1ra_post=1 if regexm(fourthadmrx, "GLP") & adm4!=-1
-replace ins_post=1 if regexm(fourthadmrx, "insulin") & adm4!=-1
-replace tzd_post=1 if regexm(fourthadmrx, "TZD") & adm4!=-1
-replace oth_post=1 if regexm(fourthadmrx, "other") & adm4!=-1
-
-mi stsplit adm5, at(0) after(fifthdate)
-replace su_post=1 if regexm(fifthadmrx, "SU") & adm5!=-1
-replace dpp4i_post= 1 if regexm(fifthadmrx, "DPP") & adm5!=-1
-replace glp1ra_post=1 if regexm(fifthadmrx, "GLP") & adm5!=-1
-replace ins_post=1 if regexm(fifthadmrx, "insulin") & adm5!=-1
-replace tzd_post=1 if regexm(fifthadmrx, "TZD") & adm5!=-1
-replace oth_post=1 if regexm(fifthadmrx, "other") & adm5!=-1
-
-mi stsplit adm6, at(0) after(sixthdate)
-replace su_post=1 if regexm(sixthadmrx, "SU") & adm6!=-1
-replace dpp4i_post= 1 if regexm(sixthadmrx, "DPP") & adm6!=-1
-replace glp1ra_post=1 if regexm(sixthadmrx, "GLP") & adm6!=-1
-replace ins_post=1 if regexm(sixthadmrx, "insulin") & adm6!=-1
-replace tzd_post=1 if regexm(sixthadmrx, "TZD") & adm6!=-1
-replace oth_post=1 if regexm(sixthadmrx, "other") & adm6!=-1
-
-mi stsplit adm7, at(0) after(seventhdate)
-replace su_post=1 if regexm(seventhadmrx, "SU") & adm7!=-1
-replace dpp4i_post= 1 if regexm(seventhadmrx, "DPP") & adm7!=-1
-replace glp1ra_post=1 if regexm(seventhadmrx, "GLP") & adm7!=-1
-replace ins_post=1 if regexm(seventhadmrx, "insulin") & adm7!=-1
-replace tzd_post=1 if regexm(seventhadmrx, "TZD") & adm7!=-1
-replace oth_post=1 if regexm(seventhadmrx, "other") & adm7!=-1
-
-replace su_post=1 if regexm(secondadmrx, "SU")
-replace dpp4i_post=1 if regexm(secondadmrx, "DPP")
-replace glp1ra_post=1 if regexm(secondadmrx, "GLP")
-replace ins_post=1 if regexm(secondadmrx, "insulin")
-replace tzd_post=1 if regexm(secondadmrx, "TZD") 
-replace oth_post=1 if regexm(secondadmrx, "other")
-
-//split patient observations into individual rows at the end of every exposure: time-varying
-mi stsplit stop0, at(0) after(exposuretf0)
-replace su_post=0 if su_post==1 & stop0!=-1
-
-mi stsplit stop1, at(0) after(exposuretf1)
-replace dpp4i_post=0 if dpp4i_post==1 & stop1!=-1
-
-mi stsplit stop2, at(0) after(exposuretf2)
-replace glp1ra_post=0 if glp1ra_post==1 & stop2!=-1
-
-mi stsplit stop3, at(0) after(exposuretf3)
-replace ins_post=0 if ins_post==1 & stop3!=-1
-
-mi stsplit stop4, at(0) after(exposuretf4)
-replace tzd_post=0 if tzd_post==1 & stop4!=-1
-
-mi stsplit stop5, at(0) after(exposuretf5)
-replace oth_post=0 if oth_post==1 & stop5!=-1
 }
 
 save Stat_acm_mi_any, replace
