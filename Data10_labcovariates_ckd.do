@@ -36,8 +36,6 @@ drop ever_sc
 //drop all patids with no history of serum creatinine measurement
 drop if sc_history==0
 
-//drop extraneous variables- anything you want me to drop here??
-
 save LabCovariates_ckd, replace
 
 timer off 1
