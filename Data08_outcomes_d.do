@@ -29,7 +29,7 @@ gen death_date = min(deathdate2, dod2)
 label variable death_date "Date of death"
 
 //MACE
-gen mace_date = min(myoinfarct_o_date_i, stroke_o_date_i, cvdeath_o_date_i, myoinfarct_h_date_i, stroke_h_date_i, myoinfarct_g_date_i, stroke_g_date_i)
+gen mace_date = min(myoinfarct_o_date_i, stroke_o_date_i, stroketia_o_date_i cvdeath_o_date_i, myoinfarct_h_date_i, stroke_h_date_i, stroketia_h_date_i myoinfarct_g_date_i, stroke_g_date_i, stroketia_g_date_i)
 label variable mace_date "Date of first primary CV composite outcome (cprd+hes+ons) after index date"
 gen mace = (mace_date!=.)
 label variable mace "CV composite primary outcome (cprd+hes+ons) after index: 1=event 0=no event"
@@ -46,7 +46,13 @@ gen stroke_date_i = min(stroke_g_date_i, stroke_h_date_i, stroke_o_date_i)
 label variable stroke_date_i "Date of first stroke (all) after index date"
 
 gen stroke_date_s = min(stroke_g_date_s, stroke_h_date_s, stroke_o_date_s)
-label variable stroke_date_s "Date of first MI (all) after study entry"
+label variable stroke_date_s "Date of first stroke (all) after study entry"
+
+gen stroketia_date_i = min(stroketia_g_date_i, stroketia_h_date_i, stroketia_o_date_i)
+label variable stroketia_date_i "Date of first stroke+tia (all) after index date"
+
+gen stroketia_date_s = min(stroketia_g_date_s, stroketia_h_date_s, stroketia_o_date_s)
+label variable stroketia_date_s "Date of first stroke+tia (all) after study entry"
 
 gen cvdeath_date_i = cvdeath_o_date_i
 label variable cvdeath_date_i "Date of cv death (all) after index date"
