@@ -23,37 +23,42 @@ compress
 
 //PRIMARY OUTCOMES
 // Myocardial Infarction
-// ICD-10 source: Quan, Med Care, 2005 (Table 1)
+// ICD-10 source:
 gen myoinfarct_h = 0 
 replace myoinfarct_h = 1 if regexm(icd, "I21.?")
 
 // Stroke
-// ICD-10 codes for cerebrovascular disease: Quan, Med Care, 2005 (Table 1), modified to include only hemmorage or infarction
+// ICD-10 codes for cerebrovascular disease: Kokotail, Stroke, 2005 (Table 1), modified to include only hemmorage or infarction with 162.? added (Other non-traumatic intracranial hemorrhage
 gen stroke_h = 0
-replace stroke_h = 1 if regexm(icd, "H34.1| I60.?| I61.?| I63.?|I64.?")
+replace stroke_h = 1 if regexm(icd, "I60.?|I61.?|I62.?|I63.?|I64.?")
+
+// Stroke+TIA
+// ICD-10 codes for cerebrovascular disease: Kokotail, Stroke, 2005 (Table 1) + Minono, NCHS, 2007 to add 162.? and 165.?-169.?
+gen stroketia_h = 0
+replace stroketia_h = 1 if regexm(icd, "H34.1|G45.x|I60.?|I61.?|I62.?|I63.?|I64.?|I65.?|I66.?|I67.?|I68.?|I69.?")
 
 ////// #2c Secondary outcomes: myocardial infarction, stroke, heart failure, cardiac arrhythmia, unstable angina, or urgent revascularization)
 // Code binary variable for each source of outcome info (CPRD GOLD "_g", ONS "_o", HES "_h", combo "_all")
 
 //SECONDARY OUTCOMES
 // Heart failure 
-// ICD-10 code source: Gamble 2011 CircHF (Supplemental- Appendix 1)
+// ICD-10 code source: Gamble CircHF, 2011 (Supplemental- Appendix 1)
 gen heartfail_h = 0
 replace heartfail_h = 1 if regexm(icd, "I50.?")
 
 // cardiac arrhythmia 
-// ICD-10 code source:
+// ICD-10 code source: So, BMC HSR, 2006 (Table 1)
 gen arrhythmia_h = 0
 replace arrhythmia_h = 1 if regexm(icd, "I44.1|I44.2|I44.3|I45.6|I45.9|I46.?|I47.?|I48.?|I49.?|R00.0|R00.1|R00.8|T82.1|Z45.0|Z95.0") 
 
 // unstable angina 
 // ICD-10 code source:
 gen angina_h = 0
-replace angina_h = 1 if regexm(icd, "I20.0") 
+replace angina_h = 1 if regexm(icd, "I20.?") 
 
 // #3 Generate dates for events after indexdate and studyentrydate
 sort patid epistart2
-local outcome myoinfarct_h stroke_h heartfail_h arrhythmia_h angina_h  
+local outcome myoinfarct_h stroke_h stroketia_h heartfail_h arrhythmia_h angina_h  
 				
 		foreach x of local outcome {
 		by patid: egen `x'_date_temp_i = min(epistart2) if `x'==1 & epistart2>indexdate 
@@ -73,12 +78,13 @@ local outcome myoinfarct_h stroke_h heartfail_h arrhythmia_h angina_h
 		label var `y'_date_i "Earliest date of episode recorded for events after study entry date"
 		}
 
-collapse (max) cohortentrydate indexdate studyentrydate myoinfarct_h stroke_h heartfail_h arrhythmia_h angina_h myoinfarct_h_date_i stroke_h_date_i heartfail_h_date_i arrhythmia_h_date_i angina_h_date_i myoinfarct_h_date_s stroke_h_date_s heartfail_h_date_s arrhythmia_h_date_s angina_h_date_s, by(patid)
+collapse (max) cohortentrydate indexdate studyentrydate myoinfarct_h stroke_h stroketia_h heartfail_h arrhythmia_h angina_h myoinfarct_h_date_i stroke_h_date_i stroketia_h_date_i heartfail_h_date_i arrhythmia_h_date_i angina_h_date_i myoinfarct_h_date_s stroke_h_date_s stroketia_h_date_s heartfail_h_date_s arrhythmia_h_date_s angina_h_date_s, by(patid)
 compress
 label variable angina_h "Unstable angina (hes) 1=event 0=no event"
 label variable arrhythmia_h "Cardiac arrhythmia (hes) 1=event 0=no event"
 label variable heartfail_h "Heart failure (hes) 1=event 0=no event"
 label variable stroke_h  "Stroke (hes) 1=event 0=no event"
+label var stroketia_h "Stroke plus TIA (hes) 1=event 0=no event"
 label variable myoinfarct_h "MI (hes) 1=event 0=no event"
 save Outcomes_hes.dta, replace
 
