@@ -145,7 +145,7 @@ do Data03_drug_exposures_b
 								- generate cohort of only the eligible 38265 patients			
 								- generate history of insulin prescriptions and classifications
 */
-do Suppl01_dosage_info
+do Supp01_dosage_info
 do Data03_drug_exposures_c
 /*	Files saved:	Dosage_Info.dta
 					Drug_Exposures_c.dta
