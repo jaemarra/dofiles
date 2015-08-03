@@ -162,7 +162,8 @@ label values imd2010_5 ses_cats
 replace prx_covvalue_g_i4=0 if prx_covvalue_g_i4==.
 label define smoking_cats 0 "Unknown" 1 "Current" 2 "Non" 3 "Former"
 label values prx_covvalue_g_i4 smoking_cats
-tabulate prx_covvalue_g_i4, gen(smokestatus)
+tabulate prx_covvalue_g_i4, gen(smokingstatus)
+clonevar smokestatus=prx_covvalue_g_i4
 
 //Alcohol abuse
 replace prx_covvalue_g_i5=0 if prx_covvalue_g_i5==.
@@ -350,6 +351,8 @@ label var dmdur_2 ">=2 yrs of treated diabetes"
 gen metoverlap = exposuretf6-seconddate
 label var metoverlap "Metformin overlap duration"
 
+gen heartmeds_i=(statin_i==1|calchan_i==1|betablock_i==1|anticoag_oral_i==1|antiplat_i==1|ace_arb_renin_i==1|diuretics_all_i==1)
+label var heartmeds_i "History of heart medications before indexdate 1=yes, 0=no"
 ***ESTIMATE GLOMERULAR FILTRATION RATE***
 //Serum Creatinine
 gen scr_i = prx_testvalue_i2165
@@ -474,10 +477,28 @@ egen stroke_exit = rowmin(stroke_date_i tod2 death_date lcd2)
 format stroke_exit %td
 label var stroke_exit "Exit date for stroke"
 
-gen mi_stroke=(mi_i==1 | stroke_i==1)
-label var mi_stroke "MI or stroke prior to index"
+//Stroke/TIA
+gen stroketia= stroketia_date_i!=.
+label var stroketia "Indicator for first stroke or TIA after indexdate 1=event, 0=no event"
+egen stroketia_exit = rowmin(stroketia_date_i tod2 death_date lcd)
+format stroketia_exit %td
+label var stroketia_exit "Exit date for stroke/TIA"
+
+gen mi_stroke_i=(mi_i==1 | stroke_i==1)
+label var mi_stroke_i "MI or stroke prior to index"
+
+gen mi_stroke = (mi==1|stroke==1) 
+label var mi_stroke "Indicator for first MI or stroke after indexdate"
+
+gen mi_stroketia = (mi==1|stroketia==1)
+label var mi_stroketia "Indicator for first MI or stroke/TIA after indexdate"
 
 //CV death
+gen cvdeath = cvdeath_date_i!=.
+label var cvdeath "Indicator for CV death after indexdate 1=event, o=no event"
+egen cvdeath_exit = rowmin(tod2 death_date lcd2)
+format cvdeath_exit %td
+label var cvdeath_exit "Exit date for CV death"
 
 //Heart Failure
 gen heartfail = heartfail_date_i!=.

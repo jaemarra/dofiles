@@ -26,10 +26,10 @@ merge 1:1 patid using Outcomes_ons, keep(match master) nogen
 
 //All-cause mortality
 gen death_date = min(deathdate2, dod2)
-label variable death_date "Date of death"
+label variable death_date "Date of death, first of death date in CPRD and ONS"
 
 //MACE
-gen mace_date = min(myoinfarct_o_date_i, stroke_o_date_i, stroketia_o_date_i, cvdeath_o_date_i, myoinfarct_h_date_i, stroke_h_date_i, stroketia_h_date_i, myoinfarct_g_date_i, stroke_g_date_i, stroketia_g_date_i)
+gen mace_date = min(myoinfarct_o_date_i, stroketia_o_date_i, cvdeath_o_date_i, myoinfarct_h_date_i, stroketia_h_date_i, myoinfarct_g_date_i, stroketia_g_date_i)
 label variable mace_date "Date of first primary CV composite outcome (cprd+hes+ons) after index date"
 gen mace = (mace_date!=.)
 label variable mace "CV composite primary outcome (cprd+hes+ons) after index: 1=event 0=no event"

@@ -31,7 +31,7 @@ label var nr_data "Non-redundant data for each covariate"
 
 // HES COVARIATES OF INTEREST
 // Myocardial infarction
-// ICD-10 source: Quan, Med Care, 2005 (Table 1) --CPRD Diagnostic Codes.xlsx
+// ICD-10 source: MODIFIED JULY 2015: Quan, Med Care, 2005 (Table 1) + a few from CDC/NCHS
 gen myoinfarct_covar_h = 0 
 replace myoinfarct_covar_h = 1 if regexm(icd, "I21.?|I22.?|I25.2")
 label variable myoinfarct_covar_h "Myocardial infarction (covar) (hes) 1=event 0=no event"
