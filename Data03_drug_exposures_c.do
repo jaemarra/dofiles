@@ -113,7 +113,7 @@ save Drug_Exp_C.dta, replace
 merge m:1 patid using Analytic_variables_a, gen(flag)
 
 //merge in supplemental common dosage information
-merge m:1 patid using Dosage_Info, gen(flagsuppl)
+*merge m:1 patid using Dosage_Info, gen(flagsuppl)
 
 //tidy labels
 label var tx "Censor date calculated as first of lcd, tod"
