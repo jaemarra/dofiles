@@ -14,23 +14,40 @@ capture ssc install psmatch2
 capture ssc install psmatch
 capture net install pscore
 
-use Analytic_Dataset_Master.dta, clear
-quietly do Data13_variable_generation.do
+use acm, clear
 
-//apply exclusion criteria
-keep if exclude==0
-//restrict to jan 1, 2007
-drop if seconddate<17167
+//set-up vars
+clonevar hba1c_cats_i2_clone = hba1c_cats_i2
+replace hba1c_cats_i2_clone=. if hba1c_cats_i2==5
+clonevar smokestatus_clone = smokestatus
+replace smokestatus_clone=. if smokestatus==0
 
+quietly {
 //Create macros
-tab ckd_amdrd, gen(ckd_dum)
-tab unique_cov_drugs, gen(unq_dum)
-tab prx_ccivalue_g_i2, gen(cci_dum)
-tab hba1c_cats_i2, gen(a1c_dum)
-tab prx_covvalue_g_i4, gen(smk_dum)
-tab physician_vis2, gen(vis_dum)
-
-local mvmodel_ps = "dmdur metoverlap ckd_dum* unq_dum* cci_dum* a1c_dum* smk_dum* vis_dum* cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp"
+//all demographic covariates
+local demo = "age_indexdate gender ib2.smokestatus"
+//all demographic covariates included in model (not including those being imputed)
+local demo2= "age_indexdate gender"
+//all demographic covariates included in model post-imputation
+local demoMI= "age_indexdate gender ib2.smokestatus_clone"
+//all comorbidity history covariates included in model (not including those being imputed)
+local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
+//all comorbidity history covariates included in model (not including those being imputed); individual CV comorbidities simplified to cvd_i
+local comorb2 ="i.prx_ccivalue_g_i2 cvd_i"
+//all medication history covariates
+local meds = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_*"
+//all medication history covariates included in model (not including those being imputed); post_* are always dropped for collinearity
+local meds2 = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
+//all clinical covariates
+local clin = "ib1.hba1c_cats_i2 sbp i.ckd_amdrd i.physician_vis2 bmi_i"
+//all clinical covariates included in model (not including those being imputed)
+local clin2 = "i.ckd_amdrd i.physician_vis2"
+//all clinical covariates included in model post-imputation
+local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
+//full model
+local mvmodel_mi = "age_indexdate gender ib2.smokestatus_clone ib1.hba1c_cats_i2_clone i.ckd_amdrd bmi_i sbp i.physician_vis2 i.prx_ccivalue_g_i2 cvd_i dmdur metoverlap i.unique_cov_drugs statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
+local matrownames_mi "SU DPP4I GLP1RA INS TZD OTH Age Male Current Non_Smoker Former HbA1c_<7 HbA1c_7_8 HbA1c_8_9 HbA1c_9_10 HbA1c_>10 eGFR_90+ eGFR_60_89 eGFR_30_59 eGFR_15_29 eGFR_<15 eGFR_unknown BMI SBP PhysVis_12 PhysVis_24 PhysVis_24plus CCI=1 CCI=2 CCI=3+ CVD diabetes_duration Metformin_overlap No_unique_drugs_0_5 No_unique_drugs_6_10 No_unique_drugs_>10 Statin CCB BB Anticoag Antiplat RAS Diuretics"
+}
 // update censor times for final exposure to second-line agent (indextype)
 forval i=0/5 {
 	replace acm_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
@@ -41,27 +58,16 @@ replace acm=0 if acm_exit<death_date
 // declare survival analysis - final exposure as last exposure date 
 stset acm_exit, fail(acm) id(patid) origin(seconddate) scale(365.25)
 
+quietly {
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
 mi set mlong
 save acm_mlong, replace
-clonevar hba1c_cats_i2_clone = hba1c_cats_i2
-replace hba1c_cats_i2_clone=. if hba1c_cats_i2==5
-clonevar prx_covvalue_g_i4_clone = prx_covvalue_g_i4
-replace prx_covvalue_g_i4_clone=. if prx_covvalue_g_i4==0
 //inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
-mi register imputed bmi_i sbp prx_covvalue_g_i4_clone hba1c_cats_i2_clone
-//describe and learn about the missing values in the data
-mi describe 
-mi misstable summarize
-mi misstable nested
+mi register imputed bmi_i sbp smokestatus_clone hba1c_cats_i2_clone
 //set the seed so that results are reproducible
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
-mi impute chained (regress) bmi_i sbp (mlogit) prx_covvalue_g_i4_clone hba1c_cats_i2_clone = acm `demo2' `comorb2' `meds3' `clin3', add(20)
-//verify that all missing values are filled in
-mi describe
-//look at summary statistics in each of the imputation datasets
-mi xeq: summarize
+mi impute chained (regress) bmi_i sbp (mlogit) smokestatus_clone hba1c_cats_i2_clone = acm `demo2' `comorb2' `meds2' `clin2', add(20)
 // spit data to integrate time-varying covariates for diabetes meds.
 mi stsplit adm3, after(thirddate) at(0)
 gen su_post=(indextype3==0 & adm3!=-1)
@@ -120,7 +126,17 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
+}
 save Stat_acm_mi_pscore, replace
+
+tab ckd_amdrd, gen(ckd_dum)
+tab unique_cov_drugs, gen(unq_dum)
+tab prx_ccivalue_g_i2, gen(cci_dum)
+tab hba1c_cats_i2_clone, gen(a1c_dum)
+tab smokestatus_clone, gen(smk_dum)
+tab physician_vis2, gen(vis_dum)
+
+local mvmodel_ps = "dmdur metoverlap ckd_dum* unq_dum* cci_dum* a1c_dum* smk_dum* vis_dum* cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp"
 
 gen trt =.
 replace trt=0 if indextype==0
@@ -144,7 +160,7 @@ line ps_0 ps_1 x
 //trim non-overlapping by nearest neighbor matching (always and never treated are removed but not applicable in cohort)
 qui psmatch2 trt, outcome(acm) pscore(ps_single) neighbor(1)
 //Check to make sure PS are balanced
-psgraph, treated(trt) pscore(ps_single)
+//psgraph, treated(trt) pscore(ps_single)
 //Evaluate standardized differences in matched sample
 pstest `mvmodel_ps', treated(trt) both
 //Graph standardized differences in matched sample
