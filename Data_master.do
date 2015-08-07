@@ -9,7 +9,8 @@ clear all
 capture log close
 log using Data_master.smcl, replace
 timer on 1
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* #1 Data01_import: 	----CPRD----
 						+ PATIENTS (patients_13_100R)
 						+ LINKAGE (linkage_eligibility, linkage_coverage) 
@@ -85,7 +86,6 @@ do Data01_import
 						
 For each file: import, label, rename, compress, save						
 */
-
 do Data02_support
 /*	Files saved:		Bnfcodes.dta
 						commondosages.dta
@@ -98,6 +98,20 @@ Merged files saved:		Therapy_0-49.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 pr
 						hes (merged 1:1 BasePatidDate + joinby hes_hospital, hes_episodes, hes_diagnosis_epi, hes_diagnosis_hosp, hes_procedures, hes_maternity)
 */			
 
+/* #2 Data02_exclusion_b:	use Clinical001_2-013_2
+						- generate exclusion variables for pcos, pregnancy, and gestational diabetes using cprd clinical files
+						use hes
+						- generate exclusion variables for pcos, pregnancy, and gestational diabetes using hes data
+						use hes_maternity
+						- generate exclusion variable for pregnancy using hes_maternity data
+						- merge all together and keep a maximum value of 1 for each indicator
+*/					
+do Data02_exclusion_b
+/* Files saved:	Exclusion_cprd.dta
+				Exclusion_hes.dta
+				Exclusion_hes_mat.dta
+				Exclusion_merged.dta
+*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
 /* #3 Data03_drug_exposures_a:	use Therapy_0-49
 								- prepare Therapy files and product.txt
@@ -117,7 +131,6 @@ Merged files saved:		Therapy_0-49.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 pr
 								- save Dates.dta dataset with patid, studyentrydate_cprd2, cohortentrydate, and indexdate
 								- save analytic variables with concat first-seventhadmrx, first-seventdates, cohort_b, tx and from Data01_Import: linked_b lcd2 tod2 deathdate2 dod2
 */
-
 do Data03_drug_exposures_a
 /*	Files saved:	Therapy_0-49dm.dta (tempfiles only)
 					adm_drug_exposures.dta (intermediate file primarily for data checking stage)
@@ -394,21 +407,6 @@ do Data11_servicescovariates_c
 				ServicesCovariates_c.dta
 				ServicesCovariates_i.dta
 				
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#00 Data00_exclusion:	use Clinical001_2-013_2
-						- generate exclusion variables for pcos, pregnancy, and gestational diabetes using cprd clinical files
-						use hes
-						- generate exclusion variables for pcos, pregnancy, and gestational diabetes using hes data
-						use hes_maternity
-						- generate exclusion variable for pregnancy using hes_maternity data
-						- merge all together and keep a maximum value of 1 for each indicator
-*/					
-do Data00_exclusion
-/* Files saved:	Exclusion_cprd.dta
-				Exclusion_hes.dta
-				Exclusion_hes_mat.dta
-				Exclusion_merged.dta
-*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IN PROCESS #12 Data11_analytic_dataset --> Create main analytic cohort by merging 1) Exposure dataset, 2) Immunizations dataset, 		
 //												  3) Demographic dataset, 4) SES dataset, 5) Outcome dataset, 6) Clinical covariate dataset
