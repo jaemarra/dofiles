@@ -110,7 +110,7 @@ forval i=1/49 {
 save Drug_Exp_C.dta, replace
 
 //merge in common dosage identifier field
-merge 1:1 patid using TherapyRx, gen(flagRx)
+merge 1:1 patid using TherapyRx, keep(match master)
 
 //merge in analytic variables
 merge m:1 patid using Analytic_variables_a, gen(flagAVar)
