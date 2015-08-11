@@ -109,11 +109,14 @@ forval i=1/49 {
 	}
 save Drug_Exp_C.dta, replace
 
+//merge in common dosage identifier field
+merge 1:1 patid using TherapyRx, gen(flagRx)
+
 //merge in analytic variables
-merge m:1 patid using Analytic_variables_a, gen(flag)
+merge m:1 patid using Analytic_variables_a, gen(flagAVar)
 
 //merge in supplemental common dosage information
-merge m:1 textid using Dosage_Info, gen(flagsuppl)
+merge m:1 textid using Dosage_Info, gen(flagDose)
 
 //tidy labels
 label var tx "Censor date calculated as first of lcd, tod"
