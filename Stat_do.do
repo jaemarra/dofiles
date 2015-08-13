@@ -1,9 +1,0 @@
-do Stat_acm.do
-do Stat_mace.do
-do Stat_stroke.do
-do Stat_angina.do
-do Stat_arryth.do
-do Stat_hf.do
-do Stat_myoinf.do
-do Stat_revasc.do
-do Stat_cvdeath.do
