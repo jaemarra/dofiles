@@ -86,7 +86,7 @@ do Data01_import
 						
 For each file: import, label, rename, compress, save						
 */
-do Data02_support
+do Data02_support_a
 /*	Files saved:		Bnfcodes.dta
 						commondosages.dta
 						medical.dta
@@ -98,7 +98,7 @@ Merged files saved:		Therapy_0-49.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 pr
 						hes (merged 1:1 BasePatidDate + joinby hes_hospital, hes_episodes, hes_diagnosis_epi, hes_diagnosis_hosp, hes_procedures, hes_maternity)
 */			
 
-/* #2 Data02_exclusion_b:	use Clinical001_2-013_2
+/* #2 Data02_support_b:	use Clinical001_2-013_2
 						- generate exclusion variables for pcos, pregnancy, and gestational diabetes using cprd clinical files
 						use hes
 						- generate exclusion variables for pcos, pregnancy, and gestational diabetes using hes data
@@ -106,7 +106,7 @@ Merged files saved:		Therapy_0-49.dta (merged 1:1 Bnfcodes, 1:1 packtype, 1:1 pr
 						- generate exclusion variable for pregnancy using hes_maternity data
 						- merge all together and keep a maximum value of 1 for each indicator
 */					
-do Data02_exclusion_b
+do Data02_support_b
 /* Files saved:	Exclusion_cprd.dta
 				Exclusion_hes.dta
 				Exclusion_hes_mat.dta
@@ -165,11 +165,11 @@ do Data03_drug_exposures_c
 /*	Files saved:	Drug_Exposures_c.dta
 */
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/* #3 Data04_drug_covariates:	use Therapy_0-49
-								- do Data04_drug_covariates_loop to call the actual do file and loop all Therapy files through
-								- extract medication covariates of interest using gemscriptcodes
-								- restrict to one year prior to the dates of interest		
-								- generate variables for number of unique drugs and medication adherence
+/* #3 Data04_drug_covariates_loop_short:	use Therapy_0-49
+											- do Data04_drug_covariates_loop to call the actual do file and loop all Therapy files through
+											- extract medication covariates of interest using gemscriptcodes
+											- restrict to one year prior to the dates of interest		
+											- generate variables for number of unique drugs and medication adherence
 */
 
 do Data04_drug_covariates_loop_short
@@ -328,8 +328,16 @@ do Data09_clinicalcovariates_b
 					hes_cci_i.dta
 					hes_cci_c.dta
 					hes_cci_s.dta
+										
+#9 Data09_clinicalcovariates_c: 	c)	(formerly called Data09_fixedvariables)
+										use Clinical001_2b-013_2b
+										- merge m:1 patid using Patient
+										- merge m:1 patid using Additonal
+										- merge m:1 patid using Dates
+										- generate fixed variables for bmi, height, and weight
 
-#9 Data09_clinicalcovariates_c: 	c)	use ClinicalCovariates_i
+#9 Data09_clinicalcovariates_d: 	d)	(formerly called Data09_clinicalcovariates_c)
+										use ClinicalCovariates_i
 										- merge 1:1 patid using hesCovariates_i
 										- merge 1:1 patid using Clinical_cci_i
 										- merge 1:1 patid using hes_cci_i
@@ -341,16 +349,9 @@ do Data09_clinicalcovariates_b
 										- merge 1:1 patid using hesCovariates_s
 										- merge 1:1 patid using Clinical_cci_s
 										- merge 1:1 patid using hes_cci_s
-										
-#9 Data09_fixedvariables: 				use Clinical001_2b-013_2b
-										- merge m:1 patid using Patient
-										- merge m:1 patid using Additonal
-										- merge m:1 patid using Dates
-										- generate fixed variables for bmi, height, and weight
 */
-do Data09_fixedvariables
-
 do Data09_clinicalcovariates_c
+do Data09_clinicalcovariates_d
 
 /*	Files saved:	ClinicalCovariates_merged_i.dta
 					ClinicalCovariates_merged_c.dta
@@ -378,7 +379,7 @@ do Data10_labcovariates
 									- merge m:1 Analytic_variables_a
 									- generate history for serum creatinine tests for patients in total cohort (165308)
 */
-do Data19_labcovariates_ckd
+do Data10_labcovariates_ckd
 /*
 /*	
 Files saved: 	LabCovariates_ckd.dta
