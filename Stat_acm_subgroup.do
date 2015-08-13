@@ -17,8 +17,10 @@ use Stat_acm_mi, clear
 *************************************************SUBGROUP ANALYSES / EFFECT MODIFIERS*************************************************
 //AGE- Generate the linear combination hr and ci (DPP and GLP only)
 //Unadjusted
+quietly {
 mi estimate, hr: stcox i.indextype if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 mi estimate, hr: stcox i.indextype if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
+}
 mi estimate, hr post: stcox indextype_2##i.age_65 indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 lincom 1.indextype_2+1.indextype_2#0.age_65, hr
 lincom 1.indextype_2+1.indextype_2#1.age_65, hr
@@ -26,8 +28,10 @@ lincom 1.indextype_2+1.indextype_2#1.age_65, hr
 //lincom 1.indextype_3+1.indextype_3#0.age_65, hr
 //lincom 1.indextype_3+1.indextype_3#1.age_65, hr
 //Adjusted
+quietly {
 mi estimate, hr: stcox i.indextype `mvmodel_mi' if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 mi estimate, hr: stcox i.indextype `mvmodel_mi' if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+}
 mi estimate, hr post: stcox indextype_2##i.age_65 indextype_3 indextype_4 indextype_5 indextype_6 indextype_7 `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 lincom 1.indextype_2+1.indextype_2#0.age_65, hr
 lincom 1.indextype_2+1.indextype_2#1.age_65, hr
@@ -37,8 +41,10 @@ lincom 1.indextype_2+1.indextype_2#1.age_65, hr
 
 //GENDER- Generate the linear combination hr and ci (DPP and GLP only
 //Unadjusted
+quietly {
 mi estimate, hr: stcox i.indextype if gender==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 mi estimate, hr: stcox i.indextype if gender==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
+}
 mi estimate, hr post: stcox indextype_2##i.gender indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 lincom 1.indextype_2+1.indextype_2#0.gender, hr
 lincom 1.indextype_2+1.indextype_2#1.gender, hr
@@ -46,8 +52,10 @@ lincom 1.indextype_2+1.indextype_2#1.gender, hr
 //lincom 2.indextype+2.indextype#0.gender, hr
 //lincom 2.indextype+2.indextype#1.gender, hr
 //Adjusted
+quietly {
 mi estimate, hr: stcox i.indextype `mvmodel_mi' if gender==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 mi estimate, hr: stcox i.indextype `mvmodel_mi' if gender==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+}
 mi estimate, hr post: stcox indextype_2##i.gender indextype_3 indextype_4 indextype_5 indextype_6 indextype_7 `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 lincom 1.indextype_2+1.indextype_2#0.gender, hr
 lincom 1.indextype_2+1.indextype_2#1.gender, hr
@@ -57,8 +65,10 @@ lincom 1.indextype_2+1.indextype_2#1.gender, hr
 
 // Duration of Metformin Monotherapy- Generate the linear combination hr and ci (DPP and GLP only)
 //Unadjusted
+quietly {
 mi estimate, hr: stcox i.indextype if dmdur_2==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 mi estimate, hr: stcox i.indextype if dmdur_2==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
+}
 mi estimate, hr post: stcox indextype_2##i.dmdur_2 indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 lincom 1.indextype_2+1.indextype_2#0.dmdur_2, hr
 lincom 1.indextype_2+1.indextype_2#1.dmdur_2, hr
@@ -66,8 +76,10 @@ lincom 1.indextype_2+1.indextype_2#1.dmdur_2, hr
 //lincom 2.indextype+2.indextype#0.dmdur_2, hr
 //lincom 2.indextype+2.indextype#1.dmdur_2, hr
 //Adjusted 
+quietly {
 mi estimate, hr: stcox i.indextype `mvmodel_mi' if dmdur_2==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 mi estimate, hr: stcox i.indextype `mvmodel_mi' if dmdur_2==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
+}
 mi estimate, hr post: stcox indextype_2##i.dmdur_2 indextype_3 indextype_4 indextype_5 indextype_6 indextype_7 `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 lincom 1.indextype_2+1.indextype_2#0.dmdur_2, hr
 lincom 1.indextype_2+1.indextype_2#1.dmdur_2, hr
@@ -77,8 +89,10 @@ lincom 1.indextype_2+1.indextype_2#1.dmdur_2, hr
 
 // HbA1c- Generate the linear combination hr and ci (DPP and GLP only)
 //Unadjusted
+quietly {
 mi estimate, hr: stcox i.indextype if hba1c_8==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 mi estimate, hr: stcox i.indextype if hba1c_8==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
+}
 mi estimate, hr post: stcox indextype_2##i.hba1c_8 indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 lincom 1.indextype_2+1.indextype_2#0.hba1c_8, hr
 lincom 1.indextype_2+1.indextype_2#1.hba1c_8, hr
@@ -86,8 +100,10 @@ lincom 1.indextype_2+1.indextype_2#1.hba1c_8, hr
 //lincom 2.indextype+2.indextype#0.hba1c_8, hr
 //lincom 2.indextype+2.indextype#1.hba1c_8, hr
 //Adjusted
+quietly {
 mi estimate, hr: stcox i.indextype `mvmodel_mi' if hba1c_8==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 mi estimate, hr: stcox i.indextype `mvmodel_mi' if hba1c_8==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
+}
 mi estimate, hr post: stcox indextype_2##i.hba1c_8 indextype_3 indextype_4 indextype_5 indextype_6 indextype_7 `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 lincom 1.indextype_2+1.indextype_2#0.hba1c_8, hr
 lincom 1.indextype_2+1.indextype_2#1.hba1c_8, hr

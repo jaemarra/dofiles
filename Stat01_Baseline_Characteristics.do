@@ -12,6 +12,7 @@ log using Stat01.smcl, replace
 timer on 1
 
 use Analytic_Dataset_Master
+do Data13_variable_generation.do
 
 //SOCIODEMOGRAPHICS//
 //Preparation
@@ -21,12 +22,6 @@ replace exposuret02=seconddate if secondadmrx=="GLP"&cohort_b==1
 replace exposuret03=seconddate if secondadmrx=="insulin"&cohort_b==1
 replace exposuret04=seconddate if secondadmrx=="TZD"&cohort_b==1
 replace exposuret05=seconddate if secondadmrx=="otherantidiab"&cohort_b==1
-
-//Exclusion unification
-gen exclude=1 if (gest_diab==1|pcos==1|preg==1|age_indexdate<=29|cohort_b==0|tx<=seconddate)
-replace exclude=0 if exclude!=1
-label var exclude "Bin ind for pcos, preg, gest_diab, or <30yo; excluded=1, not excluded=0)
-tab exclude
 
 //Age
 generate age_cat = age_indexdate
@@ -364,7 +359,7 @@ table1 if exclude==0&cohort_b==1, by(indextype) vars(egfr_cg contn \ egfr_mcg co
 table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(age_cat cat \ gender bin \ maritalstatus cat \ imd2010_5 cat \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ weight_bin bin \ height_bin bin) format(%f9.2) onecol saving(sociodemographics_linked.xls, replace)
 table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(age_indexdate contn \ height_i contn \ weight_i contn \ bmi_i contn \ physician_vis contn \ hospitalizations contn \ hosp_services contn \ hosp_days contn) saving(healthservices_linked.xls, replace)
 table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(physician_vis cat \ hospitalizations cat \ hosp_services cat \ hosp_days cat) onecol format(%f9.2) saving(healthservicescats_linked.xls, replace)
-table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ prx_ccivalue_h_i cat) onecol format(%f9.2) saving(comorbidities_linked.xls, replace)
+table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(angina_com_i bin \ arrhyth_com_i bin \ afib_com_i bin \ heartfail_com_i bin \ htn_com_i bin \ myoinf_com_i bin \ pvd_com_i bin \ stroke_com_i bin \ revasc_com_i bin \ prx_ccivalue_h_i cat \ cvd_i bin) onecol format(%f9.2) saving(comorbidities_linked.xls, replace)
 table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(hba1c_i contn \ prx_covvalue_g_i3 contn \ prx_testvalue_i163 contn \ prx_testvalue_i175 contn \ prx_testvalue_i177 contn \ prx_testvalue_i202 contn \ scr_i contn) onecol saving(physiologics_linked.xls, replace)
 table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(scr_i cat \ hba1c_cats_i cat \ sbp_i cat \ sbp_i_cats cat \ totchol_i cat \ hdl_i cat \ ldl_i cat \ tg_i cat) format(%f9.2) onecol saving(physiologicscats_linked.xls, replace)
 table1 if exclude==0&cohort_b==1&linked_b==1, by(indextype) vars(unique_cov_drugs cat \ unqrx cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%f9.2) saving(medications_linked.xls, replace)

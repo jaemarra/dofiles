@@ -55,7 +55,7 @@ collin indextype_2 indextype_3 indextype_4 indextype_5 indextype_6 age_indexdate
 stcox i.indextype `mvmodel_mi', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) efron nolog noshow estimate
 //cox-snell cumulative hazard slope should ~=1
 predict cs, csnell
-stset cs, fail(acm) 
+mi stset cs, fail(acm) 
 sts gen H=na
 line H cs cs, sort ytitle("Goodness of Fit") legend(cols(1))
 **********************************************************Concordance*************************************************

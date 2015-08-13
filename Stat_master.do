@@ -624,7 +624,7 @@ Files saved: 			table_cvdeath.xlsx
 do Stat_manuscript
 /*
 Files saved: 			Stat_manuscript.smcl
-*/
+*/	
 ////////////////////////////////////////////
 timer off 1
 timer list 1

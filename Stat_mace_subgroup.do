@@ -10,8 +10,10 @@ set more off
 log using Stat_mace.smcl, name(Stat_mace_subgroup) replace
 
 *************************************************SUBGROUP ANALYSES / EFFECT MODIFIERS*************************************************
-use Stat_mace_mi_any, clear
-//AGE- Generate the linear combination hr and ci (DPP and GLP only)
+use Stat_mace_mi, clear
+//repeat for any after analyses
+//use Stat_mace_mi_any, clear
+//AGE- Generate the linear combination hr and ci (DPP only)
 //Unadjusted
 mi estimate, hr: stcox i.indextype if age_65==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 mi estimate, hr: stcox i.indextype if age_65==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
@@ -150,7 +152,7 @@ mi xeq 2: stptime if indextype==1&ckd_60==1
 //Unadjusted
 mi estimate, hr: stcox i.indextype if hf_i==0, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 mi estimate, hr: stcox i.indextype if hf_i==1, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
-mi estimate, hr post: stcox indextype_2##i.hf_i   indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
+mi estimate, hr post: stcox indextype_2##i.hf_i indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 lincom 1.indextype_2+1.indextype_2#0.hf_i, hr
 lincom 1.indextype_2+1.indextype_2#1.hf_i, hr
 mi xeq 2: stptime if indextype==0&hf_i==0
@@ -192,17 +194,28 @@ mi xeq 2: stptime if indextype==1&mi_stroke==1
 
 /*
 //Generate Forest Plots
-use SubgroupAnalysis_anyafter_mace, clear
-//Label variables for subgroup graphs
-capture label define subgroups 1 "Age" 2 "Gender" 3 "Metformin monotherapy" 4 "A1c" 5 "BMI" 6 "Renal insufficiency" 7 "History of HF" 8 "History of MI/Stroke"
-capture label values subgroup subgroups
-capture label define subvals 0 "Less than 65" 1 "65 or older" 2 "Female" 3 "Male" 4 "Less than 2 years" 5 "2 or more years" 6 "Less than 8" 7 "8 or greater" 8 "Less than 30" 9 "30 or greater" 10 "EGFR 60 or greater" 11 "EGFR less than 60" 12 "Negative history" 13 "Positive history"
-capture label values sub_val subvals
-capture rename sub_val Subgroup
-capture recast float subgroup
-capture recast float adjusted
-capture recast float Subgroup
-metan hr ll ul if adj==1, force by(subgroup) nowt nobox nooverall nosubgroup scheme(s1mono) null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") saving(subgroup_mace, asis replace)
+
+
+use SubgroupDPPMACEmain, clear
+OR 
+use SubgroupDPPMACEany, clear
+capture label drop subgroups
+label define subgroups 1 "{bf}Age" 2 "{bf}Gender" 3 "{bf}Duration of metformin monotherapy" 4 "{bf}HbA1c" 5 "{bf}BMI" 6 "{bf}Renal insufficiency" 7 "{bf}History of HF" 8 "{bf}History of MI/stroke"
+label values subgroup subgroups
+label define subvals 0 "Less than 65" 1 "65 or older" 2 "Female" 3 "Male" 4 "Less than 2 years" 5 "2 or more years" 6 "Less than 8" 7 "8 or greater" 8 "Less than 30" 9 "30 or greater" 10 "EGFR 60 or greater" 11 "EGFR less than 60" 12 "Negative history" 13 "Positive history"
+label values sub_val subvals
+rename sub_val Subgroup
+label var Subgroup "{bf}Subgroup"
+label var fail "{bf}Events"
+
+FOR MACE MAIN
+metan hr ll ul if adjusted==1, force by(subgroup) nowt nobox nooverall null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Unadjusted Cox Model Subgroup Analysis for Index Exposure to DPP4i, size(small))
+metan hr ll ul if adjusted==0, force by(subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(0, .5, 1.5, 2) lcols(Subgroup) effect("Hazard Ratio") saving(SubgroupACMmainUnadj, asis replace)
+metan hr ll ul if adjusted==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(0, .5, 1.5, 2) lcols(Subgroup) effect("Hazard Ratio") saving(SubgroupACMmainAdj, asis replace)
+
+FOR MACE ANY
+metan hr ll ul if adjusted==1, force by(subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) xlabel(0, .5, 1.5, 2) lcols(Subgroup) rcols(fail) effect("Hazard Ratio") saving(SubgroupACMmainAdj, asis replace)
+
 */
 
 timer off 1
