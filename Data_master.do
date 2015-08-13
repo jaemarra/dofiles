@@ -151,17 +151,18 @@ do Data03_drug_exposures_b
 */
 
 /* #3 Data03_drug_exposures_c:	use adm_drug_exposures
+								- remove multiplicity
+								- destring textid and merge m:1 using commondosages
+								- generate instype for identifying type of insulin prescription
 								- merge m:1 patid using Analytic_variables_a
 								- merge m:1 patid using Exclusion_merged
 								- merge m:1 patid using Dates
 								- merge m:1 patid using Patient
-								- generate cohort of only the eligible 38265 patients			
+								- generate cohort of only the eligible patients			
 								- generate history of insulin prescriptions and classifications
 */
-do Supp01_dosage_info
 do Data03_drug_exposures_c
-/*	Files saved:	Dosage_Info.dta
-					Drug_Exposures_c.dta
+/*	Files saved:	Drug_Exposures_c.dta
 */
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* #3 Data04_drug_covariates:	use Therapy_0-49

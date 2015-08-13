@@ -20,7 +20,7 @@ forval i=0/49 {
 	use Therapy_`i', clear
 
 	merge m:1 patid using Censor, nogen
-	keep patid gemscriptcode rxdate2 qty ndd studyentrydate_cprd2 tod2 deathdate2 lcd2 end_h end_o issueseq
+	keep patid gemscriptcode rxdate2 qty ndd studyentrydate_cprd2 tod2 deathdate2 lcd2 end_h end_o issueseq textid
 	save Therapy_`i'dm, replace
 	clear
 }
