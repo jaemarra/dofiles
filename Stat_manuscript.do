@@ -1029,10 +1029,11 @@ capture label drop covariates
 label define covariates 0 "no Covariates" 1 "and gender" 2 "+ met mono, met overlap, A1c" 3 "CKD, unique Rx, CCI, visits" 4 "all covariates" 5 "for age, gender, decile"
 label values Covariates covariates
 capture rename Covariates Models
+label var Models "{bf}Models"
 metan HR LL UL, force by(model) nowt nobox nooverall null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
 }
 //generate FigureS3
-metan HR LL UL, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75, 1.25) astext(70) scheme(s1mono) lcols(Models) effect("Hazard Ratio") saving(MainModelComparison, asis replace)
+metan HR LL UL, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75) astext(70) scheme(s1mono) lcols(Models) effect("{bf}Hazard {bf}Ratio") saving(FigureS3, asis replace)
 
 //SUPPLEMENT TABLE S3: ACM FOR DPP and GLP VS SU ACROSS VARYING RANGES
 //secondline OR use table2_acm.xlsx (Unadj MI and Adj MI Ref0 tabs)
