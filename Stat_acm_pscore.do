@@ -127,7 +127,6 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 }
-save Stat_acm_mi_pscore, replace
 
 tab ckd_amdrd, gen(ckd_dum)
 tab unique_cov_drugs, gen(unq_dum)
@@ -167,6 +166,7 @@ pstest `mvmodel_ps', treated(trt) both
 pstest `mvmodel_ps', treated(trt) both graph
 //Now you can adjust by deciles of the PS in a multivariable model
 //Fit the model separately on each of the 20 imputed datasets and combine results
+save Stat_acm_mi_pscore, replace
 mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender
 mi estimate, hr: stcox trt ib5.decile age_indexdate gender
 

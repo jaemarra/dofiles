@@ -23,6 +23,7 @@ mi estimate, hr: stcox i.indextype if age_65==1, cformat(%6.2f) pformat(%5.3f) s
 }
 mi estimate, hr post: stcox indextype_2##i.age_65 indextype_3 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 lincom 1.indextype_2+1.indextype_2#0.age_65, hr
+putexcel A1=
 lincom 1.indextype_2+1.indextype_2#1.age_65, hr
 //mi estimate, hr post: stcox indextype_3##i.age_65 indextype_2 indextype_4 indextype_5 indextype_6 indextype_7, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) nolog noshow
 //lincom 1.indextype_3+1.indextype_3#0.age_65, hr
@@ -403,6 +404,7 @@ mi xeq 2: stptime if indextype==0&mi_stroke==1
 mi xeq 2: stptime if indextype==1&mi_stroke==0
 mi xeq 2: stptime if indextype==1&mi_stroke==1
 
+
 /*
 //Generate Forest Plots
 use SubgroupAnalysis_anyafter, clear
@@ -427,5 +429,5 @@ metan hr ll ul if adj==0 & trt==2, force by(subgroup) nowt nobox nooverall nosub
 metan hr ll ul if adj==1 & trt==2, force by(subgroup) nowt nobox nooverall nosubgroup null(1) xlabel(0, .5, 1.5) lcols(Subgroup) effect("Hazard Ratio") title(Adjusted Cox Model Subgroup Analysis for Any Exposure to GLP1RA, size(small)) saving(PanelD_any, asis replace)
 */
 
- timer off 1
- log close Stat_acm_subgroup
+timer off 1
+log close Stat_acm_subgroup

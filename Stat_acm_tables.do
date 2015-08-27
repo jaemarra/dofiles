@@ -58,7 +58,7 @@ putexcel A1=("Variable") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") 
 
 //Change reference groups complete case
 //DPP
-stcox ib2.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+stcox ib1.indextype `mvmodel', cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 matrix b=r(table)
 matrix c=b'
 matrix list c
