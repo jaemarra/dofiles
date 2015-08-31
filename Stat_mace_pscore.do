@@ -38,15 +38,6 @@ local clin = "ib1.hba1c_cats_i2 sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 local clin2 = "i.ckd_amdrd i.physician_vis2"
 //all clinical covariates included in model post-imputation
 local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
-//dummy vars
-tab ckd_amdrd, gen(ckd_dum)
-tab unique_cov_drugs, gen(unq_dum)
-tab prx_ccivalue_g_i2, gen(cci_dum)
-tab hba1c_cats_i2, gen(a1c_dum)
-tab prx_covvalue_g_i4, gen(smk_dum)
-tab physician_vis2, gen(vis_dum)
-//pscore model
-local mvmodel_ps = "dmdur metoverlap ckd_dum* unq_dum* cci_dum* a1c_dum* smk_dum* vis_dum* cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp"
 }
 // update censor times for final exposure to second-line agent (indextype)
 gen exposure_exit=.
@@ -139,7 +130,17 @@ replace tzd_post=0 if tzd_post==1 & stop4!=-1
 mi stsplit stop5, after(exposuretf5) at(0)
 replace oth_post=0 if oth_post==1 & stop5!=-1
 
-save Stat_mace_mi_ps, replace
+//dummy vars
+tab ckd_amdrd, gen(ckd_dum)
+tab unique_cov_drugs, gen(unq_dum)
+tab prx_ccivalue_g_i2, gen(cci_dum)
+tab hba1c_cats_i2, gen(a1c_dum)
+tab prx_covvalue_g_i4, gen(smk_dum)
+tab physician_vis2, gen(vis_dum)
+
+//pscore model
+local mvmodel_ps = "dmdur metoverlap ckd_dum* unq_dum* cci_dum* a1c_dum* smk_dum* vis_dum* cvd_i statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i bmi_i sbp"
+
 gen trt =.
 replace trt=0 if indextype==0
 replace trt=1 if indextype==1
@@ -164,11 +165,23 @@ qui psmatch2 trt, outcome(mace) pscore(ps_single) neighbor(1)
 //Check to make sure PS are balanced
 //mi xeq 1: psgraph, treated(trt) pscore(ps_single)
 //Evaluate standardized differences in matched sample
-mi xeq 1: pstest `mvmodel_ps', treated(trt) both
+pstest `mvmodel_ps', treated(trt) both
+//mi xeq 1: pstest `mvmodel_ps', treated(trt) both
 //Graph standardized differences in matched sample
-mi xeq 1: pstest `mvmodel_ps', treated(trt) both graph
+pstest `mvmodel_ps', treated(trt) both graph
+//mi xeq 1: pstest `mvmodel_ps', treated(trt) both graph
 //Now you can adjust by deciles of the PS in a multivariable model
 //Fit the model separately on each of the 20 imputed datasets and combine results
+save Stat_mace_mi_pscore, replace
+qui{
+mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+matrix b=r(table)
+matrix c=b'
+matrix list c
+local i=2
+local x=`i'+5
+putexcel A`x'=("Propensity Score") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6]) using FigureS6, modify
+}
 mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender
 mi estimate, hr: stcox trt ib5.decile age_indexdate gender
 

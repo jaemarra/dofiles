@@ -105,10 +105,10 @@ table indextype `var', contents(n acm mean acm) format(%6.2f) center col
 	
 //TABLE 1: BASELINE CHARACTERISTICS (from table1.xlsx)
 use Stat_acm_cc, clear
-table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(manuscript_tables.xlsx, sheet(Table1))
+table1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(manuscript_tables.xlsx, sheet(Table1) sheetmodify)
 //SUPPLEMENT TABLE S1: LINKED BASELINE CHARACTERISTICS (from table1_linked.xlsx)
 use Stat_acm_cc, clear
-table1 if linked_b==1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(manuscript_tables.xlsx, sheet(TableS1))
+table1 if linked_b==1, by(indextype) vars(age_indexdate contn \ age_cat cat \ gender cat \ imd2010_5 cat \ dmdur contn \ metoverlap contn \ prx_covvalue_g_i4 cat \ prx_covvalue_g_i5 cat \ bmi_i_cats cat \ physician_vis2 cat \ ang_i bin \ arr_i bin \ afib_i bin \ hf_i bin \ htn_i bin \ mi_i bin \ pvd_i bin \ stroke_i bin \ revasc_i bin \ prx_ccivalue_g_i2 cat \ hba1c_i contn \ hba1c_cats_i cat \ prx_covvalue_g_i3 contn \ sbp_i_cats2 cat \ egfr_amdrd contn \ ckd_amdrd cat \ unique_cov_drugs cat \ unqrx2 cat \ statin_i bin \ calchan_i bin \ betablock_i bin \ anticoag_oral_i bin \ antiplat_i bin \ ace_arb_renin_i bin \ diuretics_all_i bin) onecol format(%9.2g) saving(manuscript_tables.xlsx, sheet(TableS1) sheetmodify)
 
 //ACM WRITTEN SECTION NUMBERS: For SMRs, IRs, person-time, HRs and CIs either use table2_acm.xlsx (Unadj MI Ref0 tab)
 //OR:
@@ -566,6 +566,7 @@ metan HR LL UL, force by(Outcome) nowt nobox nooverall null(1) scheme(s1mono) xl
 }
 //generate Figure2A
 metan HR LL UL, force by(Outcome) nowt nobox nooverall nosubgroup null(1) astext(45) scheme(s1mono) xlabel(0, 0.25, 0.5, 0.75, 1.25) lcols(Model) effect("{bf}Hazard {bf}Ratio") saving(Figure2A, asis replace)
+graph export Figure2A.png, replace
 
 //FIGURE 2B: LINKED ONLY POPULATION MAIN FINDINGS- ALL OUTCOMES FOR DPP VS SU  
 //MACE
@@ -836,6 +837,7 @@ metan HR LL UL, force by(Outcome) nowt nobox nooverall null(1) scheme(s1mono) xl
 }
 //generate Figure2B
 metan HR LL UL, force by(Outcome) nowt nobox nooverall nosubgroup null(1) astext(45) scheme(s1mono) xlabel(0, 0.25, 0.5, 0.75, 1.25) lcols(Model) effect("{bf}Hazard {bf}Ratio") saving(Figure2A, asis replace)
+graph export Figure2B.png, replace
 
 //SUPPLEMENT FIGURE S2: ACM FINDINGS FOR ALL CLASSES (UNADJ VS ADJ)
 use Stat_acm_mi, clear
@@ -1034,6 +1036,7 @@ metan HR LL UL, force by(model) nowt nobox nooverall null(1) xlabel(0.25, 0.5, .
 }
 //generate FigureS3
 metan HR LL UL, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75) astext(70) scheme(s1mono) lcols(Models) effect("{bf}Hazard {bf}Ratio") saving(FigureS3, asis replace)
+graph export FigureS3.png, replace
 
 //SUPPLEMENT TABLE S3: ACM FOR DPP and GLP VS SU ACROSS VARYING RANGES
 //secondline OR use table2_acm.xlsx (Unadj MI and Adj MI Ref0 tabs)
@@ -1394,6 +1397,7 @@ metan HR LL UL, force by(referents) nowt nobox nooverall null(1) xlabel(0, 0.25,
 }
 //generate FigureS4
 metan HR LL UL, force by(referents) nowt nobox nooverall nosubgroup null(1) xlabel(0, 2, 3, 4, 5, 6, 7, 8) astext(45) scheme(s1mono) lcols(adj) effect("{bf}Hazard {bf}Ratio") saving(FigureS4, asis replace)
+graph export FigureS4.png, replace
 
 //TABLE 2: ACM FINDINGS FOR EACH CLASS OF ANTIDIABETIC AGENT
 use Stat_acm_mi, clear
@@ -1715,10 +1719,13 @@ metan HR LL UL, force by(Model) nowt nobox nooverall null(1) xlabel(0, 0.25, 0.5
 }
 //generate FigureS5
 metan HR LL UL if adj==1, force by(trt) nowt nobox nooverall nosubgroup null(1) xlabel(0, 2, 3, 4, 5, 6, 7) astext(65) scheme(s1mono) lcols(Model) effect("{bf}Hazard {bf}Ratio") saving(FigureS5, asis replace)
+graph export FigureS5.png, replace
 
 ****************************************************************************************************************************************
 //MACE WRITTEN SECTION NUMBERS: 
 // 2x2 tables with exposure and outcome (MACE)
+use mace, clear
+keep if linked_b==1
 label var indextype "2nd-line Agent"
 tab indextype mace, row
 label var indextype3 "3rd-line Agent"
@@ -1744,8 +1751,7 @@ table indextype `var', contents(n mace mean mace) format(%6.2f) center col
 
 //get duration of metformin monotherapy prior to index switch/add
 //to get the linked numbers
-use Analytic_Dataset_Master
-do Data13_variable_generation
+use mace, clear
 keep if linked_b==1
 tab indextype
 tab mace
@@ -1893,6 +1899,7 @@ metan HR LL UL, force by(model) nowt nobox nooverall null(1) xlabel(0.25, 0.5, .
 }
 //generate FigureS6
 metan HR LL UL, force by(model) nowt nobox nooverall nosubgroup null(1) xlabel(0.25, 0.5, .75) astext(70) scheme(s1mono) lcols(Models) effect("{bf}Hazard {bf}Ratio") saving(FigureS6, asis replace)
+graph export FigureS6.png, replace
 
 //SUPPLEMENT FIGURE S7: MACE FINDINGS FOR DPP VS ALL REFERENTS
 use Stat_mace_mi, clear
@@ -2038,6 +2045,7 @@ metan HR LL UL, force by(referents) nowt nobox nooverall null(1) xlabel(0, 0.25,
 }
 //generate FigureS7
 metan HR LL UL, force by(referents) nowt nobox nooverall nosubgroup null(1) xlabel(0, 2, 3) astext(65) scheme(s1mono) lcols(adj) effect("{bf}Hazard {bf}Ratio") saving(FigureS7, asis replace)
+graph export FigureS7.png, replace
 
 //SUPPLEMENT TABLE S4: MACE FINDINGS FOR DPP AND GLP VS SU ACROSS VARYING RANGES
 //secondline OR use table2_acm.xlsx (Unadj MI and Adj MI Ref0 tabs)
@@ -2383,6 +2391,7 @@ metan HR LL UL, force by(Model) nowt nobox nooverall null(1) xlabel(0, 0.25, 0.5
 }
 //generate FigureS8
 metan HR LL UL if adj==1, force by(trt) nowt nobox nooverall nosubgroup null(1) xlabel(0, 2, 3, 4, 5, 6, 7) astext(65) scheme(s1mono) lcols(Model) effect("{bf}Hazard {bf}Ratio") saving(FigureS8, asis replace)
+graph export FigureS8.png, replace
 
 //FIGURE 3: ACM SUBGROUP ANALYSIS
 use Stat_acm_mi, clear
@@ -2916,6 +2925,7 @@ label var Subgroup "{bf}Subgroups"
 metan aHR LL UL, force by(subgroup) nowt nobox nooverall null(1) xlabel(0.2, 1.8) lcols(Subgroup) effect("Hazard Ratio") saving(ACM_subgrp, asis replace)
 }
 metan aHR LL UL, force by(subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) astext(65) xlabel(0, .5, 1.5, 2, 2.5) lcols(Subgroup) rcols(nDPP NDPP nSU NSU) effect("Hazard Ratio") saving(Figure3, asis replace)
+graph export Figure3.png, replace
 
 //FIGURE 4: ACM SUBGROUP ANALYSIS
 ////////////////////////////////////////////////////////////////////////AGE/////////////////////////////////////////////////////////////////
@@ -3449,6 +3459,7 @@ label var Subgroup "{bf}Subgroups"
 metan aHR LL UL, force by(subgroup) nowt nobox nooverall null(1) xlabel(0.2, 1.8) lcols(Subgroup) effect("Hazard Ratio")
 }
 metan aHR LL UL, force by(subgroup) nowt nobox nooverall nosubgroup null(1) scheme(s1mono) astext(65) xlabel(0, .5, 1.5, 2) lcols(Subgroup) rcols(nDPP NDPP nSU NSU) effect("Hazard Ratio") saving(Figure4, asis replace)
+graph export Figure4.png, replace
 
 //SUPPLEMENT FIGURE S9: OVERALL MAIN FINDINGS BY AGENT
 //LOOP TO GENERATE OUTCOMES BY AGENT
@@ -3571,6 +3582,7 @@ metan HR LL UL, force by(agent) nowt nobox nooverall null(1) xlabel(0, 0.25, 0.5
 }
 //generate FigureS9
 metan HR LL UL, force by(agent) nowt nobox nooverall nosubgroup null(1) xlabel(0, 2, 3, 4, 5) astext(25) scheme(s1mono) lcols(Outcome) rcols(p) effect("{bf}Hazard {bf}Ratio") saving(FigureS9, asis replace)
+graph export FigureS9.png, replace
 
 //SUPPLEMENT FIGURE S10: OVERALL MAIN FINDINGS BY OUTCOME
 //SUBSECTIONS TO GENERATE OUTCOMES ACROSS ALL AGENTS
@@ -3729,4 +3741,5 @@ metan HR LL UL, force by(Outcome) nowt nobox nooverall null(1) xlabel(0, 0.25, 0
 }
 //generate FigureS10
 metan HR LL UL, force by(Outcome) nowt nobox nooverall nosubgroup null(1) xlabel(0, 2, 3, 4, 5) astext(25) scheme(s1mono) lcols(agent) rcols(p) effect("{bf}Hazard {bf}Ratio") saving(FigureS10, asis replace)
+graph export FigureS10.png, replace
 
