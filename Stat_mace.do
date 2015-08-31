@@ -131,13 +131,14 @@ local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 // update censor times for final exposure to second-line agent (indextype)
 generate exposure_exit=.
 forval i=0/5 {
- replace exposure_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
+replace exposure_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
 }
-replace mace = 0 if exposure_exit<mace_exit
-replace mace_exit=exposure_exit if exposure_exit<mace_exit
+clonevar mace_exit_clone=mace_exit
+replace mace = 0 if exposure_exit<mace_exit_clone
+replace mace_exit_clone=exposure_exit if exposure_exit<mace_exit_clone
 
 // declare survival analysis - final exposure as last exposure date 
-stset mace_exit, fail(mace) id(patid) origin(seconddate) scale(365.25)
+stset mace_exit_clone, fail(mace) id(patid) origin(seconddate) scale(365.25)
 
 quietly {
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
@@ -251,11 +252,12 @@ gen exposure_exit=.
 forval i=0/5 {
  replace exposure_exit = exposuret1`i' if indextype==`i' & exposuret1`i'!=.
 }
-replace mace = 0 if exposure_exit<mace_exit
-replace mace_exit=exposure_exit if exposure_exit<mace_exit
+clonevar mace_exit_clone=mace_exit
+replace mace = 0 if exposure_exit<mace_exit_clone
+replace mace_exit_clone=exposure_exit if exposure_exit<mace_exit_clone
 
 //declare survival analysis - last continuous exposure as last exposure date 
-stset mace_exit, fail(mace) id(patid) origin(seconddate) scale(365.25)
+stset mace_exit_clone, fail(mace) id(patid) origin(seconddate) scale(365.25)
 
 // Multiple imputation
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
@@ -378,11 +380,12 @@ forval i=0/5 {
  drop censor2 censor3 censordate
 
 //reset mace to zero if patient is censored before the mace event
-replace mace = 0 if exposure_exit<mace_exit
-replace mace_exit=exposure_exit if exposure_exit<mace_exit
+clonevar mace_exit_clone=mace_exit
+replace mace = 0 if exposure_exit<mace_exit_clone
+replace mace_exit_clone=exposure_exit if exposure_exit<mace_exit_clone
 
 // declare survival analysis for single agent exposure to thirddate
-stset mace_exit, fail(mace) id(patid) origin(seconddate) scale(365.25)
+stset mace_exit_clone, fail(mace) id(patid) origin(seconddate) scale(365.25)
 
 quietly {
 // Multiple imputation
