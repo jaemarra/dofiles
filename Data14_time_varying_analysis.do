@@ -15,8 +15,16 @@
 
 //stset
 
-//If using MI method, insert MI
-
 //Generate c*time variable
 
+//COMPLETE CASE ANALYSIS
+
 //stcox i.indextype `mvmodel' ctime
+
+//MULTIPLE IMPUTATION ANALYSIS
+
+//insert MI code
+
+//Re-generate c*time variable
+
+//stcox i.indextype `mvmodel_mi' ctime
