@@ -3,6 +3,12 @@
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     JM \ July 2015  
 
+clear
+capture log close
+set more off
+log using Stat_manuscript, replace
+timer on 1
+
 use Analytic_Dataset_Master
 do Data13_variable_generation
 keep if exclude==0&seconddate>17167
@@ -821,9 +827,9 @@ destring Adjusted, gen(adj)
 drop Adjusted
 destring Outcome, gen(outcome)
 drop Outcome
-save Figure2A, replace
-//generate Figure 2A
-use Figure2A, clear
+save Figure2B, replace
+//generate Figure 2B
+use Figure2B, clear
 capture label drop outcomes
 label define outcomes 1 "{bf}MACE" 2 "{bf}CV Death" 3 "{bf}Myocardial {bf}Infarction" 4 "{bf}Stroke"
 capture rename outcome Outcome
@@ -836,7 +842,7 @@ label var Model "{bf}Outcome"
 metan HR LL UL, force by(Outcome) nowt nobox nooverall null(1) scheme(s1mono) xlabel(0, 1, 2, 3) lcols(Model) effect("Hazard Ratio")
 }
 //generate Figure2B
-metan HR LL UL, force by(Outcome) nowt nobox nooverall nosubgroup null(1) astext(45) scheme(s1mono) xlabel(0, 0.25, 0.5, 0.75, 1.25) lcols(Model) effect("{bf}Hazard {bf}Ratio") saving(Figure2A, asis replace)
+metan HR LL UL, force by(Outcome) nowt nobox nooverall nosubgroup null(1) astext(45) scheme(s1mono) xlabel(0, 0.25, 0.5, 0.75, 1.25) lcols(Model) effect("{bf}Hazard {bf}Ratio") saving(Figure2B, asis replace)
 graph export Figure2B.png, replace
 
 //SUPPLEMENT FIGURE S2: ACM FINDINGS FOR ALL CLASSES (UNADJ VS ADJ)
@@ -886,7 +892,7 @@ local x=`i'+17
 local y=`i'+1
 putexcel A17=("Variable") B17=("aHR") C17=("SE") D17=("p-value") E17=("LL") F17=("UL") B`x'=(c[`y',1]) C`x'=(c[`y',2]) D`x'=(c[`y',4]) E`x'=(c[`y',5]) F`x'=(c[`y',6]) using FigureS2, modify
 }
-putexcel A2= ("0") using Figure2, modify
+putexcel A2= ("0") using FigureS2, modify
 putexcel A3= ("1") A11= ("1") A18=("1") using FigureS2, modify
 putexcel A4= ("2") A12= ("2") A19=("2") using FigureS2, modify
 putexcel A5= ("3") A13= ("3") A20=("3") using FigureS2, modify
@@ -930,6 +936,7 @@ metan hr ll ul, force by(class) nowt nobox nooverall null(1) xlabel(0, 0.25, 0.5
 }
 //generate FigureS2
 metan hr ll ul, force by(class) nowt nobox nooverall nosubgroup null(1) xlabel(0, 2, 3, 4, 5) astext(55) scheme(s1mono) lcols(adj) rcols(fail nofail) effect("{bf}Hazard {bf}Ratio") saving(FigureS2, asis replace)
+graph export FigureS2.png, replace
 
 //SUPPLEMENT TABLE S2: DPP SUBCLASS RATES
 //Generate additional incidence data for subclasses of DPP
@@ -3751,3 +3758,5 @@ metan HR LL UL, force by(Outcome) nowt nobox nooverall null(1) xlabel(0, 0.25, 0
 metan HR LL UL, force by(Outcome) nowt nobox nooverall nosubgroup null(1) xlabel(0, 2, 3, 4, 5) astext(25) scheme(s1mono) lcols(agent) rcols(p) effect("{bf}Hazard {bf}Ratio") saving(FigureS10, asis replace)
 graph export FigureS10.png, replace
 
+timer off 1
+log close
