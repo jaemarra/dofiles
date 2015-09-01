@@ -167,6 +167,15 @@ pstest `mvmodel_ps', treated(trt) both graph
 //Now you can adjust by deciles of the PS in a multivariable model
 //Fit the model separately on each of the 20 imputed datasets and combine results
 save Stat_acm_mi_pscore, replace
+qui{
+mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
+matrix b=r(table)
+matrix c=b'
+matrix list c
+local i=2
+local x=`i'+5
+putexcel A`x'=("Propensity Score") B1=("HR") C1=("SE") D1=("p-value") E1=("LL") F1=("UL") B`x'=(c[`i',1]) C`x'=(c[`i',2]) D`x'=(c[`i',4]) E`x'=(c[`i',5]) F`x'=(c[`i',6]) using FigureS3, modify
+}
 mi estimate, hr: stcox i.indextype ib5.decile age_indexdate gender
 mi estimate, hr: stcox trt ib5.decile age_indexdate gender
 
