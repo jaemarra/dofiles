@@ -1,4 +1,4 @@
-//  program:    Data00_exclusion.do
+//  program:    Data02_support_b.do
 //  task:		Import clinical and hes patients and mark for exclusion based on pregnancy-related markers
 //  project: 	Incretins--Comparative mortality and CV outcomes (CPRD)
 //  author:     JM \ Jan2015
