@@ -121,7 +121,7 @@ save Drug_Exp_C.dta, replace
 merge m:1 patid using Analytic_variables_a, gen(flagAVar)
 
 //merge in supplemental common dosage information
-//merge m:1 textid using Dosage_Info, gen(flagDose)
+merge m:1 textid using commondosages, gen(flagDose)
 
 //tidy labels
 label var tx "Censor date calculated as first of lcd, tod"
@@ -173,10 +173,25 @@ keep if indextype==3
 
 //tidy up
 drop flag* multiplicity *admrx ever* thirddate fourthdate fifthdate sixthdate seventhdate unqrx linked_practice hes_e tod2 lcd2 death_e lsoa_e cprd_e start_o start_h start_g end_h end_o pcos gest_diab preg marital regstat reggap internal toreason accept frd2 crd2 yob2 yob_indexdate exclude
-//Generate intensity (quintiles of dose)
-//several options for calculating- what do you want me to  put in here??
-
-//drop extraneous variables- anything you want me to drop here??
+//INSULIN ANALYSIS
+//#1 intensity (quintiles of dose)
+//Calculate daily dose divided by nearest weight measurement
+gen dose=.
+replace dose= (daily_dose/weight_i) if dose_unit=="UNIT"&daily_dose!=.&weight_i!=.
+clonevar dose_quintile=dose
+_pctile dose_quintile, p(5(5)95)
+return list
+gen quintile = 20 if dose_quintile < .
+qui forval i = 19(-1)1 {
+         replace quintile = `i' if dose_quintile <= r(r`i')
+ }
+ 
+//#2 duration of continuous exposure
+//#3 duration of intermittent exposure (add up each exposure)
+//#4 updated average cumulative dose
+//#5 unweighted cumulative dose
+//#6 weighted cumulative dose
+//#7 marginal structural model
 
 //save long form file
 save Drug_Exposures_c, replace
