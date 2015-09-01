@@ -3545,7 +3545,7 @@ putexcel A10=("Revasc") B10=(c[`y',1]) C10=(c[`y',2]) D10=(c[`y',4]) E10=(c[`y',
 quietly{
 clear
 import excel using FigureS9, sheet("DPP4I") cellrange(A1:F10) firstrow
-export excel using FigureS9.xlsx, sheet("Combined") cell(A1) firstrow(variables)
+export excel using FigureS9.xlsx, sheet("Combined") cell(A1) firstrow(variables) sheetmod
 clear
 import excel using FigureS9, sheet("GLP1RA") cellrange(A1:F10) firstrow
 export excel using FigureS9.xlsx, sheet("Combined") cell(A11) sheetmod
@@ -3569,6 +3569,14 @@ replace agent=3 if counts>=19&counts<=27
 replace agent=4 if counts>=28&counts<=36
 replace agent=5 if counts>=37&counts<=45
 drop counts
+local outlist "ACM MACE CVDEATH Angina Arrhythmia HF MI Stroke Revasc"
+gen outcome=.
+forval i=1/9 {
+local outnum:word `i' of `outlist'
+replace outcome=`i' if Outcome=="`outnum'"
+}
+drop Outcome
+rename outcome Outcome
 capture label drop agents
 capture label drop outcomes
 label define agents 1 "{bf}DPP4i" 2 "{bf}GLP-1RA" 3 "{bf}Insulin" 4 "{bf}Thiazolidinedione" 5 "{bf}Other {bf}antidiabetic"
