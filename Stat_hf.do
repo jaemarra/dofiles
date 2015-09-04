@@ -263,10 +263,10 @@ local clin2 = "i.ckd_amdrd i.physician_vis2"
 //all clinical covariates included in model post-imputation
 local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 }
-// update censor times for final exposure to second-line agent (indextype)
+// update censor times for final exposure to third-line agent (indextype3)
 gen exposure_exit=.
 forval i=0/5 {
- replace exposure_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
+ replace exposure_exit = exposuretf`i' if indextype3==`i' & exposuretf`i'!=.
 }
 replace hf=0 if exposure_exit<hf_exit
 replace hf_exit=exposure_exit if exposure_exit<hf_exit
