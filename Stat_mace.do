@@ -235,7 +235,121 @@ mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 
 *******************************************************SENSITIVITY ANALYSIS*******************************************************
-// #1a. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
+//#1 MULTIPLE IMPUTATION APPROACH AT AGENT 3
+use mace, clear
+quietly {
+//Create macros
+//all demographic covariates
+local demo = "age_indexdate gender ib2.smokestatus"
+//all demographic covariates included in model (not including those being imputed)
+local demo2= "age_indexdate gender"
+//all demographic covariates included in model post-imputation
+local demoMI= "age_indexdate gender ib2.smokestatus_clone"
+//all comorbidity history covariates included in model (not including those being imputed)
+local comorb = "i.prx_ccivalue_g_i2 mi_i stroke_i hf_i arr_i ang_i revasc_i htn_i afib_i pvd_i"
+//all comorbidity history covariates included in model (not including those being imputed); individual CV comorbidities simplified to cvd_i
+local comorb2 ="i.prx_ccivalue_g_i2 cvd_i"
+//all medication history covariates
+local meds = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i post_*"
+//all medication history covariates included in model (not including those being imputed); post_* are always dropped for collinearity
+local meds2 = "i.unique_cov_drugs dmdur metoverlap statin_i calchan_i betablock_i anticoag_oral_i antiplat_i ace_arb_renin_i diuretics_all_i"
+//all clinical covariates
+local clin = "ib1.hba1c_cats_i2 sbp i.ckd_amdrd i.physician_vis2 bmi_i"
+//all clinical covariates included in model (not including those being imputed)
+local clin2 = "i.ckd_amdrd i.physician_vis2"
+//all clinical covariates included in model post-imputation
+local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
+}
+// update censor times for final exposure to third-line agent (indextype3)
+clonevar mace_exit_clone=mace_exit
+gen exposure_exit=.
+forval i=0/5 {
+ replace exposure_exit = exposuretf`i' if indextype3==`i' & exposuretf`i'!=.
+}
+replace mace=0 if exposure_exit<mace_exit_clone
+replace mace_exit_clone=exposure_exit if exposure_exit<mace_exit_clone
+
+// declare survival analysis - final exposure as last exposure date 
+stset mace_exit_clone, fail(mace) id(patid) origin(thirddate) scale(365.25)
+
+quietly {
+//put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
+mi set mlong
+clonevar hba1c_cats_i2_clone = hba1c_cats_i2
+replace hba1c_cats_i2_clone=. if hba1c_cats_i2==5
+clonevar smokestatus_clone = smokestatus
+replace smokestatus_clone=. if smokestatus==0
+//inform mi which variables contain missing values for which we want to timpute (bmi_i and sbp)
+mi register imputed bmi_i sbp smokestatus_clone hba1c_cats_i2_clone
+//set the seed so that results are reproducible
+set seed 1979
+//impute (20 iterations) for each missing value in the registered variables
+mi impute chained (regress) bmi_i sbp (mlogit) smokestatus_clone hba1c_cats_i2_clone = mace `demo2' `comorb2' `meds2' `clin2', add(20)
+// spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
+mi stsplit adm4, after(fourthdate) at(0)
+replace su_post=1 if indextype4==0 & adm4!=-1
+replace dpp4i_post=1 if indextype4==1 & adm4!=-1
+replace glp1ra_post=1 if indextype4==2 & adm4!=-1
+replace ins_post=1 if indextype4==3 & adm4!=-1
+replace tzd_post=1 if indextype4==4 & adm4!=-1
+replace oth_post=1 if indextype4==5 & adm4!=-1
+
+mi stsplit adm5, after(fifthdate) at(0) 
+replace su_post=1 if indextype5==0 & adm5!=-1
+replace dpp4i_post=1 if indextype5==1 & adm5!=-1
+replace glp1ra_post=1 if indextype5==2 & adm5!=-1
+replace ins_post=1 if indextype5==3 & adm5!=-1
+replace tzd_post=1 if indextype5==4 & adm5!=-1
+replace oth_post=1 if indextype5==5 & adm5!=-1
+
+mi stsplit adm6, after(sixthdate) at(0)
+replace su_post=1 if indextype6==0 & adm6!=-1
+replace dpp4i_post=1 if indextype6==1 & adm6!=-1
+replace glp1ra_post=1 if indextype6==2 & adm6!=-1
+replace ins_post=1 if indextype6==3 & adm6!=-1
+replace tzd_post=1 if indextype6==4 & adm6!=-1
+replace oth_post=1 if indextype6==5 & adm6!=-1
+
+mi stsplit adm7, after(seventhdate) at(0)
+replace su_post=1 if indextype7==0 & adm7!=-1
+replace dpp4i_post=1 if indextype7==1 & adm7!=-1
+replace glp1ra_post=1 if indextype7==2 & adm7!=-1
+replace ins_post=1 if indextype7==3 & adm7!=-1
+replace tzd_post=1 if indextype7==4 & adm7!=-1
+replace oth_post=1 if indextype7==5 & adm7!=-1
+
+mi stsplit stop0, after(exposuretf0) at(0)
+replace su_post=0 if su_post==1 & stop0!=-1
+
+mi stsplit stop1, after(exposuretf1) at(0)
+replace dpp4i_post=0 if dpp4i_post==1 & stop1!=-1
+
+mi stsplit stop2, after(exposuretf2) at(0)
+replace glp1ra_post=0 if glp1ra_post==1 & stop2!=-1
+
+mi stsplit stop3, after(exposuretf3) at(0)
+replace ins_post=0 if ins_post==1 & stop3!=-1
+
+mi stsplit stop4, after(exposuretf4) at(0)
+replace tzd_post=0 if tzd_post==1 & stop4!=-1
+
+mi stsplit stop5, after(exposuretf5) at(0)
+replace oth_post=0 if oth_post==1 & stop5!=-1
+}
+save Stat_hf_mi3, replace
+
+//Generate person-years, incidence rate, and 95%CI as well as hazard ratio
+mi xeq: stptime, by(indextype) per(1000)
+mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
+
+//#2. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
 use mace, clear
 quietly {
 //Create macros
@@ -362,7 +476,7 @@ mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 //********************************************************************************************************************************//
 
-//#2a. CENSOR EXPSOURE AT INDEXTYPE3
+//#3. CENSOR EXPSOURE AT INDEXTYPE3
 use mace, clear
 quietly {
 //Create macros
@@ -505,7 +619,7 @@ mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
 
 //********************************************************************************************************************************//
-//#3 ANY EXPOSURE AFTER METFORMIN
+//#4 ANY EXPOSURE AFTER METFORMIN
 use mace, clear
 quietly {
 //Create macros

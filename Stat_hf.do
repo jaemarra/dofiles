@@ -255,7 +255,8 @@ save Stat_hf_mi, replace
 mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
-//MULTIPLE IMPUTATION APPROACH AT AGENT 3
+*******************************************************SENSITIVITY ANALYSIS*******************************************************
+//#1, MULTIPLE IMPUTATION APPROACH AT AGENT 3
 use hf, clear
 quietly {
 //Create macros
@@ -368,8 +369,8 @@ save Stat_hf_mi3, replace
 //Generate person-years, incidence rate, and 95%CI as well as hazard ratio
 mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)
-*******************************************************SENSITIVITY ANALYSIS*******************************************************
-// #1. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
+
+// #2. CENSOR EXPSOURE AT FIRST GAP FOR THE FIRST SWITCH/ADD AGENT (INDEXTYPE)
 use hf, clear
 quietly {
 //Create macros
@@ -493,7 +494,7 @@ mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype
 
 //********************************************************************************************************************************//
-//#2a. CENSOR EXPSOURE AT INDEXTYPE3
+//#3a. CENSOR EXPSOURE AT INDEXTYPE3
 use hf, clear
 quietly {
 //Create macros
@@ -636,7 +637,7 @@ save Stat_hf_mi_index3, replace
 mi xeq: stptime, by(indextype) title(person-years) per(1000)
 mi estimate, hr: stcox i.indextype
 
-//#2b. CENSOR EXPSOURE AT INDEXTYPE4
+//#3b. CENSOR EXPSOURE AT INDEXTYPE4
 use hf, clear
 quietly {
 //Create macros
@@ -770,7 +771,7 @@ save Stat_hf_mi_index4, replace
 mi xeq: stptime, by(indextype) title(person-years) per(1000)
 mi estimate, hr: stcox i.indextype
 //********************************************************************************************************************************//
-//#3 ANY EXPOSURE AFTER METFORMIN
+//#4 ANY EXPOSURE AFTER METFORMIN
 use hf, clear
 quietly {
 //Create macros

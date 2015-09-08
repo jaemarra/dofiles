@@ -484,7 +484,7 @@ mi xeq: stptime, by(indextype) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f)  
 
 //********************************************************************************************************************************//
-//#2. CENSOR EXPSOURE AT INDEXTYPE3
+//#3. CENSOR EXPSOURE AT INDEXTYPE3
 use acm, clear
 
 quietly {
@@ -553,7 +553,7 @@ mi xeq: stptime, title(person-years) per(1000)
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 //********************************************************************************************************************************//
-//#3 ANY EXPOSURE AFTER METFORMIN
+//#4 ANY EXPOSURE AFTER METFORMIN
 use acm, clear
 
 quietly {
