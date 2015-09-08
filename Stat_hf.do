@@ -47,25 +47,34 @@ local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 
 // update censor times for final exposure to second-line agent (indextype)
 gen exposure_exit=.
+clonevar hf_exit_clone=hf_exit
+
 forval i=0/5 {
 	replace exposure_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
 }
 
-replace hf=0 if exposure_exit<hf_exit
-replace hf_exit=exposure_exit if exposure_exit<hf_exit
+replace hf=0 if exposure_exit<hf_exit_clone
+replace hf_exit_clone=exposure_exit if exposure_exit<hf_exit_clone
 
 // declare survival analysis - final exposure as last exposure date 
-stset hf_exit, fail(hf) id(patid) origin(seconddate) scale(365.25)
+stset hf_exit_clone, fail(hf) id(patid) origin(seconddate) scale(365.25)
 
 quietly {
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 stsplit adm3, after(thirddate) at(0)
-gen su_post=(indextype3==0 & adm3!=-1)
-gen dpp4i_post=(indextype3==1 & adm3!=-1)
-gen glp1ra_post=(indextype3==2 & adm3!=-1)
-gen ins_post=(indextype3==3  & adm3!=-1)
-gen tzd_post=(indextype3==4 & adm3!=-1)
-gen oth_post=(indextype3==5  & adm3!=-1)
+replace su_post=(indextype3==0 & adm3!=-1)
+replace dpp4i_post=(indextype3==1 & adm3!=-1)
+replace glp1ra_post=(indextype3==2 & adm3!=-1)
+replace ins_post=(indextype3==3  & adm3!=-1)
+replace tzd_post=(indextype3==4 & adm3!=-1)
+replace oth_post=(indextype3==5  & adm3!=-1)
 
 stsplit adm4, after(fourthdate) at(0)
 replace su_post=1 if indextype4==0 & adm4!=-1
@@ -151,14 +160,15 @@ local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 }
 // update censor times for final exposure to second-line agent (indextype)
 gen exposure_exit=.
+clonevar hf_exit_clone=hf_exit
 forval i=0/5 {
  replace exposure_exit = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
 }
-replace hf=0 if exposure_exit<hf_exit
-replace hf_exit=exposure_exit if exposure_exit<hf_exit
+replace hf=0 if exposure_exit<hf_exit_clone
+replace hf_exit_clone=exposure_exit if exposure_exit<hf_exit_clone
 
 // declare survival analysis - final exposure as last exposure date 
-stset hf_exit, fail(hf) id(patid) origin(seconddate) scale(365.25)
+stset hf_exit_clone, fail(hf) id(patid) origin(seconddate) scale(365.25)
 
 quietly {
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
@@ -174,13 +184,20 @@ set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) smokestatus_clone hba1c_cats_i2_clone = hf `demo2' `comorb2' `meds2' `clin2', add(20)
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 mi stsplit adm3, after(thirddate) at(0)
-gen su_post=(indextype3==0 & adm3!=-1)
-gen dpp4i_post=(indextype3==1 & adm3!=-1)
-gen glp1ra_post=(indextype3==2 & adm3!=-1)
-gen ins_post=(indextype3==3  & adm3!=-1)
-gen tzd_post=(indextype3==4 & adm3!=-1)
-gen oth_post=(indextype3==5  & adm3!=-1)
+replace su_post=(indextype3==0 & adm3!=-1)
+replace dpp4i_post=(indextype3==1 & adm3!=-1)
+replace glp1ra_post=(indextype3==2 & adm3!=-1)
+replace ins_post=(indextype3==3  & adm3!=-1)
+replace tzd_post=(indextype3==4 & adm3!=-1)
+replace oth_post=(indextype3==5  & adm3!=-1)
 
 mi stsplit adm4, after(fourthdate) at(0)
 replace su_post=1 if indextype4==0 & adm4!=-1
@@ -265,14 +282,15 @@ local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 }
 // update censor times for final exposure to third-line agent (indextype3)
 gen exposure_exit=.
+clonevar hf_exit_clone=hf_exit
 forval i=0/5 {
  replace exposure_exit = exposuretf`i' if indextype3==`i' & exposuretf`i'!=.
 }
-replace hf=0 if exposure_exit<hf_exit
-replace hf_exit=exposure_exit if exposure_exit<hf_exit
+replace hf=0 if exposure_exit<hf_exit_clone
+replace hf_exit_clone=exposure_exit if exposure_exit<hf_exit_clone
 
 // declare survival analysis - final exposure as last exposure date 
-stset hf_exit, fail(hf) id(patid) origin(thirddate) scale(365.25)
+stset hf_exit_clone, fail(hf) id(patid) origin(thirddate) scale(365.25)
 
 quietly {
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
@@ -288,14 +306,20 @@ set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) smokestatus_clone hba1c_cats_i2_clone = hf `demo2' `comorb2' `meds2' `clin2', add(20)
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
 
 mi stsplit adm4, after(fourthdate) at(0)
-gen su_post=1 if indextype4==0 & adm4!=-1
-gen dpp4i_post=1 if indextype4==1 & adm4!=-1
-gen glp1ra_post=1 if indextype4==2 & adm4!=-1
-gen ins_post=1 if indextype4==3 & adm4!=-1
-gen tzd_post=1 if indextype4==4 & adm4!=-1
-gen oth_post=1 if indextype4==5 & adm4!=-1
+replace su_post=1 if indextype4==0 & adm4!=-1
+replace dpp4i_post=1 if indextype4==1 & adm4!=-1
+replace glp1ra_post=1 if indextype4==2 & adm4!=-1
+replace ins_post=1 if indextype4==3 & adm4!=-1
+replace tzd_post=1 if indextype4==4 & adm4!=-1
+replace oth_post=1 if indextype4==5 & adm4!=-1
 
 mi stsplit adm5, after(fifthdate) at(0) 
 replace su_post=1 if indextype5==0 & adm5!=-1
@@ -372,14 +396,15 @@ local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 }
 //update censor times for last continuous exposure to second-line agent (indextype)
 gen exposure_exit=.
+clonevar hf_exit_clone=hf_exit
 forval i=0/5 {
  replace exposure_exit = exposuret1`i' if indextype==`i' & exposuret1`i'!=.
 }
-replace hf=0 if exposure_exit<hf_exit
-replace hf_exit=exposure_exit if exposure_exit<hf_exit
+replace hf=0 if exposure_exit<hf_exit_clone
+replace hf_exit_clone=exposure_exit if exposure_exit<hf_exit_clone
 
 //declare survival analysis - last continuous exposure as last exposure date 
-stset hf_exit, fail(hf) id(patid) origin(seconddate) scale(365.25)
+stset hf_exit_clone, fail(hf) id(patid) origin(seconddate) scale(365.25)
 quietly {
 // Multiple imputation
 //put data in mlong form such that complete rows are omitted and only incomplete and imputed rows are shown
@@ -396,13 +421,20 @@ set seed 1979
 mi impute chained (regress) bmi_i sbp (mlogit) smokestatus_clone hba1c_cats_i2_clone = hf `demo2' `comorb2' `meds2' `clin2', add(20)
 
 //spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 mi stsplit adm3, after(thirddate) at(0)
-gen su_post=(indextype3==0 & adm3!=-1)
-gen dpp4i_post=(indextype3==1 & adm3!=-1)
-gen glp1ra_post=(indextype3==2 & adm3!=-1)
-gen ins_post=(indextype3==3  & adm3!=-1)
-gen tzd_post=(indextype3==4 & adm3!=-1)
-gen oth_post=(indextype3==5  & adm3!=-1)
+replace su_post=(indextype3==0 & adm3!=-1)
+replace dpp4i_post=(indextype3==1 & adm3!=-1)
+replace glp1ra_post=(indextype3==2 & adm3!=-1)
+replace ins_post=(indextype3==3  & adm3!=-1)
+replace tzd_post=(indextype3==4 & adm3!=-1)
+replace oth_post=(indextype3==5  & adm3!=-1)
 
 mi stsplit adm4, after(fourthdate) at(0)
 replace su_post=1 if indextype4==0 & adm4!=-1
@@ -491,6 +523,7 @@ local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 gen exposure_exit=.
 gen censor2=.
 gen censor3=.
+clonevar hf_exit_clone=hf_exit
 forval i=0/5 {
  replace censor2 = exposuretf`i' if indextype==`i' & exposuretf`i'!=.
  replace censor3 = exposuret0`i' if indextype3==`i' & exposuret0`i'!=.
@@ -500,11 +533,11 @@ replace exposure_exit = censordate
 drop censor2 censor3 censordate
 
 //reset hf to zero patient is censored before the death event
-replace hf=0 if exposure_exit<hf_exit
-replace hf_exit=exposure_exit if exposure_exit<hf_exit
+replace hf=0 if exposure_exit<hf_exit_clone
+replace hf_exit_clone=exposure_exit if exposure_exit<hf_exit_clone
 
 // declare survival analysis for single agent exposure to thirddate
-stset hf_exit, fail(hf) id(patid) origin(seconddate) scale(365.25)
+stset hf_exit_clone, fail(hf) id(patid) origin(seconddate) scale(365.25)
 
 quietly {
 // Multiple imputation
@@ -524,13 +557,20 @@ mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2_clone smokestatus_c
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
 
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 mi stsplit adm3, at(0) after(thirddate)
-gen su_post=regexm(thirdadmrx, "SU") & adm3!=-1
-gen dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
-gen glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
-gen ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
-gen tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
-gen oth_post=regexm(thirdadmrx, "other") & adm3!=-1
+replace su_post=regexm(thirdadmrx, "SU") & adm3!=-1
+replace dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
+replace glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
+replace ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
+replace tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
+replace oth_post=regexm(thirdadmrx, "other") & adm3!=-1
 
 mi stsplit adm4, at(0) after(fourthdate)
 replace su_post=1 if regexm(fourthadmrx, "SU") & adm4!=-1
@@ -626,6 +666,7 @@ local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 gen exposure_exit=.
 gen censor3=.
 gen censor4=
+clonevar hf_exit_clone=hf_exit
 forval i=0/5 {
  replace censor3 = exposuretf`i' if indextype3==`i' & exposuretf`i'!=.
  replace censor4 = exposuret0`i' if indextype4==`i' & exposuret0`i'!=.
@@ -635,11 +676,11 @@ replace exposure_exit = censordate
 drop censor3 censor4 censordate
 
 //reset hf to zero if patient is censored before the death event
-replace hf=0 if exposure_exit<hf_exit
-replace hf_exit=exposure_exit if exposure_exit<hf_exit
+replace hf=0 if exposure_exit<hf_exit_clone
+replace hf_exit_clone=exposure_exit if exposure_exit<hf_exit_clone
 
 // declare survival analysis for single agent exposure to thirddate
-stset hf_exit, fail(hf) id(patid) origin(thirddate) scale(365.25)
+stset hf_exit_clone, fail(hf) id(patid) origin(thirddate) scale(365.25)
 
 quietly {
 // Multiple imputation
@@ -657,15 +698,21 @@ set seed 1979
 mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2_clone smokestatus_clone = hf `demo2' `comorb2' `meds2' `clin2', add(20)
 //Generate hazard ratios
 mi estimate, hr: stcox i.indextype, cformat(%6.2f) pformat(%5.3f) sformat(%6.2f) 
-
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 mi stsplit adm4, at(0) after(fourthdate)
-gen su_post=1 if regexm(fourthadmrx, "SU") & adm4!=-1
-gen dpp4i_post= 1 if regexm(fourthadmrx, "DPP") & adm4!=-1
-gen glp1ra_post=1 if regexm(fourthadmrx, "GLP") & adm4!=-1
-gen ins_post=1 if regexm(fourthadmrx, "insulin") & adm4!=-1
-gen tzd_post=1 if regexm(fourthadmrx, "TZD") & adm4!=-1
-gen oth_post=1 if regexm(fourthadmrx, "other") & adm4!=-1
+replace su_post=1 if regexm(fourthadmrx, "SU") & adm4!=-1
+replace dpp4i_post= 1 if regexm(fourthadmrx, "DPP") & adm4!=-1
+replace glp1ra_post=1 if regexm(fourthadmrx, "GLP") & adm4!=-1
+replace ins_post=1 if regexm(fourthadmrx, "insulin") & adm4!=-1
+replace tzd_post=1 if regexm(fourthadmrx, "TZD") & adm4!=-1
+replace oth_post=1 if regexm(fourthadmrx, "other") & adm4!=-1
 
 mi stsplit adm5, at(0) after(fifthdate)
 replace su_post=1 if regexm(fifthadmrx, "SU") & adm5!=-1
@@ -765,15 +812,21 @@ mi register imputed bmi_i sbp smokestatus_clone hba1c_cats_i2_clone
 set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) smokestatus_clone hba1c_cats_i2_clone = hf `demo2' `comorb2' `meds2' `clin2', add(20)
-
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 mi stsplit adm3, at(0) after(thirddate)
-gen su_post=regexm(thirdadmrx, "SU") & adm3!=-1
-gen dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
-gen glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
-gen ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
-gen tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
-gen oth_post=regexm(thirdadmrx, "other") & adm3!=-1
+replace su_post=regexm(thirdadmrx, "SU") & adm3!=-1
+replace dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
+replace glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
+replace ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
+replace tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
+replace oth_post=regexm(thirdadmrx, "other") & adm3!=-1
 
 mi stsplit adm4, at(0) after(fourthdate)
 replace su_post=1 if regexm(fourthadmrx, "SU") & adm4!=-1

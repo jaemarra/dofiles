@@ -38,13 +38,20 @@ replace mace_exit=exposure_exit if exposure_exit<mace_exit
 stset mace_exit, fail(mace) id(patid) origin(seconddate) scale(365.25)
 quietly {
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 stsplit adm3, after(thirddate) at(0)
-gen su_post=(indextype3==0 & adm3!=-1)
-gen dpp4i_post=(indextype3==1 & adm3!=-1)
-gen glp1ra_post=(indextype3==2 & adm3!=-1)
-gen ins_post=(indextype3==3  & adm3!=-1)
-gen tzd_post=(indextype3==4 & adm3!=-1)
-gen oth_post=(indextype3==5  & adm3!=-1)
+replace su_post=(indextype3==0 & adm3!=-1)
+replace dpp4i_post=(indextype3==1 & adm3!=-1)
+replace glp1ra_post=(indextype3==2 & adm3!=-1)
+replace ins_post=(indextype3==3  & adm3!=-1)
+replace tzd_post=(indextype3==4 & adm3!=-1)
+replace oth_post=(indextype3==5  & adm3!=-1)
 
 stsplit adm4, after(fourthdate) at(0)
 replace su_post=1 if indextype4==0 & adm4!=-1
@@ -155,13 +162,20 @@ set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) smokestatus_clone hba1c_cats_i2_clone = mace `demo2' `comorb2' `meds2' `clin2', add(20)
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 mi stsplit adm3, after(thirddate) at(0)
-gen su_post=(indextype3==0 & adm3!=-1)
-gen dpp4i_post=(indextype3==1 & adm3!=-1)
-gen glp1ra_post=(indextype3==2 & adm3!=-1)
-gen ins_post=(indextype3==3  & adm3!=-1)
-gen tzd_post=(indextype3==4 & adm3!=-1)
-gen oth_post=(indextype3==5  & adm3!=-1)
+replace su_post=(indextype3==0 & adm3!=-1)
+replace dpp4i_post=(indextype3==1 & adm3!=-1)
+replace glp1ra_post=(indextype3==2 & adm3!=-1)
+replace ins_post=(indextype3==3  & adm3!=-1)
+replace tzd_post=(indextype3==4 & adm3!=-1)
+replace oth_post=(indextype3==5  & adm3!=-1)
 
 mi stsplit adm4, after(fourthdate) at(0)
 replace su_post=1 if indextype4==0 & adm4!=-1
@@ -275,13 +289,20 @@ set seed 1979
 mi impute chained (regress) bmi_i sbp (mlogit) smokestatus_clone hba1c_cats_i2_clone = mace `demo2' `comorb2' `meds2' `clin2', add(20) 
 
 //spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 mi stsplit adm3, after(thirddate) at(0)
-gen su_post=(indextype3==0 & adm3!=-1)
-gen dpp4i_post=(indextype3==1 & adm3!=-1)
-gen glp1ra_post=(indextype3==2 & adm3!=-1)
-gen ins_post=(indextype3==3  & adm3!=-1)
-gen tzd_post=(indextype3==4 & adm3!=-1)
-gen oth_post=(indextype3==5  & adm3!=-1)
+replace su_post=(indextype3==0 & adm3!=-1)
+replace dpp4i_post=(indextype3==1 & adm3!=-1)
+replace glp1ra_post=(indextype3==2 & adm3!=-1)
+replace ins_post=(indextype3==3  & adm3!=-1)
+replace tzd_post=(indextype3==4 & adm3!=-1)
+replace oth_post=(indextype3==5  & adm3!=-1)
 
 mi stsplit adm4, after(fourthdate) at(0)
 replace su_post=1 if indextype4==0 & adm4!=-1
@@ -403,13 +424,20 @@ set seed 1979
 //impute (20 iterations) for each missing value in the registered variables
 mi impute chained (regress) bmi_i sbp (mlogit) hba1c_cats_i2_clone smokestatus_clone = mace `demo2' `comorb2' `meds2' `clin2', add(20)
 // spit data to integrate time-varying covariates for diabetes meds.
+gen su_post=0
+gen dpp4i_post=0
+gen glp1ra_post=0
+gen ins_post=0
+gen tzd_post=0
+gen oth_post=0
+
 mi stsplit adm3, at(0) after(thirddate)
-gen su_post=regexm(thirdadmrx, "SU") & adm3!=-1
-gen dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
-gen glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
-gen ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
-gen tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
-gen oth_post=regexm(thirdadmrx, "other") & adm3!=-1
+replace su_post=regexm(thirdadmrx, "SU") & adm3!=-1
+replace dpp4i_post=regexm(thirdadmrx, "DPP") & adm3!=-1
+replace glp1ra_post=regexm(thirdadmrx, "GLP") & adm3!=-1
+replace ins_post=regexm(thirdadmrx, "insulin") & adm3!=-1
+replace tzd_post=regexm(thirdadmrx, "TZD") & adm3!=-1
+replace oth_post=regexm(thirdadmrx, "other") & adm3!=-1
 
 mi stsplit adm4, at(0) after(fourthdate)
 replace su_post=1 if regexm(fourthadmrx, "SU") & adm4!=-1
