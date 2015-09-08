@@ -666,7 +666,7 @@ local clinMI = "ib1.hba1c_cats_i2_clone sbp i.ckd_amdrd i.physician_vis2 bmi_i"
 //update censor times for single agent exposure to a thirddate
 gen exposure_exit=.
 gen censor3=.
-gen censor4=
+gen censor4=.
 clonevar hf_exit_clone=hf_exit
 forval i=0/5 {
  replace censor3 = exposuretf`i' if indextype3==`i' & exposuretf`i'!=.
